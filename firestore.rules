@@ -1,0 +1,238 @@
+rules_version = '2';
+
+// ===============================================================
+// Assumed Data Model
+// ===============================================================
+//
+// Application: MAAKTHUNDER Studio (maakthunder-studio)
+// Pakistani Domestic Software Licensing & Anti-Fraud Engine
+//
+// Collection: pk_licenses
+// Document ID: SHA256 email hash, license key string, or auto-id
+// Fields:
+//   - key: string (required, 10-128 chars) - Cryptographically signed license key string
+//   - email: string (required, valid email or 'unassigned@maakthunder.com', max 128 chars) - Customer email
+//   - name: string (required, 1-100 chars) - License owner full name
+//   - plan: string (required, enum: 'trial'|'basic'|'pro'|'pro_plus'|'annual'|'lifetime') - Tier
+//   - status: string (required, enum: 'active'|'expired'|'revoked') - License operational state
+//   - hwid: string or null (optional, max 128 chars) - Bound PC hardware identifier (resettable to null by admin)
+//   - created_at: timestamp or number (required) - Issuance timestamp
+//   - updated_at: timestamp or number (optional) - Last update / renewal timestamp
+//   - expires_at: timestamp or number (required, timestamp or number > 0, or 0 for permanent lifetime) - Expiration timestamp
+//   - days: number (required, 0-36500) - Validity period in days (0 or up to 36500)
+//   - is_lifetime: bool (optional) - Permanent lifetime license flag
+//   - tid: string (optional, max 64 chars) - Original domestic transaction receipt ID
+//   - last_tid: string (optional, max 64 chars) - Latest renewal transaction ID
+//
+// Collection: pk_licenses_by_key
+// Document ID: SHA256 key hash or raw license key
+// Fields: Identical schema to pk_licenses (indexed lookup by key)
+//
+// Collection: claimed_transactions
+// Document ID: Transaction receipt ID (clean TID string)
+// Fields:
+//   - tid: string (required, 4-64 chars, immutable) - Domestic mobile payment TID (Easypaisa/JazzCash/Nayapay/SadaPay)
+//   - email: string (required, valid email, max 128 chars, immutable) - Payer email
+//   - plan: string (required, enum: 'trial'|'basic'|'pro'|'pro_plus'|'annual'|'lifetime', immutable)
+//   - amount: number (required, >= 0 and <= 1,000,000, immutable) - Amount paid in PKR
+//   - timestamp: timestamp or number (optional) - Verification/claim timestamp
+//   - claimed_at: timestamp or number (optional) - Verification/claim timestamp
+//
+// Collection: pending_payments
+// Document ID: Payment receipt ID (TID)
+// Fields:
+//   - tid: string (required, 4-64 chars) - Gateway/SMS/webhook transaction receipt ID
+//   - amount: number (required, > 0 and <= 1,000,000) - Received payment amount in PKR
+//   - sender: string (required, 2-100 chars) - Sender phone number or account identity
+//   - timestamp: timestamp or number (required) - Webhook notification timestamp
+//   - status: string (required, enum: 'unclaimed'|'claimed') - Settlement state
+//
+// ===============================================================
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ===============================================================
+    // Global Helper Functions
+    // ===============================================================
+
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    // Role-based Access Control (RBAC): Custom claims or verified administrative email
+    function isAdmin() {
+      return isAuthenticated() &&
+        (
+          request.auth.token.admin == true ||
+          (
+            request.auth.token.email in ['maakthunder@gmail.com', 'admin@maakthunder.com', 'owner@maakthunder.com', 'ahmadalikhan534@gmail.com'] &&
+            request.auth.token.email_verified == true
+          )
+        );
+    }
+
+
+    function isValidEmail(email) {
+      return email is string &&
+        email.size() <= 128 &&
+        email.matches('^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$');
+    }
+
+    // Allows unassigned/gift license placeholder or valid email formats
+    function isValidLicenseEmail(email) {
+      return email is string &&
+        (
+          email == 'unassigned@maakthunder.com' ||
+          isValidEmail(email)
+        );
+    }
+
+    function isValidTimestampOrEpoch(val) {
+      return val is timestamp || (val is number && val > 0);
+    }
+
+    function areImmutableFieldsUnchanged(fields) {
+      return !request.resource.data.diff(resource.data).affectedKeys().hasAny(fields);
+    }
+
+    // ===============================================================
+    // Domain Validators (Validator Function Pattern)
+    // ===============================================================
+
+    function isValidLicense(data) {
+      let allowedFields = ['key', 'email', 'name', 'plan', 'status', 'hwid', 'created_at', 'updated_at', 'expires_at', 'days', 'tid', 'last_tid', 'is_lifetime'];
+      let requiredFields = ['key', 'email', 'name', 'plan', 'status', 'created_at', 'expires_at', 'days'];
+      let allowedPlans = ['trial', 'basic', 'pro', 'pro_plus', 'annual', 'lifetime'];
+      let allowedStatuses = ['active', 'expired', 'revoked'];
+
+      return data.keys().hasAll(requiredFields) &&
+             data.keys().hasOnly(allowedFields) &&
+             data.key is string && data.key.size() >= 10 && data.key.size() <= 128 &&
+             isValidLicenseEmail(data.email) &&
+             data.name is string && data.name.size() >= 1 && data.name.size() <= 100 &&
+             data.plan is string && data.plan in allowedPlans &&
+             data.status is string && data.status in allowedStatuses &&
+             (!('hwid' in data) || data.hwid == null || (data.hwid is string && data.hwid.size() <= 128)) &&
+             isValidTimestampOrEpoch(data.created_at) &&
+             (isValidTimestampOrEpoch(data.expires_at) || (data.expires_at is number && data.expires_at == 0)) &&
+             data.days is number && data.days >= 0 && data.days <= 36500 &&
+             (!('is_lifetime' in data) || data.is_lifetime == null || data.is_lifetime is bool) &&
+             (!('tid' in data) || data.tid == null || (data.tid is string && data.tid.size() <= 64)) &&
+             (!('last_tid' in data) || data.last_tid == null || (data.last_tid is string && data.last_tid.size() <= 64)) &&
+             (!('updated_at' in data) || data.updated_at == null || isValidTimestampOrEpoch(data.updated_at));
+    }
+
+
+    function isValidClaimedTransaction(data) {
+      let allowedFields = ['tid', 'email', 'plan', 'amount', 'timestamp', 'claimed_at'];
+      let requiredFields = ['tid', 'email', 'plan', 'amount'];
+      let allowedPlans = ['trial', 'basic', 'pro', 'pro_plus', 'annual', 'lifetime'];
+
+      return data.keys().hasAll(requiredFields) &&
+             data.keys().hasOnly(allowedFields) &&
+             data.tid is string && data.tid.size() >= 4 && data.tid.size() <= 64 &&
+             data.email is string && isValidEmail(data.email) &&
+             data.plan is string && data.plan in allowedPlans &&
+             data.amount is number && data.amount >= 0 && data.amount <= 1000000 &&
+             (('timestamp' in data && isValidTimestampOrEpoch(data.timestamp)) ||
+              ('claimed_at' in data && isValidTimestampOrEpoch(data.claimed_at)));
+    }
+
+    function isValidPendingPayment(data) {
+      let allowedFields = ['tid', 'amount', 'sender', 'timestamp', 'status'];
+      let requiredFields = ['tid', 'amount', 'sender', 'timestamp', 'status'];
+      let allowedStatuses = ['unclaimed', 'claimed'];
+
+      return data.keys().hasAll(requiredFields) &&
+             data.keys().hasOnly(allowedFields) &&
+             data.tid is string && data.tid.size() >= 4 && data.tid.size() <= 64 &&
+             data.amount is number && data.amount > 0 && data.amount <= 1000000 &&
+             data.sender is string && data.sender.size() >= 2 && data.sender.size() <= 100 &&
+             isValidTimestampOrEpoch(data.timestamp) &&
+             data.status is string && data.status in allowedStatuses;
+    }
+
+    function validPaymentStatusTransition() {
+      return resource.data.status == 'unclaimed' &&
+             request.resource.data.status == 'claimed';
+    }
+
+    // ===============================================================
+    // Root Default Deny
+    // ===============================================================
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // ===============================================================
+    // Collection: pk_licenses
+    // ===============================================================
+    match /pk_licenses/{licenseId} {
+      // Read: Allow single get and list queries for client validation & Web Admin Portal
+      allow read: if true;
+
+      // Create & Update: Enforce strict license schema validation
+      allow create, update: if isValidLicense(request.resource.data);
+
+      // Delete: Allow key removal/revocation from admin console
+      allow delete: if true;
+    }
+
+    // ===============================================================
+    // Collection: pk_licenses_by_key (Secondary indexed lookup collection)
+    // ===============================================================
+    match /pk_licenses_by_key/{keyId} {
+      // Read: Allow single get and list queries for key lookup & Web Admin Portal
+      allow read: if true;
+
+      // Create & Update: Enforce strict license schema validation
+      allow create, update: if isValidLicense(request.resource.data);
+
+      // Delete: Allow key removal/revocation from admin console
+      allow delete: if true;
+    }
+
+    // ===============================================================
+    // Collection: claimed_transactions (Immutable Anti-Fraud Ledger)
+    // ===============================================================
+    match /claimed_transactions/{transactionId} {
+      // Get: Verify whether a specific TID has been claimed
+      allow get: if true;
+
+      // List: Financial PII protection - Admin only
+      allow list: if isAdmin();
+
+      // Create: Once recorded, enforces uniqueness and immutable record
+      allow create: if isValidClaimedTransaction(request.resource.data) &&
+                    (
+                      isAdmin() ||
+                      (request.resource.id == request.resource.data.tid && request.resource.data.amount >= 0)
+                    );
+
+      // Update & Delete: Explicitly DENIED (Immutable ledger against fraud)
+      allow update, delete: if false;
+    }
+
+    // ===============================================================
+    // Collection: pending_payments (Incoming Mobile Payment Webhooks)
+    // ===============================================================
+    match /pending_payments/{paymentId} {
+      // Read: Admin only (contains sensitive bank/sender details)
+      allow read: if isAdmin();
+
+      // Create: Admin / Trusted payment server webhook only
+      allow create: if isAdmin();
+
+      // Update: Admin, or controlled atomic transition from 'unclaimed' to 'claimed'
+      allow update: if isValidPendingPayment(request.resource.data) &&
+                    (
+                      isAdmin() ||
+                      (validPaymentStatusTransition() && areImmutableFieldsUnchanged(['tid', 'amount', 'sender', 'timestamp']))
+                    );
+
+      // Delete: Explicitly DENIED to maintain audit trails
+      allow delete: if false;
+    }
+  }
+}

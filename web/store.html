@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Store &amp; Plans — THUNDER Studio</title>
+    <meta name="description" content="Official global licensing store for THUNDER PUBG Mobile Highlight Studio. Choose from 15-Day Free Trial, Basic, Pro, or Pro+ plans. Powered by Polar.sh.">
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
+
+    <!-- Fonts & Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;700;800;900&family=Rajdhani:wght@600;700&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --cyan-glow: #00e5ff;
+            --navy-dark: #050811;
+            --card-bg: rgba(10, 16, 30, 0.92);
+            --card-border: rgba(0, 229, 255, 0.25);
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--navy-dark);
+            color: #ffffff;
+            background-image: 
+                radial-gradient(circle at 50% 0%, rgba(0, 229, 255, 0.14), transparent 50%),
+                radial-gradient(circle at 90% 40%, rgba(217, 70, 239, 0.08), transparent 40%);
+            min-height: 100vh;
+        }
+        .font-orbitron { font-family: 'Orbitron', sans-serif; }
+        .font-rajdhani { font-family: 'Rajdhani', sans-serif; }
+        .font-mono { font-family: 'JetBrains Mono', monospace; }
+        
+        .glass-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--card-border);
+            box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.6);
+        }
+        .plan-card {
+            transition: all 0.25s ease-in-out;
+        }
+        .plan-card:hover {
+            border-color: rgba(0, 229, 255, 0.7);
+            transform: translateY(-4px);
+            box-shadow: 0 12px 35px rgba(0, 229, 255, 0.25);
+        }
+        .btn-cyan {
+            background: linear-gradient(180deg, #00f2fe 0%, #00c0e8 100%);
+            box-shadow: 0 4px 20px rgba(0, 229, 255, 0.4);
+            transition: all 0.2s ease-in-out;
+        }
+        .btn-cyan:hover {
+            background: linear-gradient(180deg, #33f6ff 0%, #00d2fc 100%);
+            box-shadow: 0 6px 30px rgba(0, 229, 255, 0.65);
+            transform: translateY(-2px);
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #050811;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #1c2f54;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body class="custom-scrollbar flex flex-col min-h-screen justify-between">
+
+    <!-- TOP NAVIGATION BAR -->
+    <header class="sticky top-0 z-50 backdrop-blur-xl bg-[#050811]/90 border-b border-[#1b2742]/80">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+            <a href="/" class="flex items-center space-x-3.5 group">
+                <img src="assets/thunder_3d_pro_logo.jpg" alt="THUNDER Studio 3D Logo" class="w-11 h-11 rounded-xl object-cover border-2 border-[#00e5ff] shadow-[0_0_20px_rgba(0,229,255,0.4)] group-hover:scale-105 transition-all">
+                <div class="flex flex-col">
+                    <span class="font-orbitron font-extrabold text-lg text-white tracking-wider flex items-center space-x-1.5">
+                        <span>THUNDER</span>
+                        <span class="text-[#00e5ff] text-xs px-2 py-0.5 rounded bg-[#00e5ff]/10 border border-[#00e5ff]/30 font-mono">STORE</span>
+                    </span>
+                    <span class="text-[10px] text-[#7890b0] uppercase tracking-widest font-semibold">Official Licensing Hub</span>
+                </div>
+            </a>
+
+            <nav class="hidden md:flex items-center space-x-8 text-xs font-bold text-[#8da2c0] uppercase tracking-wider">
+                <a href="/" class="hover:text-white transition-colors">Home</a>
+                <a href="/#features" class="hover:text-white transition-colors">Features</a>
+                <a href="/store" class="text-[#00e5ff] font-bold border-b-2 border-[#00e5ff] pb-1">Store &amp; Plans</a>
+                <a href="/portal" class="hover:text-emerald-400 transition-colors flex items-center space-x-1">
+                    <span>🇵🇰 Pakistani Pass</span>
+                </a>
+            </nav>
+
+            <div class="flex items-center space-x-3">
+                <a href="/portal" class="inline-flex items-center space-x-1.5 px-3.5 py-2 rounded-xl text-xs font-bold text-[#00e5ff] bg-[#0c1527] border border-[#00e5ff]/50 hover:bg-[#121f38] transition-all">
+                    <span>🇵🇰</span>
+                    <span>Pakistani Pass</span>
+                </a>
+                <a href="https://github.com/MAAKTHUNDER/THUNDER-PUBG-Mobile-Highlight-Automation-Studio/releases/latest" target="_blank" class="btn-cyan px-4 py-2.5 rounded-xl font-orbitron font-bold text-xs text-black flex items-center space-x-2">
+                    <span>📥</span>
+                    <span>Download v1.0.0</span>
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <!-- MAIN STORE CONTENT -->
+    <main class="py-12 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto flex-1">
+        
+        <!-- Header Banner -->
+        <div class="text-center space-y-3 mb-10">
+            <span class="text-xs font-bold uppercase tracking-widest text-[#00e5ff] bg-[#00e5ff]/10 px-3 py-1 rounded-full border border-[#00e5ff]/30 font-mono">GLOBAL LICENSING</span>
+            <h1 class="font-orbitron font-extrabold text-3xl sm:text-5xl text-white tracking-wide">
+                THUNDER STUDIO EDITIONS &amp; PLANS
+            </h1>
+            <p class="text-xs sm:text-sm text-[#8da2c0] max-w-2xl mx-auto">
+                Select your edition to unlock professional AI highlights, 9:16 vertical shorts, 3D thumbnails, and NVIDIA NVENC 60fps rendering.
+            </p>
+
+            <!-- Domestic Cross-Link Notice -->
+            <div class="inline-block mt-3 p-2.5 px-4 rounded-xl bg-[#091224] border border-[#00e5ff]/30 text-xs text-[#a5b8d0]">
+                <span>🇵🇰 In Pakistan? Use Easypaisa / JazzCash or claim your domestic trial:</span>
+                <a href="/portal" class="text-[#00e5ff] font-bold hover:underline ml-1">Open Pakistan Domestic Portal &rarr;</a>
+            </div>
+        </div>
+
+        <!-- 4 International Plan Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 mb-14">
+            
+            <!-- 1. 15-Day Free Trial ($0) -->
+            <div class="glass-card p-6 rounded-2xl border-2 border-[#00e5ff] bg-[#00e5ff]/10 shadow-[0_0_30px_rgba(0,229,255,0.25)] flex flex-col justify-between space-y-5 plan-card">
+                <div class="space-y-3">
+                    <div class="flex items-center justify-between">
+                        <span class="text-[9px] font-bold px-2.5 py-0.5 rounded bg-[#00e5ff] text-black uppercase font-orbitron">Testing Phase</span>
+                        <span class="text-sm">🎁</span>
+                    </div>
+                    <div>
+                        <h3 class="font-orbitron font-bold text-lg text-white">15-Day Free Trial</h3>
+                        <p class="text-xs text-[#00e5ff] font-bold mt-0.5">100% Full PRO+ Unlocked</p>
+                    </div>
+                    <ul class="text-xs text-[#cbe5ff] space-y-2 pt-2 border-t border-[#1c2f54]">
+                        <li class="flex items-start space-x-2"><span class="text-emerald-400 font-bold">✓</span><span>All Studio VFX &amp; Automation</span></li>
+                        <li class="flex items-start space-x-2"><span class="text-emerald-400 font-bold">✓</span><span>16:9 + 9:16 Shorts Dual Export</span></li>
+                        <li class="flex items-start space-x-2"><span class="text-emerald-400 font-bold">✓</span><span>3D Branded Intro &amp; SFX</span></li>
+                        <li class="flex items-start space-x-2"><span class="text-emerald-400 font-bold">✓</span><span>Multi-Match Queue (▲/▼ Reorder)</span></li>
+                        <li class="flex items-start space-x-2"><span class="text-emerald-400 font-bold">✓</span><span>Dual 3D Thumbnails &amp; SEO Kit</span></li>
+                    </ul>
+                </div>
+                <div>
+                    <div class="text-2xl font-black font-orbitron text-white mb-3">$0.00 <span class="text-xs text-emerald-400 font-normal">/ 15 Days</span></div>
+                    <a href="https://buy.polar.sh/polar_cl_d6GLSYIZRPoQLXgEQehOxevXfpAGBSfLzDYuR4C9V7i" target="_blank" class="btn-cyan w-full py-3 rounded-xl font-orbitron font-bold text-xs text-black flex items-center justify-center space-x-1.5">
+                        <span>⚡</span>
+                        <span>Claim Free Trial ($0)</span>
+                    </a>
+                </div>
+            </div>
+
+            <!-- 2. Basic Plan -->
+            <div class="glass-card p-6 rounded-2xl border border-[#1c2f54] flex flex-col justify-between space-y-5 plan-card">
+                <div class="space-y-3">
+                    <div class="flex items-center justify-between">
+                        <span class="text-[9px] font-bold px-2.5 py-0.5 rounded bg-[#101b30] text-[#a5d8ff] uppercase font-orbitron">Casual Tier</span>
+                        <span class="text-sm">⚡</span>
+                    </div>
+                    <div>
+                        <h3 class="font-orbitron font-bold text-lg text-white">Basic Plan</h3>
+                        <p class="text-xs text-[#8da2c0] mt-0.5">Pure Combat Cuts</p>
+                    </div>
+                    <ul class="text-xs text-[#7187a5] space-y-2 pt-2 border-t border-[#1c2f54]">
+                        <li class="flex items-start space-x-2"><span class="text-emerald-400 font-bold">✓</span><span class="text-white">AI Gunfight, Knock &amp; Kill Vision</span></li>
+                        <li class="flex items-start space-x-2"><span class="text-emerald-400 font-bold">✓</span><span class="text-white">16:9 Full HD 60fps Landscape</span></li>
+                        <li class="flex items-start space-x-2"><span class="text-emerald-400 font-bold">✓</span><span class="text-white">Hardware NVENC GPU Acceleration</span></li>
+                        <li class="flex items-start space-x-2"><span class="text-emerald-400 font-bold">✓</span><span class="text-white">Beat-Synced Audio Cuts</span></li>
+                        <li class="flex items-start space-x-2"><span class="text-rose-400 font-bold">✕</span><span>No 9:16 Shorts or 3D Intros</span></li>
+                    </ul>
+                </div>
+                <div>
+                    <div class="text-xs font-black font-orbitron text-[#f59e0b] mb-3 tracking-wider">PRICE ANNOUNCE SOON</div>
+                    <a href="https://buy.polar.sh/polar_cl_d6GLSYIZRPoQLXgEQehOxevXfpAGBSfLzDYuR4C9V7i" target="_blank" class="w-full py-3 rounded-xl bg-[#142036] hover:bg-[#1b2b48] border border-[#1c2f54] text-xs font-bold text-white flex items-center justify-center space-x-1.5 transition-all">
+                        <span>View on Polar</span>
+                    </a>
+                </div>
+            </div>
+
+            <!-- 3. Pro Plan -->
+            <div class="glass-card p-6 rounded-2xl border border-[#1c2f54] flex flex-col justify-between space-y-5 plan-card">
+                <div class="space-y-3">
+                    <div class="flex items-center justify-between">
+                        <span class="text-[9px] font-bold px-2.5 py-0.5 rounded bg-[#f59e0b]/20 text-[#f59e0b] uppercase font-orbitron">Creator Tier</span>
+                        <span class="text-sm">💎</span>
+                    </div>
+                    <div>
+                        <h3 class="font-orbitron font-bold text-lg text-[#f59e0b]">Pro Plan</h3>
+                        <p class="text-xs text-[#8da2c0] mt-0.5">Esports &amp; Shorts Studio</p>
+                    </div>
+                    <ul class="text-xs text-[#7187a5] space-y-2 pt-2 border-t border-[#1c2f54]">
+                        <li class="flex items-start space-x-2"><span class="text-emerald-400 font-bold">✓</span><span class="text-white">Everything in Basic Plan</span></li>
+                        <li class="flex items-start space-x-2"><span class="text-emerald-400 font-bold">✓</span><span class="text-white">9:16 Vertical Shorts with Zooms</span></li>
+                        <li class="flex items-start space-x-2"><span class="text-emerald-400 font-bold">✓</span><span class="text-white">2.0s 3D Branded Intro with IGN</span></li>
+                        <li class="flex items-start space-x-2"><span class="text-emerald-400 font-bold">✓</span><span class="text-white">Kill &amp; Knock Badges + Hit SFX</span></li>
+                        <li class="flex items-start space-x-2"><span class="text-emerald-400 font-bold">✓</span><span class="text-white">3D Thumbnail Studio &amp; Tags</span></li>
+                    </ul>
+                </div>
+                <div>
+                    <div class="text-xs font-black font-orbitron text-[#f59e0b] mb-3 tracking-wider">PRICE ANNOUNCE SOON</div>
+                    <a href="https://buy.polar.sh/polar_cl_d6GLSYIZRPoQLXgEQehOxevXfpAGBSfLzDYuR4C9V7i" target="_blank" class="w-full py-3 rounded-xl bg-[#142036] hover:bg-[#1b2b48] border border-[#1c2f54] text-xs font-bold text-white flex items-center justify-center space-x-1.5 transition-all">
+                        <span>View on Polar</span>
+                    </a>
+                </div>
+            </div>
+
+            <!-- 4. Pro+ Studio -->
+            <div class="glass-card p-6 rounded-2xl border border-[#1c2f54] flex flex-col justify-between space-y-5 plan-card">
+                <div class="space-y-3">
+                    <div class="flex items-center justify-between">
+                        <span class="text-[9px] font-bold px-2.5 py-0.5 rounded bg-[#d946ef]/20 text-[#d946ef] uppercase font-orbitron">Ultimate Power</span>
+                        <span class="text-sm">👑</span>
+                    </div>
+                    <div>
+                        <h3 class="font-orbitron font-bold text-lg text-[#d946ef]">Pro+ Studio</h3>
+                        <p class="text-xs text-[#8da2c0] mt-0.5">Full Studio Automation</p>
+                    </div>
+                    <ul class="text-xs text-[#7187a5] space-y-2 pt-2 border-t border-[#1c2f54]">
+                        <li class="flex items-start space-x-2"><span class="text-emerald-400 font-bold">✓</span><span class="text-white font-bold">Everything in Pro Plan</span></li>
+                        <li class="flex items-start space-x-2"><span class="text-emerald-400 font-bold">✓</span><span class="text-white">Multi-Match Custom Queue (▲/▼)</span></li>
+                        <li class="flex items-start space-x-2"><span class="text-emerald-400 font-bold">✓</span><span class="text-white">Dual Simultaneous 16:9 + 9:16 Render</span></li>
+                        <li class="flex items-start space-x-2"><span class="text-emerald-400 font-bold">✓</span><span class="text-white">Pro+ Studio VFX &amp; Shakes</span></li>
+                        <li class="flex items-start space-x-2"><span class="text-emerald-400 font-bold">✓</span><span class="text-white">Direct Cloud Auto-Upload Kit</span></li>
+                    </ul>
+                </div>
+                <div>
+                    <div class="text-xs font-black font-orbitron text-[#d946ef] mb-3 tracking-wider">PRICE ANNOUNCE SOON</div>
+                    <a href="https://buy.polar.sh/polar_cl_d6GLSYIZRPoQLXgEQehOxevXfpAGBSfLzDYuR4C9V7i" target="_blank" class="w-full py-3 rounded-xl bg-[#142036] hover:bg-[#1b2b48] border border-[#1c2f54] text-xs font-bold text-white flex items-center justify-center space-x-1.5 transition-all">
+                        <span>View on Polar</span>
+                    </a>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Polar Guarantee Badge -->
+        <div class="p-5 rounded-2xl bg-[#090f1d] border border-[#1c2f54] flex flex-col sm:flex-row items-center justify-between text-xs text-[#8da2c0] gap-4 mb-14">
+            <div class="flex items-center space-x-3">
+                <span class="text-2xl">🔒</span>
+                <div>
+                    <span class="text-white font-bold block">Powered by Polar.sh Global Checkout</span>
+                    <span>Instant digital key delivery to your email. Credit/Debit Cards, Apple Pay, Google Pay &amp; PayPal accepted worldwide.</span>
+                </div>
+            </div>
+            <a href="https://buy.polar.sh/polar_cl_d6GLSYIZRPoQLXgEQehOxevXfpAGBSfLzDYuR4C9V7i" target="_blank" class="btn-cyan px-5 py-2.5 rounded-xl font-orbitron font-bold text-xs text-black whitespace-nowrap">
+                Open Polar Checkout &rarr;
+            </a>
+        </div>
+
+        <!-- FULL FEATURE COMPARISON MATRIX TABLE -->
+        <div class="rounded-2xl border border-[#1b2742] bg-[#070b16] overflow-hidden shadow-2xl mb-14">
+            <div class="px-6 py-4 bg-[#0a1122] flex items-center justify-between border-b border-[#1b2742]">
+                <div class="flex items-center space-x-2 text-xs font-orbitron font-bold text-white">
+                    <span>📊</span>
+                    <span>COMPLETE FEATURE COMPARISON MATRIX</span>
+                </div>
+                <span class="text-[10px] font-bold text-[#00e5ff] uppercase tracking-wider">ALL TIERS DETAILED</span>
+            </div>
+            
+            <div class="p-5 overflow-x-auto">
+                <table class="w-full text-left text-xs border-collapse">
+                    <thead>
+                        <tr class="border-b border-[#1b2742] text-[#8da2c0] text-[10px] uppercase font-bold tracking-wider">
+                            <th class="pb-3">Capability / Feature</th>
+                            <th class="pb-3 text-center">Basic Plan</th>
+                            <th class="pb-3 text-center text-[#f59e0b]">Pro Plan</th>
+                            <th class="pb-3 text-center text-[#00e5ff]">Pro+ / Free Trial</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-[#131d33] text-[11px]">
+                        <tr>
+                            <td class="py-3 text-[#cbe5ff] font-medium">AI Combat Detection (Kill &amp; Knocks)</td>
+                            <td class="py-3 text-center text-emerald-400 font-bold">✓ Standard</td>
+                            <td class="py-3 text-center text-emerald-400 font-bold">✓ Single-Pass 23.5%</td>
+                            <td class="py-3 text-center text-[#00e5ff] font-bold">✓ Single-Pass 23.5%</td>
+                        </tr>
+                        <tr>
+                            <td class="py-3 text-[#cbe5ff] font-medium">Supported Video Aspect Ratios</td>
+                            <td class="py-3 text-center text-[#8da2c0]">16:9 Landscape Only</td>
+                            <td class="py-3 text-center text-white font-semibold">16:9 or 9:16 Shorts</td>
+                            <td class="py-3 text-center text-[#00e5ff] font-bold">Both Simultaneously</td>
+                        </tr>
+                        <tr>
+                            <td class="py-3 text-[#cbe5ff] font-medium">TikTok / Shorts Punch-Zooms &amp; Blur Fill</td>
+                            <td class="py-3 text-center text-rose-400 font-bold">✕ Locked</td>
+                            <td class="py-3 text-center text-emerald-400 font-bold">✓ Dynamic Zooms</td>
+                            <td class="py-3 text-center text-emerald-400 font-bold">✓ Dynamic Zooms</td>
+                        </tr>
+                        <tr>
+                            <td class="py-3 text-[#cbe5ff] font-medium">2.0s 3D Branded Intro (with IGN &amp; Channel)</td>
+                            <td class="py-3 text-center text-rose-400 font-bold">✕ None</td>
+                            <td class="py-3 text-center text-emerald-400 font-bold">✓ Included</td>
+                            <td class="py-3 text-center text-emerald-400 font-bold">✓ Included</td>
+                        </tr>
+                        <tr>
+                            <td class="py-3 text-[#cbe5ff] font-medium">Animated Kill &amp; Knockdown Badges</td>
+                            <td class="py-3 text-center text-rose-400 font-bold">✕ None</td>
+                            <td class="py-3 text-center text-emerald-400 font-bold">✓ Esports Pack</td>
+                            <td class="py-3 text-center text-emerald-400 font-bold">✓ Esports Pack</td>
+                        </tr>
+                        <tr>
+                            <td class="py-3 text-[#cbe5ff] font-medium">Impact Whoosh &amp; Combat SFX</td>
+                            <td class="py-3 text-center text-rose-400 font-bold">✕ Raw Audio</td>
+                            <td class="py-3 text-center text-emerald-400 font-bold">✓ Included</td>
+                            <td class="py-3 text-center text-emerald-400 font-bold">✓ Included</td>
+                        </tr>
+                        <tr>
+                            <td class="py-3 text-[#cbe5ff] font-medium">3D YouTube Thumbnail Generator</td>
+                            <td class="py-3 text-center text-rose-400 font-bold">✕ None</td>
+                            <td class="py-3 text-center text-emerald-400 font-bold">✓ 16:9 Landscape</td>
+                            <td class="py-3 text-center text-[#00e5ff] font-bold">✓ Dual 16:9 &amp; 9:16</td>
+                        </tr>
+                        <tr>
+                            <td class="py-3 text-[#cbe5ff] font-medium">1-Click Social Media Kit (SEO Titles &amp; Tags)</td>
+                            <td class="py-3 text-center text-rose-400 font-bold">✕ None</td>
+                            <td class="py-3 text-center text-emerald-400 font-bold">✓ Included</td>
+                            <td class="py-3 text-center text-[#00e5ff] font-bold">✓ Dual Format Kits</td>
+                        </tr>
+                        <tr>
+                            <td class="py-3 text-[#cbe5ff] font-medium">Multi-Match Custom Sequencing Queue</td>
+                            <td class="py-3 text-center text-rose-400 font-bold">✕ Single Match</td>
+                            <td class="py-3 text-center text-rose-400 font-bold">✕ Single Match</td>
+                            <td class="py-3 text-center text-emerald-400 font-bold">✓ Full Custom Queue (▲/▼)</td>
+                        </tr>
+                        <tr>
+                            <td class="py-3 text-[#cbe5ff] font-medium">Hardware Acceleration (NVIDIA NVENC 60fps)</td>
+                            <td class="py-3 text-center text-emerald-400 font-bold">✓ 1080p 60fps</td>
+                            <td class="py-3 text-center text-emerald-400 font-bold">✓ 1080p 60fps</td>
+                            <td class="py-3 text-center text-[#00e5ff] font-bold">✓ Max Ultra (25-30M)</td>
+                        </tr>
+                        <tr>
+                            <td class="py-3 text-[#cbe5ff] font-medium">Device HWID Hardware Lock</td>
+                            <td class="py-3 text-center text-white">1 PC Locked</td>
+                            <td class="py-3 text-center text-white">1 PC Locked</td>
+                            <td class="py-3 text-center text-white">1 PC Locked</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- FREQUENTLY ASKED QUESTIONS (FAQ) -->
+        <div class="max-w-3xl mx-auto space-y-4 mb-8">
+            <h3 class="font-orbitron font-bold text-lg text-white text-center mb-6">FREQUENTLY ASKED QUESTIONS</h3>
+            
+            <div class="p-5 rounded-xl bg-[#090f1d] border border-[#1b2742] space-y-2">
+                <h4 class="font-orbitron font-bold text-xs text-[#00e5ff]">How does the license key activation work?</h4>
+                <p class="text-xs text-[#8da2c0] leading-relaxed">
+                    Upon purchasing or claiming a trial, your license key is displayed on screen and sent to your email. Inside THUNDER Studio Desktop, click "Plan Setting", paste your key, and click "Activate Key". It cryptographically locks to your PC hardware.
+                </p>
+            </div>
+
+            <div class="p-5 rounded-xl bg-[#090f1d] border border-[#1b2742] space-y-2">
+                <h4 class="font-orbitron font-bold text-xs text-[#00e5ff]">Can I switch my license to a new PC?</h4>
+                <p class="text-xs text-[#8da2c0] leading-relaxed">
+                    Yes. Inside the desktop app, click "Remove / Reset License Key" to unlink your hardware. You can then activate the key on your new computer.
+                </p>
+            </div>
+
+            <div class="p-5 rounded-xl bg-[#090f1d] border border-[#1b2742] space-y-2">
+                <h4 class="font-orbitron font-bold text-xs text-[#00e5ff]">What happens when my 15-Day Free Trial ends?</h4>
+                <p class="text-xs text-[#8da2c0] leading-relaxed">
+                    You can either upgrade to a Pro or Pro+ pass on Polar (or domestic Pakistani portal) to continue exporting clean 1080p60 montages.
+                </p>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="py-12 px-4 sm:px-6 lg:px-8 border-t border-[#1b2742] bg-[#03060c] text-center text-xs text-[#64748b] space-y-4">
+        <div class="flex items-center justify-center space-x-6 text-sm font-bold text-[#8da2c0]">
+            <a href="/" class="hover:text-white transition-colors">Home</a>
+            <a href="/store" class="text-[#00e5ff]">Store</a>
+            <a href="/portal" class="hover:text-emerald-400 transition-colors">Pakistani Pass</a>
+            <a href="https://youtube.com/@MAAKTHUNDER" target="_blank" class="hover:text-red-400 transition-colors">YouTube</a>
+            <a href="https://tiktok.com/@MAAKTHUNDER" target="_blank" class="hover:text-[#00e5ff] transition-colors">TikTok</a>
+            <a href="https://github.com/MAAKTHUNDER/THUNDER-PUBG-Mobile-Highlight-Automation-Studio" target="_blank" class="hover:text-white transition-colors">GitHub</a>
+        </div>
+        <p>
+            Developed by <strong class="text-[#8da2c0]">MAAKTHUNDER</strong> (Player IGN: <code class="text-[#00e5ff]">TK • 亗 • MAAK</code>).
+        </p>
+        <p class="text-[11px]">
+            &copy; 2026 MAAKTHUNDER Studios. All rights reserved. Built for competitive PUBG Mobile esports creators.
+        </p>
+    </footer>
+
+</body>
+</html>

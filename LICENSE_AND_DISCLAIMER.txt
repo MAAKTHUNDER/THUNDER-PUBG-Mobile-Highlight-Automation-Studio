@@ -1,0 +1,74 @@
+================================================================================
+MAAKTHUNDER STUDIOS — END USER LICENSE AGREEMENT (EULA)
+& OFFICIAL FAIR-PLAY GAMING COMPLIANCE DISCLAIMER
+================================================================================
+Software: THUNDER — PUBG Mobile Highlight Automation Studio
+Version:  1.0.0 (Production Release)
+Developer: MAAKTHUNDER Studios
+Website:   https://maakthunder-studio.web.app
+Copyright (c) 2026 MAAKTHUNDER Studios. All Rights Reserved.
+================================================================================
+
+PLEASE READ THIS AGREEMENT CAREFULLY BEFORE INSTALLING OR USING THIS SOFTWARE.
+BY PROCEEDING WITH INSTALLATION, ACTIVATING A LICENSE KEY, OR USING THUNDER STUDIO,
+YOU ACKNOWLEDGE AND AGREE TO BE BOUND BY ALL TERMS AND CONDITIONS BELOW.
+
+--------------------------------------------------------------------------------
+1. 100% SAFE ESPORTS GAMING & FAIR-PLAY COMPLIANCE DISCLAIMER
+--------------------------------------------------------------------------------
+THUNDER Studio is an autonomous, post-match highlight extraction and video production
+suite. It operates STRICTLY AND EXCLUSIVELY on pre-recorded video files (e.g. from
+OBS Studio, GameLoop internal recorder, or external capture cards).
+
+* ZERO GAME MEMORY INJECTION: THUNDER does NOT hook, inject, inspect, or modify the
+  memory space of PUBG Mobile, Android emulators, or any anti-cheat software.
+* ZERO GAME FILE TAMPERING: THUNDER does NOT alter, read, or overwrite any game client
+  assets, PAK files, config files, or network packets.
+* 100% TOS COMPLIANT: The software analyzes optical pixels from video recordings after
+  matches conclude, functioning solely as an automated esports video editor. It provides
+  no in-game assistance, no aimbot, no ESP, and no unfair competitive advantage.
+
+--------------------------------------------------------------------------------
+2. SOFTWARE LICENSE & USAGE RIGHTS
+--------------------------------------------------------------------------------
+MAAKTHUNDER Studios grants you a personal, non-exclusive, non-transferable license
+to use THUNDER Studio in accordance with your registered plan tier:
+
+* TRIAL PASS (15 Days): Unlocks full studio capabilities for evaluation.
+* BASIC TIER: Standard 16:9 Landscape highlight compilation, high-speed pure cuts.
+* PRO TIER: Adds vertical 9:16 Shorts/Reels generator, dynamic punch-zooms, esports SFX.
+* PRO+ STUDIO: Unrestricted ultimate studio features, dual-render export, priority pipeline.
+* LIFETIME DURATION: Grants permanent unrestricted access for the lifetime of the client.
+
+--------------------------------------------------------------------------------
+3. HARDWARE ID (HWID) SECURITY & DEVICE LOCKING POLICY
+--------------------------------------------------------------------------------
+To protect domestic Pakistani creators and international license holders against piracy
+and unauthorized key redistribution:
+
+* Each license pass is cryptographically bound to ONE (1) physical PC hardware
+  configuration via a unique, non-reversible Hardware ID (HWID).
+* Attempting to use the same key on a second computer will be automatically rejected
+  by the Sentinel Cloud Security Shield.
+* PC transfers, upgrades, or motherboard replacements can be authorized at any time
+  by contacting MAAKTHUNDER Studios administration or requesting an unbind.
+
+--------------------------------------------------------------------------------
+4. PRIVACY & TELEMETRY
+--------------------------------------------------------------------------------
+THUNDER Studio respects customer privacy. We do not collect personal gameplay logs,
+browser history, or private media files. The client communicates with the cloud solely
+to verify license validity, enforce HWID integrity, and check for software updates.
+
+--------------------------------------------------------------------------------
+5. LIMITATION OF LIABILITY
+--------------------------------------------------------------------------------
+THIS SOFTWARE IS PROVIDED "AS IS" WITHOUT WARRANTY OF ANY KIND. MAAKTHUNDER STUDIOS
+DISCLAIMS ALL WARRANTIES, EXPRESS OR IMPLIED. UNDER NO CIRCUMSTANCES SHALL
+MAAKTHUNDER STUDIOS BE LIABLE FOR ANY CONSEQUENTIAL, INCIDENTAL, OR INDIRECT DAMAGES
+ARISING FROM THE USE OR INABILITY TO USE THIS APPLICATION.
+
+================================================================================
+MAAKTHUNDER Studios — Built by Gamers, Engineered for Champions.
+Official Portal: https://maakthunder-studio.web.app
+================================================================================

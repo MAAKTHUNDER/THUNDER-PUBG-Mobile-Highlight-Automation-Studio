@@ -1,0 +1,18 @@
+{
+  "latest_version": "1.0.0",
+  "release_date": "November 2026",
+  "download_url": "https://github.com/MAAKTHUNDER/THUNDER-PUBG-Mobile-Highlight-Automation-Studio/releases/download/v1.0.0/THUNDER_Studio_Setup_v1.0.0.exe",
+  "setup_filename": "THUNDER_Studio_Setup_v1.0.0.exe",
+  "file_size": "70.4 MB",
+  "mandatory": true,
+  "changelog": [
+    "⚡ Self-Contained Standalone Installer (Python 3.12 runtime and all dependencies pre-bundled)",
+    "🔕 Pure Silent Processing - Zero CMD / terminal popups during rendering",
+    "🛡️ Hardware-Bound HMAC-SHA256 Encrypted Offline Anti-Tamper Security",
+    "📂 Live Real-Time Output Highlights Gallery with Instant Playback & Explorer Sync",
+    "🚀 Hardware-Accelerated NVIDIA NVENC 60 FPS Export (25-30 Mbps)",
+    "📱 Dual 16:9 Landscape & 9:16 Vertical Shorts (TikTok/Reels/Shorts)",
+    "💎 3 Production Tiers: Basic (1080p), Pro (Esports Dynamic), Pro+ (VFX & Auto-Upload)",
+    "👑 Universal Domestic & International Licensing Integration"
+  ]
+}

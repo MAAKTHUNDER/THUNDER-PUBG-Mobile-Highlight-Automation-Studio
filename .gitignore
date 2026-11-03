@@ -1,0 +1,36 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+build/
+build_bin/
+build_temp/
+dist/
+dist_bin/
+dist_installer/
+downloads/
+*.spec
+
+# Studio Local Config & Secret Files
+studio_config.json
+scan_cache.json
+studio_project.json
+saved_project_clips.json
+hwid.cache
+*.vault
+.firebase/
+
+# Media Files
+*.mp4
+*.wav
+*.avi
+*.mkv
+
+# Environment & System
+.env
+.DS_Store
+Thumbs.db

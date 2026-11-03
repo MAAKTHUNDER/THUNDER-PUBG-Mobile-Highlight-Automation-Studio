@@ -1,0 +1,1341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>THUNDER Studio — Customer Database & License Control</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;700;800;900&family=Rajdhani:wght@600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+    
+    <!-- Firebase JS SDK (v10 compat) -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+
+    <style>
+        :root {
+            --cyan-glow: #00e5ff;
+            --navy-dark: #070a13;
+            --navy-card: rgba(14, 22, 38, 0.92);
+            --border-glow: rgba(0, 229, 255, 0.22);
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--navy-dark);
+            color: #ffffff;
+            background-image: 
+                radial-gradient(circle at 50% 0%, rgba(0, 229, 255, 0.12), transparent 50%),
+                radial-gradient(circle at 10% 40%, rgba(138, 43, 226, 0.08), transparent 40%);
+            min-height: 100vh;
+        }
+        .font-orbitron { font-family: 'Orbitron', sans-serif; }
+        .font-rajdhani { font-family: 'Rajdhani', sans-serif; }
+        .font-mono { font-family: 'JetBrains Mono', monospace; }
+        .glass-panel {
+            background: var(--navy-card);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--border-glow);
+            box-shadow: 0 16px 40px rgba(0, 0, 0, 0.5);
+        }
+        .btn-cyan {
+            background: linear-gradient(180deg, #00f2fe 0%, #00c0e8 100%);
+            box-shadow: 0 4px 15px rgba(0, 229, 255, 0.35);
+            transition: all 0.15s ease-in-out;
+        }
+        .btn-cyan:hover {
+            background: linear-gradient(180deg, #33f6ff 0%, #00d2fc 100%);
+            box-shadow: 0 6px 25px rgba(0, 229, 255, 0.6);
+            transform: translateY(-1px);
+        }
+        .plan-badge {
+            font-size: 0.7rem;
+            padding: 0.2rem 0.55rem;
+            border-radius: 9999px;
+            font-weight: 700;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+        }
+        .plan-trial { background: rgba(148, 163, 184, 0.15); color: #94a3b8; border: 1px solid rgba(148, 163, 184, 0.3); }
+        .plan-basic { background: rgba(59, 130, 246, 0.15); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.4); }
+        .plan-pro { background: rgba(0, 229, 255, 0.15); color: #00e5ff; border: 1px solid rgba(0, 229, 255, 0.4); box-shadow: 0 0 10px rgba(0, 229, 255, 0.2); }
+        .plan-pro_plus { background: rgba(168, 85, 247, 0.18); color: #c084fc; border: 1px solid rgba(168, 85, 247, 0.4); box-shadow: 0 0 12px rgba(168, 85, 247, 0.25); }
+        .plan-lifetime { background: linear-gradient(135deg, rgba(245, 158, 11, 0.25), rgba(234, 179, 8, 0.15)); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.5); box-shadow: 0 0 15px rgba(245, 158, 11, 0.3); }
+        
+        .modal-overlay {
+            background: rgba(3, 7, 18, 0.88);
+            backdrop-filter: blur(8px);
+        }
+        /* Custom scrollbar */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #070a13; }
+        ::-webkit-scrollbar-thumb { background: #1c2f54; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #00e5ff; }
+    </style>
+</head>
+<body class="p-3 md:p-6 min-h-screen flex flex-col justify-between">
+
+    <!-- ============================================================== -->
+    <!-- AUTHENTICATION GATE (Visible if not authenticated)             -->
+    <!-- ============================================================== -->
+    <div id="auth-gate" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#070a13]/95 backdrop-blur-xl">
+        <div class="max-w-md w-full glass-panel rounded-2xl p-6 md:p-8 space-y-6 text-center border border-[#00e5ff]/30 shadow-2xl">
+            <div class="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-[#101b30] border border-[#00e5ff]/40 text-[#00e5ff] text-xs font-bold uppercase tracking-wider">
+                <span>🔐 MAAKTHUNDER Studios • Admin Console</span>
+            </div>
+            
+            <h1 class="text-2xl md:text-3xl font-black font-orbitron tracking-tight text-white">
+                CUSTOMER <span class="text-[#00e5ff]">DATABASE</span>
+            </h1>
+            <p class="text-xs text-[#8da2c0] leading-relaxed">
+                Administrative portal to monitor live customer licenses, generate keys, upgrade accounts, and reset hardware locks.
+            </p>
+
+            <div class="space-y-4 pt-3">
+                <!-- Google Sign-in Only -->
+                <button onclick="loginWithGoogle()" id="btn-google-login" class="w-full py-3.5 px-4 rounded-xl bg-white hover:bg-slate-100 text-gray-900 font-bold text-sm tracking-wide flex items-center justify-center space-x-3 transition-all shadow-xl hover:shadow-2xl">
+                    <svg class="w-5 h-5 shrink-0" viewBox="0 0 24 24">
+                        <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                        <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                        <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
+                        <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+                    </svg>
+                    <span>Sign in with Google Admin</span>
+                </button>
+            </div>
+
+            <div id="auth-error-msg" class="hidden text-xs text-red-400 bg-red-950/40 border border-red-800/50 p-2.5 rounded-lg"></div>
+
+            <div class="text-[11px] text-[#64748b]">
+                Authorized Owner: <span class="text-[#00e5ff]">ahmadalikhan534@gmail.com</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================================== -->
+    <!-- MAIN ADMIN DASHBOARD (Visible when logged in)                   -->
+    <!-- ============================================================== -->
+    <div id="admin-dashboard" class="hidden max-w-7xl w-full mx-auto space-y-6">
+
+        <!-- TOP BAR: Header, Sync, User Profile -->
+        <header class="glass-panel rounded-2xl p-4 md:p-5 flex flex-col md:flex-row items-center justify-between gap-4">
+            <div class="flex items-center space-x-3.5">
+                <div class="w-11 h-11 rounded-xl bg-[#00e5ff]/15 border border-[#00e5ff]/40 flex items-center justify-center text-[#00e5ff] font-orbitron font-black text-xl shadow-[0_0_15px_rgba(0,229,255,0.3)]">
+                    ⚡
+                </div>
+                <div>
+                    <div class="flex items-center space-x-2">
+                        <h1 class="text-xl md:text-2xl font-black font-orbitron text-white">THUNDER <span class="text-[#00e5ff]">ADMIN</span></h1>
+                        <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-[#00e5ff]/15 text-[#00e5ff] border border-[#00e5ff]/30 uppercase">v2.0 Live</span>
+                    </div>
+                    <p class="text-xs text-[#8da2c0]">Customer Database • Realtime License Controller</p>
+                </div>
+            </div>
+
+            <div class="flex items-center space-x-3 w-full md:w-auto justify-between md:justify-end">
+                <div class="flex items-center space-x-2 px-3 py-1.5 rounded-xl bg-[#0a0f1d] border border-[#1c2f54] text-xs">
+                    <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                    <span class="text-emerald-400 font-bold" id="sync-status">Realtime Sync Active</span>
+                </div>
+
+                <div class="flex items-center space-x-2">
+                    <span id="admin-user-display" class="text-xs font-mono text-[#cbd5e1] hidden md:inline-block px-2.5 py-1 rounded bg-[#101b30] border border-[#1c2f54]">Admin</span>
+                    <button onclick="logoutAdmin()" class="px-3 py-1.5 rounded-xl bg-[#101b30] hover:bg-red-950/60 hover:text-red-400 border border-[#1c2f54] hover:border-red-800 text-xs text-[#8da2c0] font-bold transition-all">
+                        Lock / Exit
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- STAT METRICS ROW -->
+        <div class="grid grid-cols-2 md:grid-cols-5 gap-3 md:gap-4">
+            <div class="glass-panel rounded-xl p-4 border border-[#1c2f54] space-y-1">
+                <span class="text-[11px] font-bold text-[#8da2c0] uppercase tracking-wider">Total Customers</span>
+                <div class="text-2xl md:text-3xl font-black font-orbitron text-white" id="stat-total">0</div>
+            </div>
+            <div class="glass-panel rounded-xl p-4 border border-[#1c2f54] space-y-1">
+                <span class="text-[11px] font-bold text-emerald-400 uppercase tracking-wider">Active Passes</span>
+                <div class="text-2xl md:text-3xl font-black font-orbitron text-emerald-400" id="stat-active">0</div>
+            </div>
+            <div class="glass-panel rounded-xl p-4 border border-[#1c2f54] space-y-1">
+                <span class="text-[11px] font-bold text-[#00e5ff] uppercase tracking-wider">Pro & Pro+ Tiers</span>
+                <div class="text-2xl md:text-3xl font-black font-orbitron text-[#00e5ff]" id="stat-paid">0</div>
+            </div>
+            <div class="glass-panel rounded-xl p-4 border border-[#1c2f54] space-y-1">
+                <span class="text-[11px] font-bold text-purple-400 uppercase tracking-wider">Hardware Locked</span>
+                <div class="text-2xl md:text-3xl font-black font-orbitron text-purple-400" id="stat-locked">0</div>
+            </div>
+            <div class="glass-panel rounded-xl p-4 border border-[#1c2f54] space-y-1 col-span-2 md:col-span-1">
+                <span class="text-[11px] font-bold text-yellow-400 uppercase tracking-wider">Expired / Revoked</span>
+                <div class="text-2xl md:text-3xl font-black font-orbitron text-yellow-400" id="stat-expired">0</div>
+            </div>
+        </div>
+
+        <!-- ACTION TOOLBAR: Search, Filter & New Key Generator Trigger -->
+        <div class="glass-panel rounded-2xl p-4 flex flex-col md:flex-row items-center justify-between gap-3">
+            <div class="flex flex-col md:flex-row items-center gap-2.5 w-full md:w-auto flex-1">
+                <!-- Search Box -->
+                <div class="relative w-full md:w-80">
+                    <input type="text" id="search-filter" oninput="renderTable()" placeholder="Search Key, Email, Name, HWID..." class="w-full pl-9 pr-3 py-2 rounded-xl bg-[#0a0f1d] border border-[#1c2f54] text-xs text-white focus:outline-none focus:border-[#00e5ff] font-mono">
+                    <span class="absolute left-3 top-2.5 text-xs text-[#64748b]">🔍</span>
+                </div>
+
+                <!-- Plan Filter Dropdown -->
+                <select id="filter-plan" onchange="renderTable()" class="w-full md:w-auto px-3 py-2 rounded-xl bg-[#0a0f1d] border border-[#1c2f54] text-xs text-white focus:outline-none focus:border-[#00e5ff]">
+                    <option value="all">All Plans</option>
+                    <option value="trial">Trial (15d)</option>
+                    <option value="basic">Basic</option>
+                    <option value="pro">Pro</option>
+                    <option value="pro_plus">Pro+</option>
+                </select>
+
+                <!-- Status Filter Dropdown -->
+                <select id="filter-status" onchange="renderTable()" class="w-full md:w-auto px-3 py-2 rounded-xl bg-[#0a0f1d] border border-[#1c2f54] text-xs text-white focus:outline-none focus:border-[#00e5ff]">
+                    <option value="all">All Statuses</option>
+                    <option value="active">Active Only</option>
+                    <option value="expired">Expired</option>
+                    <option value="revoked">Revoked</option>
+                </select>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="flex items-center space-x-2 w-full md:w-auto justify-end">
+                <button onclick="fetchLatestData()" class="p-2 rounded-xl bg-[#101b30] hover:bg-[#162544] border border-[#1c2f54] text-xs text-[#8da2c0] hover:text-white transition-all" title="Force Reload Data">
+                    🔄
+                </button>
+                <button onclick="openKeyGeneratorModal()" class="w-full md:w-auto px-4 py-2 rounded-xl btn-cyan text-black font-black font-orbitron text-xs uppercase tracking-wider flex items-center justify-center space-x-2">
+                    <span>⚡ Generate New License</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- CUSTOMER DATA TABLE -->
+        <div class="glass-panel rounded-2xl overflow-hidden border border-[#1c2f54]">
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse text-xs">
+                    <thead>
+                        <tr class="bg-[#0a0f1d] border-b border-[#1c2f54] text-[#8da2c0] uppercase tracking-wider font-bold text-[10px]">
+                            <th class="py-3 px-4">Customer</th>
+                            <th class="py-3 px-4">License Key</th>
+                            <th class="py-3 px-4">Plan Tier</th>
+                            <th class="py-3 px-4">Status</th>
+                            <th class="py-3 px-4">HWID Lock (Device)</th>
+                            <th class="py-3 px-4">Expiry / Remaining</th>
+                            <th class="py-3 px-4 text-right">Quick Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="customer-table-body" class="divide-y divide-[#1c2f54]/60">
+                        <!-- Loaded dynamically via JavaScript -->
+                        <tr>
+                            <td colspan="7" class="py-12 text-center text-[#8da2c0]">
+                                <div class="inline-block animate-spin text-xl mb-2">⚡</div>
+                                <div>Loading customer licenses from Cloud Firestore...</div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- ============================================================== -->
+    <!-- MODAL: GENERATE NEW LICENSE (Personalized or Unassigned Gift)   -->
+    <!-- ============================================================== -->
+    <div id="generator-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 modal-overlay">
+        <div class="max-w-xl w-full glass-panel rounded-2xl p-6 md:p-7 space-y-5 border border-[#00e5ff]/40 shadow-2xl">
+            <div class="flex items-center justify-between border-b border-[#1c2f54] pb-3">
+                <div class="flex items-center space-x-2">
+                    <span class="text-[#00e5ff] text-xl">⚡</span>
+                    <h2 class="text-lg font-black font-orbitron text-white">Generate Official License Key</h2>
+                </div>
+                <button onclick="closeModal('generator-modal')" class="text-[#8da2c0] hover:text-white text-lg font-bold">✕</button>
+            </div>
+
+            <!-- Mode Selector: Personalized vs Empty Giveaway/Gift -->
+            <div class="grid grid-cols-2 gap-2 bg-[#0a0f1d] p-1 rounded-xl border border-[#1c2f54]">
+                <button type="button" id="btn-mode-personal" onclick="setGenMode('personal')" class="py-2 rounded-lg text-xs font-bold transition-all bg-[#00e5ff] text-black">
+                    👤 Personalized (Direct Sale)
+                </button>
+                <button type="button" id="btn-mode-gift" onclick="setGenMode('gift')" class="py-2 rounded-lg text-xs font-bold transition-all text-[#8da2c0] hover:text-white">
+                    🎁 Unassigned / Gift Key
+                </button>
+            </div>
+
+            <div class="space-y-3.5">
+                <!-- Name & Email (Disabled in Gift Mode) -->
+                <div id="gen-personal-fields" class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-[11px] font-bold text-[#8da2c0] uppercase tracking-wider mb-1">Customer / IGN</label>
+                        <input type="text" id="gen-name" placeholder="e.g. Ahmad Ali / MAAKTHUNDER" class="w-full px-3 py-2 rounded-xl bg-[#0a0f1d] border border-[#1c2f54] text-xs text-white focus:outline-none focus:border-[#00e5ff]">
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-bold text-[#8da2c0] uppercase tracking-wider mb-1">Customer Email</label>
+                        <input type="email" id="gen-email" placeholder="customer@gmail.com" class="w-full px-3 py-2 rounded-xl bg-[#0a0f1d] border border-[#1c2f54] text-xs text-white focus:outline-none focus:border-[#00e5ff]">
+                    </div>
+                </div>
+
+                <div id="gen-gift-hint" class="hidden p-3 rounded-xl bg-[#00e5ff]/10 border border-[#00e5ff]/30 text-xs text-[#cbd5e1]">
+                    🎁 <strong>Unassigned Gift Key:</strong> Creates an open key that anyone can claim when they first launch THUNDER Studio. The software will bind to their device and record their IGN upon activation.
+                </div>
+
+                <!-- Plan Selection & Expiry Duration -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-[11px] font-bold text-[#8da2c0] uppercase tracking-wider mb-1">Plan Tier</label>
+                        <select id="gen-plan" onchange="autoFillPlanDays()" class="w-full px-3 py-2 rounded-xl bg-[#0a0f1d] border border-[#1c2f54] text-xs text-white focus:outline-none focus:border-[#00e5ff]">
+                            <option value="trial">Trial (15 Days)</option>
+                            <option value="basic">Basic Tier</option>
+                            <option value="pro" selected>Pro Studio</option>
+                            <option value="pro_plus">Pro+ Studio (Ultimate)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-bold text-[#8da2c0] uppercase tracking-wider mb-1">Duration / Expiry</label>
+                        <input type="number" id="gen-days" value="30" min="1" max="3650" class="w-full px-3 py-2 rounded-xl bg-[#0a0f1d] border border-[#1c2f54] text-xs text-white focus:outline-none focus:border-[#00e5ff]">
+                        <label class="flex items-center space-x-2 text-[11px] text-amber-300 cursor-pointer mt-1.5 select-none">
+                            <input type="checkbox" id="gen-is-lifetime" onchange="toggleGenLifetime(this.checked)" class="rounded bg-[#0a0f1d] border-[#1c2f54] text-amber-500 focus:ring-0">
+                            <span class="font-bold">👑 Lifetime (Permanent • Never Expires)</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Transaction Note (Optional) -->
+                <div>
+                    <label class="block text-[11px] font-bold text-[#8da2c0] uppercase tracking-wider mb-1">Domestic Payment TID / Reference (Optional)</label>
+                    <input type="text" id="gen-tid" placeholder="e.g. Easypaisa / JazzCash TID: 2894109230" class="w-full px-3 py-2 rounded-xl bg-[#0a0f1d] border border-[#1c2f54] text-xs text-white focus:outline-none focus:border-[#00e5ff]">
+                </div>
+            </div>
+
+            <!-- Generated Output Container (Appears after creation) -->
+            <div id="gen-output-box" class="hidden p-4 rounded-xl bg-[#0a1829] border border-[#00e5ff]/50 space-y-3">
+                <div class="flex items-center justify-between">
+                    <span class="text-xs font-bold text-emerald-400">✓ License Generated Successfully!</span>
+                    <button onclick="copyGeneratedDetails()" class="px-3 py-1 rounded bg-[#00e5ff] text-black font-bold text-[11px] hover:bg-[#33f6ff]">
+                        📋 Copy Formatted WhatsApp / Discord Message
+                    </button>
+                </div>
+                <div class="p-2.5 rounded bg-[#070e1b] font-mono text-xs text-[#00e5ff] font-bold select-all break-all" id="gen-output-key">
+                    THUNDER-PK-...
+                </div>
+            </div>
+
+            <div class="flex space-x-3 pt-2">
+                <button onclick="submitGenerateKey()" id="btn-submit-gen" class="flex-1 py-2.5 rounded-xl btn-cyan text-black font-black font-orbitron text-xs uppercase tracking-wider">
+                    ⚡ Generate & Save to Database
+                </button>
+                <button onclick="closeModal('generator-modal')" class="px-4 py-2.5 rounded-xl bg-[#101b30] hover:bg-[#162544] border border-[#1c2f54] text-xs text-[#8da2c0] font-bold uppercase">
+                    Cancel
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================================== -->
+    <!-- MODAL: EDIT / UPGRADE CUSTOMER LICENSE                          -->
+    <!-- ============================================================== -->
+    <div id="edit-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 modal-overlay">
+        <div class="max-w-md w-full glass-panel rounded-2xl p-6 space-y-4 border border-[#00e5ff]/40 shadow-2xl">
+            <div class="flex items-center justify-between border-b border-[#1c2f54] pb-3">
+                <h3 class="text-base font-bold font-orbitron text-white">Manage Customer License</h3>
+                <button onclick="closeModal('edit-modal')" class="text-[#8da2c0] hover:text-white font-bold">✕</button>
+            </div>
+
+            <div class="p-3.5 rounded-xl bg-[#0a0f1d] border border-[#1c2f54] space-y-2 text-xs">
+                <div class="flex items-center justify-between">
+                    <div>Key: <strong class="text-[#00e5ff] font-mono select-all" id="edit-modal-key">THUNDER-...</strong></div>
+                    <span id="edit-modal-days-badge" class="px-2 py-0.5 rounded text-[10px] font-bold bg-[#00e5ff]/20 text-[#00e5ff] border border-[#00e5ff]/40">-- Days Left</span>
+                </div>
+                <div class="grid grid-cols-2 gap-2 pt-1">
+                    <div>
+                        <label class="block text-[10px] font-bold text-[#8da2c0] uppercase mb-0.5">Assign Customer / Gamer Tag</label>
+                        <input type="text" id="edit-name-input" placeholder="e.g. Farhan (or leave for Gift)" class="w-full px-2.5 py-1.5 rounded-lg bg-[#060a14] border border-[#1c2f54] text-xs text-white focus:outline-none focus:border-[#00e5ff]">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-bold text-[#8da2c0] uppercase mb-0.5">Customer Email Address</label>
+                        <input type="email" id="edit-email-input" placeholder="e.g. farhan@gmail.com" class="w-full px-2.5 py-1.5 rounded-lg bg-[#060a14] border border-[#1c2f54] text-xs text-white focus:outline-none focus:border-[#00e5ff]">
+                    </div>
+                </div>
+            </div>
+
+            <div class="space-y-3">
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="block text-[11px] font-bold text-[#8da2c0] uppercase mb-1">Change Tier</label>
+                        <select id="edit-plan-select" class="w-full px-3 py-2 rounded-xl bg-[#0a0f1d] border border-[#1c2f54] text-xs text-white focus:outline-none focus:border-[#00e5ff]">
+                            <option value="trial">Trial (15 Days)</option>
+                            <option value="basic">Basic</option>
+                            <option value="pro">Pro</option>
+                            <option value="pro_plus">Pro+</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-[11px] font-bold text-[#8da2c0] uppercase mb-1">Status</label>
+                        <select id="edit-status-select" class="w-full px-3 py-2 rounded-xl bg-[#0a0f1d] border border-[#1c2f54] text-xs text-white focus:outline-none focus:border-[#00e5ff]">
+                            <option value="active">Active</option>
+                            <option value="expired">Expired</option>
+                            <option value="revoked">Revoked</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- DAYS & VALIDITY ADJUSTMENT -->
+                <div class="p-3 rounded-xl bg-[#0d1629] border border-[#1c2f54] space-y-2.5">
+                    <div class="flex items-center justify-between">
+                        <label class="text-[11px] font-bold text-[#00e5ff] uppercase tracking-wider">⚡ Adjust Validity & Days</label>
+                        <span class="text-[10px] text-[#8da2c0]">Add, Subtract or Set Exact</span>
+                    </div>
+
+                    <!-- Quick buttons -->
+                    <div class="grid grid-cols-4 gap-1.5">
+                        <button type="button" onclick="addDaysToLicense(30)" class="py-1.5 px-2 rounded-lg bg-[#101b30] hover:bg-[#162947] border border-[#00e5ff]/40 text-[11px] text-[#00e5ff] font-bold transition-all text-center" title="Add 30 Days">
+                            ➕ +30d
+                        </button>
+                        <button type="button" onclick="addDaysToLicense(15)" class="py-1.5 px-2 rounded-lg bg-[#101b30] hover:bg-[#162947] border border-[#00e5ff]/40 text-[11px] text-[#00e5ff] font-bold transition-all text-center" title="Add 15 Days">
+                            ➕ +15d
+                        </button>
+                        <button type="button" onclick="addDaysToLicense(-15)" class="py-1.5 px-2 rounded-lg bg-[#1c1220] hover:bg-[#2b172a] border border-rose-700/50 text-[11px] text-rose-300 font-bold transition-all text-center" title="Reduce 15 Days">
+                            ➖ -15d
+                        </button>
+                        <button type="button" onclick="addDaysToLicense(-30)" class="py-1.5 px-2 rounded-lg bg-[#1c1220] hover:bg-[#2b172a] border border-rose-700/50 text-[11px] text-rose-300 font-bold transition-all text-center" title="Reduce 30 Days">
+                            ➖ -30d
+                        </button>
+                    </div>
+
+                    <!-- Custom Type Input: Add / Deduct -->
+                    <div class="space-y-1.5 pt-1">
+                        <div class="flex items-center space-x-2">
+                            <input type="number" id="edit-custom-days-input" placeholder="Type days to add or deduct (+10, -5...)" class="flex-1 px-3 py-1.5 rounded-lg bg-[#060a14] border border-[#1c2f54] text-xs text-white placeholder-[#475569] focus:outline-none focus:border-[#00e5ff]">
+                            <button type="button" onclick="applyCustomDaysChange()" class="py-1.5 px-3 rounded-lg bg-[#00e5ff]/20 hover:bg-[#00e5ff]/35 border border-[#00e5ff]/60 text-xs text-[#00e5ff] font-bold whitespace-nowrap transition-all">
+                                ➕ / ➖ Apply
+                            </button>
+                        </div>
+
+                        <!-- Set Exact Days Input -->
+                        <div class="flex items-center space-x-2">
+                            <input type="number" id="edit-exact-days-input" placeholder="Type exact total days (e.g. 45)" class="flex-1 px-3 py-1.5 rounded-lg bg-[#060a14] border border-[#1c2f54] text-xs text-white placeholder-[#475569] focus:outline-none focus:border-emerald-500">
+                            <button type="button" onclick="applyExactDays()" class="py-1.5 px-3 rounded-lg bg-emerald-950/60 hover:bg-emerald-900 border border-emerald-500/60 text-xs text-emerald-400 font-bold whitespace-nowrap transition-all">
+                                ✓ Set Exact
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Permanent Lifetime Access Button -->
+                    <div class="pt-1">
+                        <button type="button" onclick="setLicenseLifetime()" class="w-full py-2 px-3 rounded-lg bg-gradient-to-r from-amber-500/20 to-yellow-500/20 hover:from-amber-500/30 hover:to-yellow-500/30 border border-amber-500/60 text-xs text-amber-300 font-bold flex items-center justify-center space-x-2 transition-all shadow-[0_0_12px_rgba(245,158,11,0.2)]">
+                            <span>👑</span>
+                            <span>Grant Lifetime Access (Permanent • Never Expires)</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="pt-0.5">
+                    <button type="button" onclick="resetHwidFromEditModal()" class="w-full py-2 px-3 rounded-lg bg-[#101b30] hover:bg-yellow-950/60 border border-yellow-700/50 text-xs text-yellow-400 font-bold flex items-center justify-center space-x-1.5 transition-all">
+                        <span>🔄</span>
+                        <span>Reset Hardware Lock (Unbind HWID)</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="flex space-x-2 pt-3">
+                <button onclick="saveLicenseEdit()" class="flex-1 py-2 rounded-xl btn-cyan text-black font-black font-orbitron text-xs uppercase">
+                    Save Changes
+                </button>
+                <button onclick="deleteLicenseRecord()" class="px-3 py-2 rounded-xl bg-red-950/60 hover:bg-red-900 border border-red-700 text-xs text-red-300 font-bold">
+                    🗑️ Delete
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- FOOTER -->
+    <footer class="mt-8 text-center text-[11px] text-[#64748b]">
+        THUNDER Studio Customer Portal Engine • Authorized Property of <strong class="text-white">MAAKTHUNDER Studios</strong> • Secured via Cloud Firestore
+    </footer>
+
+    <!-- ============================================================== -->
+    <!-- LOGIC & SCRIPTS                                                -->
+    <!-- ============================================================== -->
+    <script>
+        // Official Firebase Project Configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyBpWeW72diIAq9enlq9y-Gh5U_33ta8RPg",
+            authDomain: "maakthunder-studio.firebaseapp.com",
+            projectId: "maakthunder-studio",
+            storageBucket: "maakthunder-studio.firebasestorage.app",
+            messagingSenderId: "502710751184",
+            appId: "1:502710751184:web:53d9cf377f1c23062373d5"
+        };
+
+        const AUTHORIZED_ADMIN_EMAILS = [
+            "ahmadalikhan534@gmail.com",
+            "maakthunder@gmail.com",
+            "admin@maakthunder.com",
+            "owner@maakthunder.com"
+        ];
+
+        let db = null;
+        let auth = null;
+        let allLicenses = [];
+        let activeEditLicense = null;
+        let genMode = 'personal';
+
+        try {
+            if (!firebase.apps.length) {
+                firebase.initializeApp(firebaseConfig);
+            }
+            db = firebase.firestore();
+            auth = firebase.auth();
+        } catch (e) {
+            console.error("Firebase init:", e);
+        }
+
+        // ==========================================
+        // AUTHENTICATION LOGIC (GOOGLE SIGN-IN ONLY)
+        // ==========================================
+        window.addEventListener('DOMContentLoaded', () => {
+            if (auth) {
+                // Listen to persistent Google Auth state
+                auth.onAuthStateChanged((user) => {
+                    if (user && AUTHORIZED_ADMIN_EMAILS.includes(user.email.toLowerCase())) {
+                        grantAdminAccess(user.email);
+                    } else if (user) {
+                        showAuthError(`Access Denied: ${user.email} is not in the authorized admin list.`);
+                        auth.signOut();
+                    }
+                });
+
+                // Handle redirect result (for mobile or browsers with popups blocked)
+                auth.getRedirectResult().then((result) => {
+                    if (result && result.user) {
+                        if (AUTHORIZED_ADMIN_EMAILS.includes(result.user.email.toLowerCase())) {
+                            grantAdminAccess(result.user.email);
+                        } else {
+                            showAuthError(`Access Denied: ${result.user.email} is not authorized.`);
+                            auth.signOut();
+                        }
+                    }
+                }).catch((err) => {
+                    console.error("Redirect auth error:", err);
+                });
+            }
+        });
+
+        async function loginWithGoogle() {
+            clearAuthError();
+            const btn = document.getElementById('btn-google-login');
+            btn.disabled = true;
+            btn.innerHTML = '<span>Connecting to Google...</span>';
+
+            try {
+                const provider = new firebase.auth.GoogleAuthProvider();
+                provider.setCustomParameters({ prompt: 'select_account' });
+                
+                try {
+                    const result = await auth.signInWithPopup(provider);
+                    const user = result.user;
+                    if (AUTHORIZED_ADMIN_EMAILS.includes(user.email.toLowerCase())) {
+                        grantAdminAccess(user.email);
+                    } else {
+                        showAuthError(`Access Denied: ${user.email} is not an authorized administrator.`);
+                        await auth.signOut();
+                    }
+                } catch (popupErr) {
+                    if (popupErr.code === 'auth/popup-blocked' || popupErr.code === 'auth/popup-closed-by-user') {
+                        // Fallback to full page redirect if popup was blocked
+                        await auth.signInWithRedirect(provider);
+                    } else {
+                        throw popupErr;
+                    }
+                }
+            } catch (err) {
+                console.error("Google Auth error:", err);
+                if (err.code === 'auth/configuration-not-found' || (err.message && err.message.includes('CONFIGURATION_NOT_FOUND'))) {
+                    showAuthError("Firebase Authentication setup required: Google sign-in provider is not enabled in Firebase Console. Please click 'Get Started' at https://console.firebase.google.com/project/maakthunder-studio/authentication");
+                } else if (err.code === 'auth/operation-not-allowed') {
+                    showAuthError("Google Sign-In is disabled. Please enable 'Google' under Firebase Console -> Authentication -> Sign-in method.");
+                } else {
+                    showAuthError("Sign-in Notice: " + (err.message || err));
+                }
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = `
+                    <svg class="w-5 h-5 shrink-0" viewBox="0 0 24 24">
+                        <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                        <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                        <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
+                        <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+                    </svg>
+                    <span>Sign in with Google Admin</span>
+                `;
+            }
+        }
+
+        function grantAdminAccess(identifier) {
+            document.getElementById('auth-gate').classList.add('hidden');
+            document.getElementById('admin-dashboard').classList.remove('hidden');
+            document.getElementById('admin-user-display').innerText = identifier;
+            startRealtimeListener();
+        }
+
+        function logoutAdmin() {
+            if (auth && auth.currentUser) {
+                auth.signOut();
+            }
+            location.reload();
+        }
+
+        function showAuthError(msg) {
+            const el = document.getElementById('auth-error-msg');
+            el.innerText = msg;
+            el.classList.remove('hidden');
+        }
+
+        function clearAuthError() {
+            const el = document.getElementById('auth-error-msg');
+            el.classList.add('hidden');
+            el.innerText = '';
+        }
+
+        // ==========================================
+        // REALTIME FIRESTORE LISTENER
+        // ==========================================
+        let unsubscribeListener = null;
+
+        function startRealtimeListener() {
+            if (!db) return;
+
+            document.getElementById('sync-status').innerText = 'Syncing...';
+
+            // Listen directly to pk_licenses_by_key
+            unsubscribeListener = db.collection('pk_licenses_by_key').onSnapshot((snapshot) => {
+                const list = [];
+                const seenKeys = new Set();
+                snapshot.forEach(doc => {
+                    const data = doc.data() || {};
+                    const key = (data.key || doc.id || '').toUpperCase();
+                    const tid = (data.tid || '').toUpperCase();
+                    // EXCLUDE POLAR KEYS (Managed exclusively in Polar.sh Dashboard)
+                    if (key.includes('POLAR') || tid.includes('POLAR')) return;
+                    if (seenKeys.has(key)) return;
+                    seenKeys.add(key);
+                    list.push({ id: doc.id, ...data });
+                });
+
+                allLicenses = list;
+                updateStats(list);
+                renderTable();
+
+                document.getElementById('sync-status').innerText = `Realtime Sync Active (${list.length})`;
+            }, (err) => {
+                console.warn("Realtime listener error:", err);
+                document.getElementById('sync-status').innerText = 'Offline / Direct Poll';
+                fetchLatestData();
+            });
+        }
+
+        async function fetchLatestData() {
+            if (!db) return;
+            try {
+                document.getElementById('sync-status').innerText = 'Refreshing...';
+                const snapshot = await db.collection('pk_licenses_by_key').get();
+                const list = [];
+                const seenKeys = new Set();
+                snapshot.forEach(doc => {
+                    const data = doc.data() || {};
+                    const key = (data.key || doc.id || '').toUpperCase();
+                    const tid = (data.tid || '').toUpperCase();
+                    // EXCLUDE POLAR KEYS (Managed exclusively in Polar.sh Dashboard)
+                    if (key.includes('POLAR') || tid.includes('POLAR')) return;
+                    if (seenKeys.has(key)) return;
+                    seenKeys.add(key);
+                    list.push({ id: doc.id, ...data });
+                });
+                allLicenses = list;
+                updateStats(list);
+                renderTable();
+                document.getElementById('sync-status').innerText = `Realtime Sync Active (${list.length})`;
+            } catch (e) {
+                console.error("Direct fetch error:", e);
+                alert("Error fetching data from Firestore: " + e.message);
+            }
+        }
+
+        // ==========================================
+        // STATS COMPUTATION
+        // ==========================================
+        function updateStats(list) {
+            const nowSec = Math.floor(Date.now() / 1000);
+            let activeCount = 0;
+            let paidCount = 0;
+            let lockedCount = 0;
+            let expiredCount = 0;
+
+            list.forEach(lic => {
+                const isLifetime = lic.is_lifetime === true || lic.days === 'Lifetime' || lic.expires_at === 0 || (lic.expires_at && lic.expires_at > 2000000000);
+                const isExpired = !isLifetime && lic.expires_at && lic.expires_at < nowSec;
+                if (lic.status === 'revoked' || isExpired) {
+                    expiredCount++;
+                } else {
+                    activeCount++;
+                }
+
+                const p = (lic.plan || '').toLowerCase();
+                // ONLY count Pro and Pro+ (Basic is NOT counted as paid Pro/Pro+)
+                if (['pro', 'pro_plus'].includes(p)) {
+                    paidCount++;
+                }
+
+                if (lic.hwid && lic.hwid.trim() !== '') {
+                    lockedCount++;
+                }
+            });
+
+            document.getElementById('stat-total').innerText = list.length;
+            document.getElementById('stat-active').innerText = activeCount;
+            document.getElementById('stat-paid').innerText = paidCount;
+            document.getElementById('stat-locked').innerText = lockedCount;
+            document.getElementById('stat-expired').innerText = expiredCount;
+        }
+
+        // ==========================================
+        // TABLE RENDERING WITH SEARCH & FILTERS
+        // ==========================================
+        function renderTable() {
+            const tbody = document.getElementById('customer-table-body');
+            const search = document.getElementById('search-filter').value.trim().toLowerCase();
+            const planFilter = document.getElementById('filter-plan').value;
+            const statusFilter = document.getElementById('filter-status').value;
+            const nowSec = Math.floor(Date.now() / 1000);
+
+            const filtered = allLicenses.filter(lic => {
+                // Search filter
+                const key = (lic.key || '').toLowerCase();
+                const name = (lic.name || '').toLowerCase();
+                const email = (lic.email || '').toLowerCase();
+                const hwid = (lic.hwid || '').toLowerCase();
+
+                const matchSearch = !search || 
+                    key.includes(search) || 
+                    name.includes(search) || 
+                    email.includes(search) || 
+                    hwid.includes(search);
+
+                // Plan filter
+                const matchPlan = (planFilter === 'all') || (lic.plan === planFilter);
+
+                // Status filter
+                const isExpired = lic.expires_at && lic.expires_at < nowSec;
+                let effectiveStatus = lic.status || 'active';
+                if (effectiveStatus === 'active' && isExpired) effectiveStatus = 'expired';
+
+                const matchStatus = (statusFilter === 'all') || (effectiveStatus === statusFilter);
+
+                return matchSearch && matchPlan && matchStatus;
+            });
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="7" class="py-10 text-center text-[#8da2c0]">
+                            No licenses match the selected criteria.
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            tbody.innerHTML = filtered.map(lic => {
+                const isLifetime = lic.is_lifetime === true || lic.days === 'Lifetime' || lic.expires_at === 0 || (lic.expires_at && lic.expires_at > 2000000000);
+                const isExpired = !isLifetime && lic.expires_at && lic.expires_at < nowSec;
+                const daysRemaining = isLifetime ? 'Lifetime' : (lic.expires_at ? Math.max(0, Math.ceil((lic.expires_at - nowSec) / 86400)) : '-');
+                const expiryDateStr = isLifetime ? 'Permanent Access' : (lic.expires_at ? new Date(lic.expires_at * 1000).toLocaleDateString('en-GB') : '-');
+
+                // Plan Badge (Strictly Trial, Basic, Pro, Pro+)
+                let normPlan = (lic.plan || 'trial').toLowerCase();
+                if (normPlan === 'lifetime') normPlan = 'pro_plus'; // safe auto-repair
+                const planClass = `plan-${normPlan}`;
+                let planLabel = normPlan.toUpperCase(); if (normPlan === 'pro_plus' || normPlan === 'pro+') planLabel = 'PRO+';
+
+                // Status Badge
+                let statusBadge = '';
+                if (lic.status === 'revoked') {
+                    statusBadge = '<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-red-950/60 text-red-400 border border-red-800">REVOKED</span>';
+                } else if (isExpired) {
+                    statusBadge = '<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-yellow-950/60 text-yellow-400 border border-yellow-800">EXPIRED</span>';
+                } else {
+                    statusBadge = '<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-950/60 text-emerald-400 border border-emerald-800">ACTIVE</span>';
+                }
+
+                // HWID Lock Column
+                let hwidCell = '';
+                if (lic.hwid && lic.hwid.trim() !== '') {
+                    const truncatedHwid = lic.hwid.length > 14 ? lic.hwid.substring(0, 12) + '...' : lic.hwid;
+                    hwidCell = `
+                        <div class="flex items-center space-x-1.5">
+                            <span class="font-mono text-[11px] text-[#cbd5e1] bg-[#101b30] px-2 py-0.5 rounded border border-[#1c2f54]" title="${lic.hwid}">🔒 ${truncatedHwid}</span>
+                            <button onclick="resetHwid('${lic.key}')" class="text-[10px] text-yellow-400 hover:text-yellow-300 font-bold px-1.5 py-0.5 rounded bg-yellow-950/40 border border-yellow-700/50" title="Unlock PC so user can re-bind on new device">Reset</button>
+                        </div>
+                    `;
+                } else {
+                    hwidCell = `<span class="text-[11px] text-emerald-400/80 italic">🔓 Unbound (Ready)</span>`;
+                }
+
+                return `
+                    <tr class="hover:bg-[#0e172a]/60 transition-colors">
+                        <!-- Customer -->
+                        <td class="py-3 px-4">
+                            ${(() => {
+                                const isGift = (lic.name || '').toLowerCase().includes('gift') || (lic.email || '').toLowerCase().startsWith('gift_') || (lic.email || '').includes('unassigned');
+                                const isBound = lic.hwid && lic.hwid.trim() !== '';
+
+                                if (isGift) {
+                                    if (isBound) {
+                                        return `
+                                            <div class="font-bold text-[#00e5ff] flex items-center space-x-1.5">
+                                                <span>💻</span>
+                                                <span>Claimed PC User</span>
+                                            </div>
+                                            <div class="text-[11px] text-cyan-300 font-mono mt-0.5 flex items-center space-x-1.5">
+                                                <span class="inline-block w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse"></span>
+                                                <span>Claimed & Bound to PC</span>
+                                            </div>
+                                        `;
+                                    } else {
+                                        return `
+                                            <div class="font-bold text-amber-300 flex items-center space-x-1.5">
+                                                <span>🎁</span>
+                                                <span>${lic.name || 'Unassigned Gift Pass'}</span>
+                                            </div>
+                                            <div class="text-[11px] text-emerald-400 font-mono mt-0.5">● Ready to Gift / Unclaimed</div>
+                                        `;
+                                    }
+                                } else {
+                                    return `
+                                        <div class="font-bold text-white">${lic.name || 'Customer'}</div>
+                                        <div class="text-[11px] text-[#8da2c0] font-mono">${lic.email || '—'}</div>
+                                    `;
+                                }
+                            })()}
+                        </td>
+
+                        <!-- Key -->
+                        <td class="py-3 px-4">
+                            <div class="flex items-center space-x-1.5">
+                                <span class="font-mono text-[#00e5ff] font-bold select-all">${lic.key}</span>
+                                <button onclick="copyToClipboard('${lic.key}')" class="text-[#8da2c0] hover:text-[#00e5ff] p-1" title="Copy Key">📋</button>
+                            </div>
+                        </td>
+
+                        <!-- Plan -->
+                        <td class="py-3 px-4">
+                            <span class="plan-badge ${planClass}">${planLabel}</span>
+                        </td>
+
+                        <!-- Status -->
+                        <td class="py-3 px-4">
+                            ${statusBadge}
+                        </td>
+
+                        <!-- HWID Lock -->
+                        <td class="py-3 px-4">
+                            ${hwidCell}
+                        </td>
+
+                        <!-- Expiry / Duration -->
+                        <td class="py-3 px-4">
+                            ${isLifetime ? `
+                                <div class="inline-flex items-center space-x-1.5 px-2.5 py-0.5 rounded-md bg-amber-500/20 border border-amber-500/50 text-amber-300 font-black text-[11px] shadow-[0_0_12px_rgba(245,158,11,0.25)]">
+                                    <span>👑</span>
+                                    <span>LIFETIME</span>
+                                </div>
+                                <div class="text-[10px] text-amber-400/80 font-mono mt-0.5">Permanent Access</div>
+                            ` : `
+                                <div class="font-bold ${daysRemaining > 3 ? 'text-white' : 'text-yellow-400'}">${daysRemaining} Days left</div>
+                                <div class="text-[10px] text-[#64748b]">${expiryDateStr}</div>
+                            `}
+                        </td>
+
+                        <!-- Actions -->
+                        <td class="py-3 px-4 text-right">
+                            <div class="inline-flex items-center space-x-1">
+                                <button onclick="quickExtendDays('${lic.key}', 30)" class="px-2 py-1 rounded bg-[#101b30] hover:bg-[#162544] text-[#00e5ff] font-bold text-[10px] border border-[#1c2f54]" title="Add +30 Days">
+                                    +30d
+                                </button>
+                                <button onclick="openEditModal('${lic.key}')" class="px-2.5 py-1 rounded bg-[#00e5ff]/15 hover:bg-[#00e5ff]/25 text-[#00e5ff] font-bold text-[10px] border border-[#00e5ff]/40">
+                                    Manage
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        // ==========================================
+        // KEY GENERATOR
+        // ==========================================
+        function openKeyGeneratorModal() {
+            document.getElementById('gen-output-box').classList.add('hidden');
+            document.getElementById('gen-name').value = '';
+            document.getElementById('gen-email').value = '';
+            document.getElementById('gen-tid').value = '';
+            autoFillPlanDays();
+            setGenMode('personal');
+            openModal('generator-modal');
+        }
+
+        function setGenMode(mode) {
+            genMode = mode;
+            if (mode === 'personal') {
+                document.getElementById('btn-mode-personal').className = 'py-2 rounded-lg text-xs font-bold transition-all bg-[#00e5ff] text-black';
+                document.getElementById('btn-mode-gift').className = 'py-2 rounded-lg text-xs font-bold transition-all text-[#8da2c0] hover:text-white';
+                document.getElementById('gen-personal-fields').classList.remove('hidden');
+                document.getElementById('gen-gift-hint').classList.add('hidden');
+            } else {
+                document.getElementById('btn-mode-gift').className = 'py-2 rounded-lg text-xs font-bold transition-all bg-[#00e5ff] text-black';
+                document.getElementById('btn-mode-personal').className = 'py-2 rounded-lg text-xs font-bold transition-all text-[#8da2c0] hover:text-white';
+                document.getElementById('gen-personal-fields').classList.add('hidden');
+                document.getElementById('gen-gift-hint').classList.remove('hidden');
+            }
+        }
+
+        function autoFillPlanDays() {
+            const plan = document.getElementById('gen-plan').value;
+            const daysInput = document.getElementById('gen-days');
+            const lifeCb = document.getElementById('gen-is-lifetime');
+            if (lifeCb && lifeCb.checked) return;
+            if (plan === 'trial') daysInput.value = 15;
+            else daysInput.value = 30;
+        }
+
+        function toggleGenLifetime(checked) {
+            const daysInput = document.getElementById('gen-days');
+            if (checked) {
+                daysInput.disabled = true;
+                daysInput.value = 36500;
+            } else {
+                daysInput.disabled = false;
+                autoFillPlanDays();
+            }
+        }
+
+        function generateRandomHex(len) {
+            const chars = '0123456789ABCDEF';
+            let res = '';
+            for (let i = 0; i < len; i++) res += chars.charAt(Math.floor(Math.random() * chars.length));
+            return res;
+        }
+
+        function cleanEmailKey(email) {
+            return email.toLowerCase().replace(/[^a-z0-9]/g, '_');
+        }
+
+        async function submitGenerateKey() {
+            const btn = document.getElementById('btn-submit-gen');
+            btn.disabled = true;
+            btn.innerText = 'Creating License...';
+
+            try {
+                const plan = document.getElementById('gen-plan').value;
+                const days = parseInt(document.getElementById('gen-days').value) || 30;
+                const tid = document.getElementById('gen-tid').value.trim();
+
+                let name = '';
+                let email = '';
+
+                if (genMode === 'personal') {
+                    name = document.getElementById('gen-name').value.trim();
+                    email = document.getElementById('gen-email').value.trim().toLowerCase();
+                    if (!name) throw new Error("Please enter customer name or gamer tag.");
+                    if (!email || !email.includes('@')) throw new Error("Please enter a valid customer email.");
+                } else {
+                    name = "Unassigned Gift Key";
+                    email = `gift_${generateRandomHex(6).toLowerCase()}@maakthunder.com`;
+                }
+
+                const nowSec = Math.floor(Date.now() / 1000);
+                const isLifetime = document.getElementById('gen-is-lifetime')?.checked || false;
+                const expiresAt = isLifetime ? 0 : (nowSec + (days * 86400));
+                const daysValue = isLifetime ? 36500 : days;
+
+                // Build Clean Formatted Key
+                // Universal Pass Format (Option 1)
+                const prefix = "THUNDER-PK-PASS";
+
+                const key = `${prefix}-${generateRandomHex(8)}`;
+
+                const payload = {
+                    key: key,
+                    name: name,
+                    email: email,
+                    plan: plan,
+                    status: 'active',
+                    hwid: null,
+                    created_at: nowSec,
+                    expires_at: expiresAt,
+                    days: daysValue,
+                    is_lifetime: isLifetime
+                };
+                if (tid) payload.tid = tid;
+
+                // Save to pk_licenses_by_key
+                await db.collection('pk_licenses_by_key').doc(key).set(payload);
+
+                // Save to pk_licenses (if personalized)
+                if (genMode === 'personal') {
+                    const emailDocId = cleanEmailKey(email);
+                    await db.collection('pk_licenses').doc(emailDocId).set(payload);
+                }
+
+                // Show Output Box
+                document.getElementById('gen-output-key').innerText = key;
+                document.getElementById('gen-output-box').classList.remove('hidden');
+
+                // Send Discord Alert
+                notifyDiscord('⚡ New License Issued by Admin', [
+                    { name: 'Key', value: '`' + key + '`', inline: false },
+                    { name: 'Customer', value: name, inline: true },
+                    { name: 'Plan', value: plan.toUpperCase(), inline: true },
+                    { name: 'Days', value: `${days} Days`, inline: true }
+                ]);
+
+            } catch (err) {
+                console.error("Gen error:", err);
+                alert("Error: " + err.message);
+            } finally {
+                btn.disabled = false;
+                btn.innerText = '⚡ Generate & Save to Database';
+            }
+        }
+
+        function copyGeneratedDetails() {
+            const key = document.getElementById('gen-output-key').innerText;
+            const plan = document.getElementById('gen-plan').value.toUpperCase();
+            const days = document.getElementById('gen-days').value;
+
+            const msg = `⚡ *MAAKTHUNDER STUDIO LICENSE PASS*\n\n` +
+                        `🔑 *License Key:* \`${key}\`\n` +
+                        `📦 *Plan:* ${plan} (${days} Days)\n` +
+                        `🖥️ *Activation:* Launch THUNDER Studio on PC & enter your key.\n` +
+                        `🌐 *Portal:* https://maakthunder-studio.web.app\n\n` +
+                        `Thank you for choosing MAAKTHUNDER Studios!`;
+
+            navigator.clipboard.writeText(msg).then(() => {
+                alert("Formatted delivery message copied! Paste it directly to the customer on WhatsApp or Discord.");
+            });
+        }
+
+        // ==========================================
+        // EDIT / UPGRADE / RESET MODAL
+        // ==========================================
+        function openEditModal(key) {
+            const lic = allLicenses.find(l => l.key === key);
+            if (!lic) return;
+            activeEditLicense = lic;
+
+            document.getElementById('edit-modal-key').innerText = lic.key;
+            const nameInp = document.getElementById('edit-name-input');
+            const emailInp = document.getElementById('edit-email-input');
+            if (nameInp) nameInp.value = lic.name || '';
+            if (emailInp) emailInp.value = (lic.email && !lic.email.startsWith('gift_')) ? lic.email : '';
+            document.getElementById('edit-plan-select').value = lic.plan || 'trial';
+            document.getElementById('edit-status-select').value = lic.status || 'active';
+
+            const nowSec = Math.floor(Date.now() / 1000);
+            const isLifetime = lic.is_lifetime === true || lic.days === 'Lifetime' || lic.expires_at === 0 || (lic.expires_at && lic.expires_at > 2000000000);
+            const daysLeft = (lic.expires_at && lic.expires_at > nowSec) ? Math.max(0, Math.floor((lic.expires_at - nowSec) / 86400)) : 0;
+            const daysBadge = document.getElementById('edit-modal-days-badge');
+            if (daysBadge) {
+                if (isLifetime) {
+                    daysBadge.innerHTML = '<span class="text-amber-300 font-black">👑 Permanent Lifetime Access</span>';
+                } else {
+                    daysBadge.innerText = `${daysLeft} Days Remaining`;
+                }
+            }
+
+            const customInp = document.getElementById('edit-custom-days-input');
+            if (customInp) customInp.value = '';
+            const exactInp = document.getElementById('edit-exact-days-input');
+            if (exactInp) exactInp.value = '';
+
+            openModal('edit-modal');
+        }
+
+        async function saveLicenseEdit() {
+            if (!activeEditLicense) return;
+            const newPlan = document.getElementById('edit-plan-select').value;
+            const newStatus = document.getElementById('edit-status-select').value;
+            const newName = (document.getElementById('edit-name-input')?.value || '').trim();
+            const newEmail = (document.getElementById('edit-email-input')?.value || '').trim().toLowerCase();
+            const key = activeEditLicense.key;
+
+            try {
+                const updatePayload = {
+                    plan: newPlan,
+                    status: newStatus,
+                    updated_at: Math.floor(Date.now() / 1000)
+                };
+
+                if (newName) updatePayload.name = newName;
+                if (newEmail && newEmail.includes('@')) updatePayload.email = newEmail;
+
+                await db.collection('pk_licenses_by_key').doc(key).update(updatePayload);
+
+                // Update or create in pk_licenses customer master collection
+                const effectiveEmail = newEmail || activeEditLicense.email;
+                if (effectiveEmail && !effectiveEmail.includes('maakthunder.com')) {
+                    const emailDocId = cleanEmailKey(effectiveEmail);
+                    await db.collection('pk_licenses').doc(emailDocId).set({
+                        ...activeEditLicense,
+                        ...updatePayload
+                    }, { merge: true }).catch(() => {});
+                }
+
+                activeEditLicense.plan = newPlan;
+                activeEditLicense.status = newStatus;
+                if (newName) activeEditLicense.name = newName;
+                if (newEmail) activeEditLicense.email = newEmail;
+
+                renderTable();
+                closeModal('edit-modal');
+                alert(`License ${key} updated successfully!`);
+            } catch (err) {
+                console.error("Save edit error:", err);
+                alert("Update failed: " + err.message);
+            }
+        }
+
+        async function quickExtendDays(key, deltaDays) {
+            const lic = allLicenses.find(l => l.key === key);
+            if (!lic) return;
+
+            const nowSec = Math.floor(Date.now() / 1000);
+            const baseExpiry = (lic.expires_at && lic.expires_at > nowSec) ? lic.expires_at : nowSec;
+            const newExpiry = Math.max(nowSec, baseExpiry + (deltaDays * 86400));
+            const newDays = Math.max(0, Math.floor((newExpiry - nowSec) / 86400));
+
+            try {
+                const updatePayload = {
+                    expires_at: newExpiry,
+                    days: newDays,
+                    is_lifetime: false,
+                    status: (newExpiry > nowSec) ? 'active' : 'expired',
+                    updated_at: nowSec
+                };
+
+                await db.collection('pk_licenses_by_key').doc(key).update(updatePayload);
+
+                if (lic.email && !lic.email.includes('maakthunder.com')) {
+                    const emailDocId = cleanEmailKey(lic.email);
+                    await db.collection('pk_licenses').doc(emailDocId).update(updatePayload).catch(() => {});
+                }
+
+                lic.expires_at = newExpiry;
+                lic.days = newDays;
+                lic.is_lifetime = false;
+                lic.status = updatePayload.status;
+
+                alert(`${deltaDays >= 0 ? 'Added +' + deltaDays : 'Reduced ' + deltaDays} days! New validity: ${newDays} Days Remaining.`);
+                closeModal('edit-modal');
+                renderTable();
+            } catch (err) {
+                console.error("Extend error:", err);
+                alert("Failed to adjust days: " + err.message);
+            }
+        }
+
+        async function setLicenseLifetime() {
+            if (!activeEditLicense) return;
+            const key = activeEditLicense.key;
+            if (!confirm(`Grant Permanent Lifetime Access to ${key}?\n\nThis license will never expire.`)) {
+                return;
+            }
+
+            try {
+                const nowSec = Math.floor(Date.now() / 1000);
+                const updatePayload = {
+                    is_lifetime: true,
+                    days: 36500,
+                    expires_at: 0,
+                    status: 'active',
+                    updated_at: nowSec
+                };
+
+                await db.collection('pk_licenses_by_key').doc(key).update(updatePayload);
+
+                if (activeEditLicense.email && !activeEditLicense.email.includes('maakthunder.com')) {
+                    const emailDocId = cleanEmailKey(activeEditLicense.email);
+                    await db.collection('pk_licenses').doc(emailDocId).update(updatePayload).catch(() => {});
+                }
+
+                activeEditLicense.is_lifetime = true;
+                activeEditLicense.days = 36500;
+                activeEditLicense.expires_at = 0;
+                activeEditLicense.status = 'active';
+
+                const daysBadge = document.getElementById('edit-modal-days-badge');
+                if (daysBadge) {
+                    daysBadge.innerHTML = '<span class="text-amber-300 font-black">👑 Permanent Lifetime Access</span>';
+                }
+
+                alert(`License ${key} set to Permanent Lifetime Access!`);
+                renderTable();
+            } catch (err) {
+                console.error("Set lifetime error:", err);
+                alert("Failed to set lifetime: " + err.message);
+            }
+        }
+
+        function addDaysToLicense(deltaDays) {
+            if (!activeEditLicense) return;
+            quickExtendDays(activeEditLicense.key, deltaDays);
+        }
+
+        function applyCustomDaysChange() {
+            if (!activeEditLicense) return;
+            const raw = document.getElementById('edit-custom-days-input').value.trim();
+            const val = parseInt(raw);
+            if (isNaN(val) || val === 0) {
+                alert("Please type a valid number of days to add (e.g. 10) or subtract (e.g. -5).");
+                return;
+            }
+            quickExtendDays(activeEditLicense.key, val);
+        }
+
+        async function applyExactDays() {
+            if (!activeEditLicense) return;
+            const raw = document.getElementById('edit-exact-days-input').value.trim();
+            const exactVal = parseInt(raw);
+            if (isNaN(exactVal) || exactVal < 0) {
+                alert("Please type a valid non-negative number for exact days (e.g. 45).");
+                return;
+            }
+
+            const key = activeEditLicense.key;
+            const lic = activeEditLicense;
+            const nowSec = Math.floor(Date.now() / 1000);
+            const newExpiry = nowSec + (exactVal * 86400);
+
+            try {
+                const updatePayload = {
+                    expires_at: newExpiry,
+                    days: exactVal,
+                    is_lifetime: false,
+                    status: (exactVal > 0) ? 'active' : 'expired',
+                    updated_at: nowSec
+                };
+
+                await db.collection('pk_licenses_by_key').doc(key).update(updatePayload);
+
+                if (lic.email && !lic.email.includes('maakthunder.com')) {
+                    const emailDocId = cleanEmailKey(lic.email);
+                    await db.collection('pk_licenses').doc(emailDocId).update(updatePayload).catch(() => {});
+                }
+
+                lic.expires_at = newExpiry;
+                lic.days = exactVal;
+                lic.status = updatePayload.status;
+
+                alert(`License ${key} set to exactly ${exactVal} days remaining!`);
+                closeModal('edit-modal');
+                renderTable();
+            } catch (err) {
+                console.error("Exact days error:", err);
+                alert("Failed to set exact days: " + err.message);
+            }
+        }
+
+        async function resetHwid(key) {
+            if (!confirm(`Are you sure you want to unlock the hardware lock for ${key}?\n\nThis will allow the customer to bind this key to a new PC.`)) {
+                return;
+            }
+
+            try {
+                const updatePayload = {
+                    hwid: null,
+                    updated_at: Math.floor(Date.now() / 1000)
+                };
+
+                await db.collection('pk_licenses_by_key').doc(key).update(updatePayload);
+
+                const lic = allLicenses.find(l => l.key === key);
+                if (lic && lic.email && !lic.email.includes('maakthunder.com')) {
+                    const emailDocId = cleanEmailKey(lic.email);
+                    await db.collection('pk_licenses').doc(emailDocId).update(updatePayload).catch(() => {});
+                }
+
+                alert(`Hardware lock reset for ${key}! The user can now activate on any computer.`);
+            } catch (err) {
+                console.error("HWID reset error:", err);
+                alert("Failed to reset HWID: " + err.message);
+            }
+        }
+
+        function resetHwidFromEditModal() {
+            if (!activeEditLicense) return;
+            resetHwid(activeEditLicense.key).then(() => closeModal('edit-modal'));
+        }
+
+        async function deleteLicenseRecord() {
+            if (!activeEditLicense) return;
+            const key = activeEditLicense.key;
+            const email = activeEditLicense.email || "";
+            if (!confirm(`⚠️ DANGER: Are you completely sure you want to permanently delete & revoke license ${key}?\n\nThis will revoke it in Polar.sh (if Polar customer) and permanently delete it from Firestore.`)) {
+                return;
+            }
+
+            try {
+                // 1. Delete from Firestore
+                await db.collection('pk_licenses_by_key').doc(key).delete();
+
+                if (email && !email.includes('maakthunder.com')) {
+                    const emailDocId = cleanEmailKey(email);
+                    await db.collection('pk_licenses').doc(emailDocId).delete().catch(() => {});
+                }
+
+                closeModal('edit-modal');
+                alert(`License ${key} permanently deleted from database.`);
+            } catch (err) {
+                console.error("Delete error:", err);
+                alert("Delete failed: " + err.message);
+            }
+        }
+
+        // ==========================================
+        // UTILITIES
+        // ==========================================
+        function openModal(id) {
+            document.getElementById(id).classList.remove('hidden');
+        }
+
+        function closeModal(id) {
+            document.getElementById(id).classList.add('hidden');
+        }
+
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                alert(`Copied to clipboard:\n${text}`);
+            });
+        }
+
+        function notifyDiscord(title, fields) {
+            const webhookUrl = 'https://discord.com/api/webhooks/1566833699712925806/qihzAN0sGmPsVa8uXPktUxZidLcy-CV2KIvWpIJ0Ig34S8vAOppqJlPhbxWOUBBT00Jo';
+            fetch(webhookUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    username: 'THUNDER Admin Sentinel',
+                    embeds: [{
+                        title: title,
+                        color: 58367, // 0x00E5FF
+                        fields: fields,
+                        footer: { text: 'MAAKTHUNDER Studios Admin Portal' },
+                        timestamp: new Date().toISOString()
+                    }]
+                })
+            }).catch(e => console.warn('Discord notify:', e));
+        }
+    </script>
+</body>
+</html>

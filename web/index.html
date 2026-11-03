@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>THUNDER — PUBG Mobile Highlight Automation Studio</title>
+    <meta name="description" content="Official website for THUNDER Studio. AI-powered esports highlight video generator, 3D thumbnail creator, and TikTok/Shorts automation studio for PUBG Mobile.">
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
+
+    <!-- Fonts & Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;700;800;900&family=Rajdhani:wght@600;700&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --cyan-glow: #00e5ff;
+            --navy-dark: #050811;
+            --card-bg: rgba(10, 16, 30, 0.92);
+            --card-border: rgba(0, 229, 255, 0.25);
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--navy-dark);
+            color: #ffffff;
+            background-image: 
+                radial-gradient(circle at 50% 0%, rgba(0, 229, 255, 0.14), transparent 50%),
+                radial-gradient(circle at 10% 40%, rgba(138, 43, 226, 0.08), transparent 40%),
+                radial-gradient(circle at 90% 70%, rgba(0, 229, 255, 0.06), transparent 40%);
+            min-height: 100vh;
+        }
+        .font-orbitron { font-family: 'Orbitron', sans-serif; }
+        .font-rajdhani { font-family: 'Rajdhani', sans-serif; }
+        .font-mono { font-family: 'JetBrains Mono', monospace; }
+        
+        .glass-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--card-border);
+            box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.6);
+        }
+        .btn-cyan {
+            background: linear-gradient(180deg, #00f2fe 0%, #00c0e8 100%);
+            box-shadow: 0 4px 20px rgba(0, 229, 255, 0.4);
+            transition: all 0.2s ease-in-out;
+        }
+        .btn-cyan:hover {
+            background: linear-gradient(180deg, #33f6ff 0%, #00d2fc 100%);
+            box-shadow: 0 6px 30px rgba(0, 229, 255, 0.65);
+            transform: translateY(-2px);
+        }
+        .btn-secondary {
+            background: #0d172a;
+            border: 1px solid rgba(0, 229, 255, 0.4);
+            transition: all 0.2s ease;
+        }
+        .btn-secondary:hover {
+            background: #14223d;
+            border-color: #00e5ff;
+            transform: translateY(-2px);
+        }
+        .glow-text {
+            text-shadow: 0 0 20px rgba(0, 229, 255, 0.5);
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #050811;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #1c2f54;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body class="custom-scrollbar flex flex-col min-h-screen justify-between">
+
+    <!-- ================================================================= -->
+    <!-- 1. STICKY TOP NAVIGATION BAR                                      -->
+    <!-- ================================================================= -->
+    <header class="sticky top-0 z-50 backdrop-blur-xl bg-[#050811]/90 border-b border-[#1b2742]/80">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+            
+            <!-- Logo & Brand Title -->
+            <a href="/" class="flex items-center space-x-3.5 group">
+                <img src="assets/thunder_3d_pro_logo.jpg" alt="THUNDER Studio 3D Logo" class="w-11 h-11 rounded-xl object-cover border-2 border-[#00e5ff] shadow-[0_0_20px_rgba(0,229,255,0.4)] group-hover:scale-105 transition-all">
+                <div class="flex flex-col">
+                    <span class="font-orbitron font-extrabold text-lg text-white tracking-wider flex items-center space-x-1.5">
+                        <span>THUNDER</span>
+                        <span class="text-[#00e5ff] text-xs px-2 py-0.5 rounded bg-[#00e5ff]/10 border border-[#00e5ff]/30 font-mono">STUDIO</span>
+                    </span>
+                    <span class="text-[10px] text-[#7890b0] uppercase tracking-widest font-semibold">PUBG Mobile Automation</span>
+                </div>
+            </a>
+
+            <!-- Navigation Links -->
+            <nav class="hidden md:flex items-center space-x-7 text-xs font-bold text-[#8da2c0] uppercase tracking-wider">
+                <a href="#features" class="hover:text-[#00e5ff] transition-colors">Features</a>
+                <a href="#workflow" class="hover:text-[#00e5ff] transition-colors">How It Works</a>
+                <a href="#roadmap" class="hover:text-[#d946ef] transition-colors">Roadmap</a>
+                <a href="/store" class="hover:text-[#00e5ff] transition-colors flex items-center space-x-1.5">
+                    <span>Store &amp; Plans</span>
+                    <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                </a>
+                <a href="#specs" class="hover:text-[#00e5ff] transition-colors">System Specs</a>
+            </nav>
+
+            <!-- Actions: Dedicated Pakistani Portal + Download Setup -->
+            <div class="flex items-center space-x-3">
+                <a href="/portal" class="inline-flex items-center space-x-1.5 px-3.5 py-2 rounded-xl text-xs font-bold text-[#00e5ff] bg-[#0c1527] border border-[#00e5ff]/50 hover:bg-[#121f38] hover:border-[#00e5ff] transition-all">
+                    <span>🇵🇰</span>
+                    <span>Pakistani Pass</span>
+                </a>
+                <a href="https://github.com/MAAKTHUNDER/THUNDER-PUBG-Mobile-Highlight-Automation-Studio/releases/download/v1.0.0/THUNDER_Studio_Setup_v1.0.0.exe" class="btn-cyan px-4 py-2.5 rounded-xl font-orbitron font-bold text-xs text-black flex items-center space-x-2 shadow-[0_0_20px_rgba(0,229,255,0.4)] hover:scale-105 transition-all" title="Direct Download 70.4 MB Standalone Installer">
+                    <span>📥</span>
+                    <span>Download v1.0.0 (70 MB)</span>
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <!-- ================================================================= -->
+    <!-- 2. HERO SECTION                                                   -->
+    <!-- ================================================================= -->
+    <main>
+        <section class="relative pt-12 pb-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto text-center">
+            
+            <!-- Live Release Pill -->
+            <div class="inline-flex items-center space-x-2 px-4 py-1.5 rounded-full bg-[#0d182b] border border-[#00e5ff]/40 text-xs text-[#00e5ff] font-bold mb-6 shadow-[0_0_20px_rgba(0,229,255,0.2)]">
+                <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+                <span>OFFICIAL LAUNCH: VERSION 1.0.0 NOW LIVE FOR WINDOWS</span>
+            </div>
+
+            <!-- Main Headline -->
+            <h1 class="font-orbitron font-extrabold text-3xl sm:text-5xl lg:text-6xl text-white tracking-wide max-w-5xl mx-auto leading-tight glow-text">
+                THE NEXT-GEN AI HIGHLIGHT <br class="hidden sm:inline">
+                <span class="text-transparent bg-clip-text bg-gradient-to-r from-[#00e5ff] via-[#38bdf8] to-[#60a5fa]">AUTOMATION STUDIO</span> FOR PUBG MOBILE
+            </h1>
+
+            <!-- Subtitle -->
+            <p class="mt-6 text-sm sm:text-lg text-[#94a3b8] max-w-3xl mx-auto leading-relaxed">
+                Turn hours of raw scrims, tournaments, and emulator screen recordings into broadcast-ready <strong class="text-white">1080p 60fps YouTube montages</strong> and viral <strong class="text-[#00e5ff]">9:16 TikTok shorts</strong> in one click using computer-vision AI.
+            </p>
+
+            <!-- CTA Buttons -->
+            <div class="mt-8 flex flex-col sm:flex-row items-center justify-center gap-4">
+                <a href="https://github.com/MAAKTHUNDER/THUNDER-PUBG-Mobile-Highlight-Automation-Studio/releases/download/v1.0.0/THUNDER_Studio_Setup_v1.0.0.exe" class="btn-cyan w-full sm:w-auto px-8 py-4 rounded-2xl font-orbitron font-extrabold text-sm text-black flex items-center justify-center space-x-2.5 shadow-[0_0_30px_rgba(0,229,255,0.5)] hover:scale-105 transition-all" title="Direct Download 70.4 MB Standalone Installer">
+                    <span class="text-lg">📥</span>
+                    <span>DIRECT DOWNLOAD SETUP (.EXE)</span>
+                </a>
+                <a href="/store" class="btn-secondary w-full sm:w-auto px-8 py-4 rounded-2xl font-orbitron font-bold text-sm text-[#00e5ff] hover:text-white flex items-center justify-center space-x-2">
+                    <span>🛒</span>
+                    <span>GLOBAL STORE &amp; PRICING</span>
+                </a>
+                <a href="/portal" class="w-full sm:w-auto px-6 py-4 rounded-2xl font-orbitron font-bold text-sm text-emerald-400 bg-emerald-950/40 border border-emerald-500/50 hover:bg-emerald-900/60 flex items-center justify-center space-x-2 transition-all">
+                    <span>🇵🇰</span>
+                    <span>CLAIM 15-DAY FREE PASS (RS. 0)</span>
+                </a>
+            </div>
+
+            <!-- Capability Ticker Badges -->
+            <div class="mt-12 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 max-w-5xl mx-auto text-xs font-semibold text-[#8da2c0]">
+                <div class="p-3 rounded-xl bg-[#090f1d] border border-[#1b2742]">
+                    <span class="text-[#00e5ff] font-bold block mb-0.5">⚡ Fast Engine</span>
+                    <span>Single-Pass 23.5% Speedup</span>
+                </div>
+                <div class="p-3 rounded-xl bg-[#090f1d] border border-[#1b2742]">
+                    <span class="text-emerald-400 font-bold block mb-0.5">🎮 NVIDIA RTX NVENC</span>
+                    <span>1080p 60fps (25-30 Mbps)</span>
+                </div>
+                <div class="p-3 rounded-xl bg-[#090f1d] border border-[#1b2742]">
+                    <span class="text-[#f59e0b] font-bold block mb-0.5">📱 9:16 Shorts</span>
+                    <span>Dynamic Punch-Zooms</span>
+                </div>
+                <div class="p-3 rounded-xl bg-[#090f1d] border border-[#1b2742]">
+                    <span class="text-[#d946ef] font-bold block mb-0.5">🖼️ 3D Thumbnails</span>
+                    <span>Peak Combat Capture</span>
+                </div>
+                <div class="p-3 rounded-xl bg-[#090f1d] border border-[#1b2742] col-span-2 sm:col-span-1">
+                    <span class="text-[#00e5ff] font-bold block mb-0.5">🔒 HWID Shield</span>
+                    <span>Hardware Locked Security</span>
+                </div>
+            </div>
+
+        </section>
+
+        <!-- ============================================================= -->
+        <!-- 3. CAPABILITIES SHOWCASE SECTION                              -->
+        <!-- ============================================================= -->
+        <section id="features" class="py-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto border-t border-[#1b2742]/80">
+            
+            <div class="text-center space-y-2 mb-12">
+                <span class="text-xs font-bold uppercase tracking-widest text-[#00e5ff] bg-[#00e5ff]/10 px-3 py-1 rounded-full border border-[#00e5ff]/30 font-mono">CORE CAPABILITIES</span>
+                <h2 class="font-orbitron font-extrabold text-2xl sm:text-4xl text-white tracking-wide">
+                    BUILT SPECIFICALLY FOR COMPETITIVE CREATORS
+                </h2>
+                <p class="text-xs sm:text-sm text-[#8da2c0] max-w-2xl mx-auto">
+                    Everything you need to automate your entire video workflow from raw gameplay to published social kits.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                
+                <!-- Feature 1: Single-Pass AI Detection -->
+                <div class="glass-card p-6 rounded-2xl space-y-3 hover:border-[#00e5ff]/60 transition-all">
+                    <div class="w-12 h-12 rounded-xl bg-[#00e5ff]/10 border border-[#00e5ff]/30 flex items-center justify-center text-2xl">
+                        ⚡
+                    </div>
+                    <h3 class="font-orbitron font-bold text-base text-white">Single-Pass AI Combat Vision</h3>
+                    <p class="text-xs text-[#8da2c0] leading-relaxed">
+                        Scans screen recordings and GameLoop emulator footage in a single continuous pass. Automatically extracts kills, knocks, clutches, and headshots with 23.5% faster GPU detection.
+                    </p>
+                </div>
+
+                <!-- Feature 2: 9:16 Vertical Shorts -->
+                <div class="glass-card p-6 rounded-2xl space-y-3 hover:border-[#00e5ff]/60 transition-all">
+                    <div class="w-12 h-12 rounded-xl bg-[#00e5ff]/10 border border-[#00e5ff]/30 flex items-center justify-center text-2xl">
+                        📱
+                    </div>
+                    <h3 class="font-orbitron font-bold text-base text-white">Native 9:16 TikTok / Shorts</h3>
+                    <p class="text-xs text-[#8da2c0] leading-relaxed">
+                        Export viral vertical shorts with dynamic punch-zooms on enemy engagements, centered crosshairs, and background blur fill. Fully compliant with SAR 1:1 and DAR 9:16 vertical standards.
+                    </p>
+                </div>
+
+                <!-- Feature 3: 3D Esports Dynamic Intro & SFX -->
+                <div class="glass-card p-6 rounded-2xl space-y-3 hover:border-[#00e5ff]/60 transition-all">
+                    <div class="w-12 h-12 rounded-xl bg-[#00e5ff]/10 border border-[#00e5ff]/30 flex items-center justify-center text-2xl">
+                        🏆
+                    </div>
+                    <h3 class="font-orbitron font-bold text-base text-white">3D Esports Intros &amp; Animated Badges</h3>
+                    <p class="text-xs text-[#8da2c0] leading-relaxed">
+                        2.0s 3D Branded Intro generated automatically with your Player IGN and channel name. Includes animated kill/knock badges and impact whoosh/hit sound effects (SFX).
+                    </p>
+                </div>
+
+                <!-- Feature 4: 3D YouTube Thumbnail Generator -->
+                <div class="glass-card p-6 rounded-2xl space-y-3 hover:border-[#00e5ff]/60 transition-all">
+                    <div class="w-12 h-12 rounded-xl bg-[#00e5ff]/10 border border-[#00e5ff]/30 flex items-center justify-center text-2xl">
+                        🖼️
+                    </div>
+                    <h3 class="font-orbitron font-bold text-base text-white">Automated 3D YouTube Thumbnails</h3>
+                    <p class="text-xs text-[#8da2c0] leading-relaxed">
+                        Captures the most intense combat frame, applies 3D esports typography, player IGN watermark, and episode badges. Generates both 16:9 Landscape and 9:16 Shorts covers.
+                    </p>
+                </div>
+
+                <!-- Feature 5: 1-Click Social Media Kit -->
+                <div class="glass-card p-6 rounded-2xl space-y-3 hover:border-[#00e5ff]/60 transition-all">
+                    <div class="w-12 h-12 rounded-xl bg-[#00e5ff]/10 border border-[#00e5ff]/30 flex items-center justify-center text-2xl">
+                        📋
+                    </div>
+                    <h3 class="font-orbitron font-bold text-base text-white">1-Click Social SEO Kit</h3>
+                    <p class="text-xs text-[#8da2c0] leading-relaxed">
+                        Generates YouTube SEO titles, full video descriptions, match fight timestamps, and trending TikTok/Shorts hashtags saved to a handy text file, ready to copy and paste.
+                    </p>
+                </div>
+
+                <!-- Feature 6: Multi-Match Queue -->
+                <div class="glass-card p-6 rounded-2xl space-y-3 hover:border-[#00e5ff]/60 transition-all">
+                    <div class="w-12 h-12 rounded-xl bg-[#00e5ff]/10 border border-[#00e5ff]/30 flex items-center justify-center text-2xl">
+                        🗂️
+                    </div>
+                    <h3 class="font-orbitron font-bold text-base text-white">Multi-Match Custom Sequencing Queue</h3>
+                    <p class="text-xs text-[#8da2c0] leading-relaxed">
+                        Load multiple match recordings at once. Rearrange which fights play first using custom ▲ / ▼ controls, or let AI automatically curate the best clutch moments.
+                    </p>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- ============================================================= -->
+        <!-- 4. 3-STEP WORKFLOW SECTION                                    -->
+        <!-- ============================================================= -->
+        <section id="workflow" class="py-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto border-t border-[#1b2742]/80">
+            
+            <div class="text-center space-y-2 mb-12">
+                <span class="text-xs font-bold uppercase tracking-widest text-[#00e5ff] bg-[#00e5ff]/10 px-3 py-1 rounded-full border border-[#00e5ff]/30 font-mono">STREAMLINED PIPELINE</span>
+                <h2 class="font-orbitron font-extrabold text-2xl sm:text-4xl text-white tracking-wide">
+                    HOW THUNDER STUDIO WORKS
+                </h2>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="p-6 rounded-2xl bg-[#080d1a] border border-[#1b2742] relative">
+                    <span class="w-8 h-8 rounded-full bg-[#00e5ff] text-black font-orbitron font-bold flex items-center justify-center text-sm mb-4">1</span>
+                    <h3 class="font-orbitron font-bold text-base text-white mb-2">Select Footage &amp; Music</h3>
+                    <p class="text-xs text-[#8da2c0] leading-relaxed">
+                        Point THUNDER to your match recording folder (GameLoop / OBS / Screen Capture) and pick your favorite background music track.
+                    </p>
+                </div>
+
+                <div class="p-6 rounded-2xl bg-[#080d1a] border border-[#1b2742] relative">
+                    <span class="w-8 h-8 rounded-full bg-[#00e5ff] text-black font-orbitron font-bold flex items-center justify-center text-sm mb-4">2</span>
+                    <h3 class="font-orbitron font-bold text-base text-white mb-2">Pick Your Editing Tier</h3>
+                    <p class="text-xs text-[#8da2c0] leading-relaxed">
+                        Choose from <strong>Basic Pure Cuts</strong>, <strong>Pro Esports</strong> (with 3D intro, badges &amp; SFX), or <strong>Pro+ Studio VFX</strong> with queue reordering.
+                    </p>
+                </div>
+
+                <div class="p-6 rounded-2xl bg-[#080d1a] border border-[#1b2742] relative">
+                    <span class="w-8 h-8 rounded-full bg-[#00e5ff] text-black font-orbitron font-bold flex items-center justify-center text-sm mb-4">3</span>
+                    <h3 class="font-orbitron font-bold text-base text-white mb-2">Instant Dual Export</h3>
+                    <p class="text-xs text-[#8da2c0] leading-relaxed">
+                        AI detects every combat scene, beat-syncs cuts, applies hardware NVENC 60fps acceleration, and renders videos, thumbnails, and social kits automatically.
+                    </p>
+                </div>
+            </div>
+
+        </section>
+
+        <!-- ============================================================= -->
+        <!-- 5. ROADMAP: UPCOMING INNOVATIONS (COMING SOON)                -->
+        <!-- ============================================================= -->
+        <section id="roadmap" class="py-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto border-t border-[#1b2742]/80">
+            
+            <div class="text-center space-y-2 mb-12">
+                <span class="text-xs font-bold uppercase tracking-widest text-[#d946ef] bg-[#d946ef]/10 px-3 py-1 rounded-full border border-[#d946ef]/30 font-mono">FUTURE ROADMAP</span>
+                <h2 class="font-orbitron font-extrabold text-2xl sm:text-4xl text-white tracking-wide">
+                    INNOVATIONS COMING SOON TO THUNDER
+                </h2>
+                <p class="text-xs sm:text-sm text-[#8da2c0] max-w-2xl mx-auto">
+                    We are actively engineering next-generation mobile, cloud, and cross-platform capabilities to make your highlight creation completely effortless.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+                
+                <!-- Roadmap 1: Mobile App -->
+                <div class="glass-card p-6 rounded-2xl border border-[#d946ef]/40 relative overflow-hidden group hover:border-[#d946ef] transition-all">
+                    <div class="absolute top-3 right-3 px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider bg-[#d946ef]/20 text-[#d946ef] border border-[#d946ef]/30 font-orbitron">
+                        In Development
+                    </div>
+                    <div class="w-12 h-12 rounded-xl bg-[#d946ef]/10 border border-[#d946ef]/30 flex items-center justify-center text-2xl mb-4">
+                        📱
+                    </div>
+                    <h3 class="font-orbitron font-bold text-base text-white mb-1">THUNDER Mobile App</h3>
+                    <div class="text-[11px] text-[#d946ef] font-semibold mb-2">Android &amp; iOS Companion</div>
+                    <p class="text-xs text-[#8da2c0] leading-relaxed">
+                        Direct screen recording sync from Android, iPhone, and iPad devices. No manual USB cables needed. Edit and share vertical shorts on mobile on the go.
+                    </p>
+                </div>
+
+                <!-- Roadmap 2: Cloud Auto-Upload -->
+                <div class="glass-card p-6 rounded-2xl border border-[#00e5ff]/40 relative overflow-hidden group hover:border-[#00e5ff] transition-all">
+                    <div class="absolute top-3 right-3 px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider bg-[#00e5ff]/20 text-[#00e5ff] border border-[#00e5ff]/30 font-orbitron">
+                        Coming Soon
+                    </div>
+                    <div class="w-12 h-12 rounded-xl bg-[#00e5ff]/10 border border-[#00e5ff]/30 flex items-center justify-center text-2xl mb-4">
+                        ☁️
+                    </div>
+                    <h3 class="font-orbitron font-bold text-base text-white mb-1">Direct Cloud Auto-Upload</h3>
+                    <div class="text-[11px] text-[#00e5ff] font-semibold mb-2">1-Click Social Publishing</div>
+                    <p class="text-xs text-[#8da2c0] leading-relaxed">
+                        Publish directly to YouTube Studio and TikTok with auto-filled SEO titles, match timestamps, 3D thumbnails, and hashtags without leaving THUNDER.
+                    </p>
+                </div>
+
+                <!-- Roadmap 3: Cross-Device Cloud Sync -->
+                <div class="glass-card p-6 rounded-2xl border border-emerald-500/40 relative overflow-hidden group hover:border-emerald-400 transition-all">
+                    <div class="absolute top-3 right-3 px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 font-orbitron">
+                        Planned
+                    </div>
+                    <div class="w-12 h-12 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-2xl mb-4">
+                        🔄
+                    </div>
+                    <h3 class="font-orbitron font-bold text-base text-white mb-1">Universal Cloud Sync</h3>
+                    <div class="text-[11px] text-emerald-400 font-semibold mb-2">Multi-Device Vault</div>
+                    <p class="text-xs text-[#8da2c0] leading-relaxed">
+                        Sync your highlights, music presets, IGN watermarks, and active passes across your gaming PC, laptop, and upcoming mobile app seamlessly.
+                    </p>
+                </div>
+
+                <!-- Roadmap 4: AI Voice Caster -->
+                <div class="glass-card p-6 rounded-2xl border border-[#f59e0b]/40 relative overflow-hidden group hover:border-[#f59e0b] transition-all">
+                    <div class="absolute top-3 right-3 px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider bg-[#f59e0b]/20 text-[#f59e0b] border border-[#f59e0b]/30 font-orbitron">
+                        Research
+                    </div>
+                    <div class="w-12 h-12 rounded-xl bg-[#f59e0b]/10 border border-[#f59e0b]/30 flex items-center justify-center text-2xl mb-4">
+                        🎙️
+                    </div>
+                    <h3 class="font-orbitron font-bold text-base text-white mb-1">AI Esports Voice Caster</h3>
+                    <div class="text-[11px] text-[#f59e0b] font-semibold mb-2">Automated Commentary</div>
+                    <p class="text-xs text-[#8da2c0] leading-relaxed">
+                        Synthesizes dynamic tournament caster commentary in Urdu, Hindi, and English over your multi-kill clutches and chicken dinner highlights.
+                    </p>
+                </div>
+
+            </div>
+
+            <!-- Callout to Store & Portal -->
+            <div class="mt-10 p-6 rounded-2xl bg-gradient-to-r from-[#0d1b33] via-[#091224] to-[#060a14] border border-[#00e5ff]/40 flex flex-col sm:flex-row items-center justify-between gap-4">
+                <div>
+                    <h4 class="font-orbitron font-bold text-base text-white">READY TO UNLOCK THUNDER STUDIO?</h4>
+                    <p class="text-xs text-[#8da2c0] mt-1">Explore our global pricing on Polar or claim your free 15-day domestic testing pass.</p>
+                </div>
+                <div class="flex items-center space-x-3">
+                    <a href="/store" class="btn-cyan px-5 py-2.5 rounded-xl text-xs font-bold font-orbitron text-black">Global Store &rarr;</a>
+                    <a href="/portal" class="px-5 py-2.5 rounded-xl text-xs font-bold font-orbitron text-[#00e5ff] bg-[#0c1527] border border-[#00e5ff]/50 hover:bg-[#121f38]">Pakistani Pass &rarr;</a>
+                </div>
+            </div>
+
+        </section>
+
+        <!-- ============================================================= -->
+        <!-- 6. SYSTEM REQUIREMENTS & DOWNLOAD CENTER                      -->
+        <!-- ============================================================= -->
+        <section id="specs" class="py-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto border-t border-[#1b2742]/80">
+            
+            <div class="text-center space-y-2 mb-12">
+                <span class="text-xs font-bold uppercase tracking-widest text-[#00e5ff] bg-[#00e5ff]/10 px-3 py-1 rounded-full border border-[#00e5ff]/30 font-mono">SPECIFICATIONS</span>
+                <h2 class="font-orbitron font-extrabold text-2xl sm:text-4xl text-white tracking-wide">
+                    SYSTEM REQUIREMENTS &amp; DOWNLOAD
+                </h2>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto mb-10">
+                
+                <div class="p-6 rounded-2xl bg-[#080d1a] border border-[#1b2742] space-y-3">
+                    <div class="text-xs font-orbitron font-bold text-[#8da2c0] uppercase tracking-wider">Minimum Requirements</div>
+                    <ul class="text-xs text-[#a5b8d0] space-y-2">
+                        <li>• <strong>OS:</strong> Windows 10 (64-bit)</li>
+                        <li>• <strong>GPU:</strong> NVIDIA GTX 1060 (NVENC supported)</li>
+                        <li>• <strong>CPU:</strong> Intel Core i5 / AMD Ryzen 5</li>
+                        <li>• <strong>RAM:</strong> 8 GB</li>
+                        <li>• <strong>Display:</strong> 1920 × 1080</li>
+                    </ul>
+                </div>
+
+                <div class="p-6 rounded-2xl bg-[#080d1a] border border-[#00e5ff]/40 space-y-3 shadow-[0_0_30px_rgba(0,229,255,0.15)]">
+                    <div class="text-xs font-orbitron font-bold text-[#00e5ff] uppercase tracking-wider">Recommended Esports Workstation</div>
+                    <ul class="text-xs text-white space-y-2">
+                        <li>• <strong>OS:</strong> Windows 10 / 11 (64-bit)</li>
+                        <li>• <strong>GPU:</strong> NVIDIA RTX 3060 / 4060 or higher</li>
+                        <li>• <strong>CPU:</strong> Intel Core i7 / AMD Ryzen 7</li>
+                        <li>• <strong>RAM:</strong> 16 GB DDR4/DDR5</li>
+                        <li>• <strong>Display:</strong> 1080p 144Hz or 1440p</li>
+                    </ul>
+                </div>
+
+            </div>
+
+            <!-- Download Banner Card -->
+            <div id="download" class="p-8 rounded-3xl bg-gradient-to-r from-[#0c1527] via-[#09101f] to-[#050811] border-2 border-[#00e5ff]/50 shadow-[0_0_50px_rgba(0,229,255,0.3)] max-w-3xl mx-auto text-center space-y-4">
+                <span class="px-3 py-1 rounded-full text-[11px] font-extrabold bg-[#00e5ff]/20 text-[#00e5ff] border border-[#00e5ff]/50 uppercase tracking-widest inline-block">Official Production Build • 100% Standalone</span>
+                <h3 class="font-orbitron font-extrabold text-xl sm:text-2xl text-white">GET STARTED WITH THUNDER STUDIO</h3>
+                <p class="text-xs sm:text-sm text-[#8da2c0] max-w-xl mx-auto">
+                    Download official setup installer v1.0.0 (70.4 MB). Bundled with embedded Python runtime & video engine. No technical setup, Git, or Python downloads required. Includes 15 days of full PRO+ access out of the box.
+                </p>
+                <div class="pt-3 flex flex-col sm:flex-row items-center justify-center gap-3">
+                    <a href="https://github.com/MAAKTHUNDER/THUNDER-PUBG-Mobile-Highlight-Automation-Studio/releases/download/v1.0.0/THUNDER_Studio_Setup_v1.0.0.exe" class="btn-cyan w-full sm:w-auto px-8 py-4 rounded-xl font-orbitron font-bold text-sm text-black flex items-center justify-center space-x-2 shadow-[0_0_25px_rgba(0,229,255,0.4)] hover:scale-105 transition-all">
+                        <span>📥</span>
+                        <span>DIRECT DOWNLOAD (70.4 MB .EXE)</span>
+                    </a>
+                    <a href="https://github.com/MAAKTHUNDER/THUNDER-PUBG-Mobile-Highlight-Automation-Studio/releases/tag/v1.0.0" target="_blank" class="w-full sm:w-auto px-6 py-4 rounded-xl font-orbitron font-bold text-xs text-[#8da2c0] hover:text-white bg-[#0c1527] border border-[#1b2742] hover:border-[#00e5ff] flex items-center justify-center space-x-2 transition-all">
+                        <span>📦</span>
+                        <span>View GitHub Release</span>
+                    </a>
+                </div>
+                <div class="pt-2 text-[11px] text-[#7187a5] flex flex-wrap items-center justify-center gap-4">
+                    <span>✓ Windows 10 & 11 (64-bit)</span>
+                    <span>✓ Zero Technical Prerequisites</span>
+                    <span>✓ 100% Safe Esports Gaming EULA</span>
+                </div>
+            </div>
+
+        </section>
+    </main>
+
+    <!-- ================================================================= -->
+    <!-- 7. FOOTER                                                         -->
+    <!-- ================================================================= -->
+    <footer class="py-12 px-4 sm:px-6 lg:px-8 border-t border-[#1b2742] bg-[#03060c] text-center text-xs text-[#64748b] space-y-4">
+        <div class="flex items-center justify-center space-x-6 text-sm font-bold text-[#8da2c0]">
+            <a href="/" class="text-[#00e5ff]">Home</a>
+            <a href="/store" class="hover:text-white transition-colors">Store</a>
+            <a href="/portal" class="hover:text-emerald-400 transition-colors">Pakistani Pass</a>
+            <a href="https://youtube.com/@MAAKTHUNDER" target="_blank" class="hover:text-red-400 transition-colors">YouTube</a>
+            <a href="https://tiktok.com/@MAAKTHUNDER" target="_blank" class="hover:text-[#00e5ff] transition-colors">TikTok</a>
+            <a href="https://github.com/MAAKTHUNDER/THUNDER-PUBG-Mobile-Highlight-Automation-Studio" target="_blank" class="hover:text-white transition-colors">GitHub</a>
+        </div>
+        <p>
+            Developed by <strong class="text-[#8da2c0]">MAAKTHUNDER</strong> (Player IGN: <code class="text-[#00e5ff]">TK • 亗 • MAAK</code>).
+        </p>
+        <p class="text-[11px]">
+            &copy; 2026 MAAKTHUNDER Studios. All rights reserved. Built for competitive PUBG Mobile esports creators.
+        </p>
+    </footer>
+
+</body>
+</html>

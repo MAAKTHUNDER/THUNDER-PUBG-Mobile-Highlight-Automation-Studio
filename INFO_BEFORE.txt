@@ -1,0 +1,28 @@
+================================================================================
+THUNDER Studio — System Requirements & Quick Setup Guide
+================================================================================
+
+WELCOME TO THUNDER STUDIO V1.0!
+The industry's first autonomous AI highlight automation studio tailored for
+competitive PUBG Mobile creators, esports athletes, and content producers.
+
+SYSTEM REQUIREMENTS:
+--------------------
+* Operating System: 64-bit Windows 10 or Windows 11
+* Processor: Intel Core i5 / AMD Ryzen 5 or higher
+* Memory: 8 GB RAM minimum (16 GB recommended for 60fps renders)
+* Graphics: NVIDIA GTX 1050 / AMD Radeon RX 560 or equivalent GPU
+* Storage: 500 MB free space for installation (+ disk space for video outputs)
+* Video Source: 1080p 60fps or 30fps MP4 gameplay recordings from OBS, GameLoop,
+  or standard screen recorders.
+
+QUICK START IN 3 EASY STEPS:
+----------------------------
+1. Launch THUNDER Studio from your Desktop or Start Menu.
+2. If this is your first time, enter your Pakistani Pass or International License Key.
+3. Select your raw match capture folder, choose your music track, and click
+   "GENERATE AI HIGHLIGHTS" — THUNDER will automatically isolate knocks, eliminations,
+   and squad wipes into ready-to-publish esports montages and vertical shorts!
+
+Support & Portal: https://maakthunder-studio.web.app
+================================================================================

@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>THUNDER Studio — Pakistan Official License Portal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;700;900&family=Rajdhani:wght@600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+    
+    <!-- Firebase JS SDK (v10 compat) for Serverless Firestore Integration -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+
+    <style>
+        :root {
+            --cyan-glow: #00e5ff;
+            --navy-dark: #070a13;
+            --card-bg: rgba(14, 22, 38, 0.88);
+            --card-border: rgba(0, 229, 255, 0.22);
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--navy-dark);
+            color: #ffffff;
+            background-image: radial-gradient(circle at 50% 0%, rgba(0, 229, 255, 0.12), transparent 50%),
+                              radial-gradient(circle at 10% 40%, rgba(138, 43, 226, 0.08), transparent 40%);
+            min-height: 100vh;
+        }
+        .font-orbitron { font-family: 'Orbitron', sans-serif; }
+        .font-rajdhani { font-family: 'Rajdhani', sans-serif; }
+        .font-mono { font-family: 'JetBrains Mono', monospace; }
+        .glass-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--card-border);
+            box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.5);
+        }
+        .plan-card {
+            transition: all 0.2s ease-in-out;
+            cursor: pointer;
+        }
+        .plan-card:hover {
+            border-color: rgba(0, 229, 255, 0.6);
+            transform: translateY(-2px);
+        }
+        .plan-card.selected {
+            border-color: #00e5ff;
+            background: rgba(0, 229, 255, 0.08);
+            box-shadow: 0 0 25px rgba(0, 229, 255, 0.25);
+        }
+        .btn-cyan {
+            background: linear-gradient(180deg, #00f2fe 0%, #00c0e8 100%);
+            box-shadow: 0 4px 15px rgba(0, 229, 255, 0.4);
+            transition: all 0.15s ease-in-out;
+        }
+        .btn-cyan:hover {
+            background: linear-gradient(180deg, #33f6ff 0%, #00d2fc 100%);
+            box-shadow: 0 6px 25px rgba(0, 229, 255, 0.6);
+            transform: translateY(-1px);
+        }
+        .modal-overlay {
+            background: rgba(3, 7, 18, 0.85);
+            backdrop-filter: blur(8px);
+        }
+    </style>
+</head>
+<body class="p-4 md:p-8 flex flex-col items-center justify-center">
+
+    <!-- Header & Branding -->
+    <div class="max-w-3xl w-full text-center mb-8">
+        <div class="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-[#101b30] border border-[#00e5ff]/30 text-[#00e5ff] text-xs font-bold mb-3 tracking-wider uppercase">
+            <span>🇵🇰 Pakistan Official Domestic Portal</span>
+            <span>•</span>
+            <span>Zero Bank Tax</span>
+        </div>
+        <h1 class="text-3xl md:text-5xl font-black font-orbitron tracking-tight text-white mb-2">
+            THUNDER <span class="text-[#00e5ff]">STUDIO</span>
+        </h1>
+        <p class="text-sm md:text-base text-[#8da2c0] font-medium">
+            PUBG Mobile Highlight Automation Studio • Official client of <strong class="text-white">MAAKTHUNDER Studios</strong>
+        </p>
+    </div>
+
+    <!-- Main Card Container -->
+    <div class="max-w-3xl w-full glass-card rounded-2xl p-6 md:p-8">
+
+        <!-- Navigation Tabs: New Pass vs Search & Upgrade -->
+        <div class="flex rounded-xl bg-[#0a0f1d] p-1 border border-[#1c2f54] mb-8">
+            <button id="tab-new" onclick="switchTab('new')" class="flex-1 py-2.5 rounded-lg text-sm font-bold transition-all bg-[#00e5ff] text-black shadow-md flex items-center justify-center space-x-2">
+                <span>⚡ Get 15-Day Free Trial</span>
+            </button>
+            <button id="tab-upgrade" onclick="switchTab('upgrade')" class="flex-1 py-2.5 rounded-lg text-sm font-bold transition-all text-[#8da2c0] hover:text-white flex items-center justify-center space-x-2">
+                <span>🔍 Search Plan / Upgrade</span>
+            </button>
+        </div>
+
+        <!-- TAB 1: NEW PASS -->
+        <div id="section-new" class="space-y-6">
+
+            <!-- Step 1: Select Plan -->
+            <div>
+                <label class="block text-xs font-bold uppercase tracking-wider text-[#8da2c0] mb-3">1. Select Your Edition</label>
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
+                    
+                    <!-- 15-Day Free Trial (Active Now) -->
+                    <div onclick="selectPlan('trial', 0, '15-Day Free Trial')" id="plan-trial" class="plan-card selected p-4 rounded-xl border border-[#1c2f54] bg-[#0d1627] flex flex-col justify-between">
+                        <div>
+                            <span class="text-[10px] font-bold uppercase tracking-wider text-[#00e5ff] bg-[#00e5ff]/10 px-2 py-0.5 rounded">Active Testing</span>
+                            <h3 class="text-base font-bold font-orbitron mt-2">15-Day Trial</h3>
+                            <p class="text-xs text-[#8da2c0] mt-1">Full access to test all studio features</p>
+                        </div>
+                        <div class="mt-4 pt-3 border-t border-[#1c2f54]/50">
+                            <span class="text-lg font-black font-orbitron text-white">Rs. 0</span>
+                            <span class="text-[10px] text-[#00e5ff] block font-bold">AVAILABLE NOW</span>
+                        </div>
+                    </div>
+
+                    <!-- Basic Pass (Price Announce Soon) -->
+                    <div onclick="showPriceAnnounceModal('Basic')" id="plan-basic" class="plan-card p-4 rounded-xl border border-[#1c2f54] bg-[#0d1627] flex flex-col justify-between opacity-85 hover:opacity-100">
+                        <div>
+                            <span class="text-[10px] font-bold uppercase tracking-wider text-[#a5d8ff] bg-[#101b30] px-2 py-0.5 rounded">Casual</span>
+                            <h3 class="text-base font-bold font-orbitron mt-2">Basic Pass</h3>
+                            <p class="text-xs text-[#8da2c0] mt-1">1080p60 • Up to 5 Videos at Once • Beat Sync • 9:16 Shorts</p>
+                        </div>
+                        <div class="mt-4 pt-3 border-t border-[#1c2f54]/50">
+                            <span class="text-xs font-black font-orbitron text-[#f59e0b] tracking-wider block">PRICE ANNOUNCE SOON</span>
+                            <span class="text-[10px] text-[#8da2c0]">Post-Testing Phase</span>
+                        </div>
+                    </div>
+
+                    <!-- Pro Pass (Price Announce Soon) -->
+                    <div onclick="showPriceAnnounceModal('Pro')" id="plan-pro" class="plan-card p-4 rounded-xl border border-[#1c2f54] bg-[#0d1627] flex flex-col justify-between opacity-85 hover:opacity-100">
+                        <div>
+                            <span class="text-[10px] font-bold uppercase tracking-wider text-[#f59e0b] bg-[#f59e0b]/10 px-2 py-0.5 rounded">Creator</span>
+                            <h3 class="text-base font-bold font-orbitron mt-2 text-[#f59e0b]">Pro Pass</h3>
+                            <p class="text-xs text-[#8da2c0] mt-1">1080p60 • Unlimited Video Queue & Full Folder Scan • AI Vision</p>
+                        </div>
+                        <div class="mt-4 pt-3 border-t border-[#1c2f54]/50">
+                            <span class="text-xs font-black font-orbitron text-[#f59e0b] tracking-wider block">PRICE ANNOUNCE SOON</span>
+                            <span class="text-[10px] text-[#8da2c0]">Post-Testing Phase</span>
+                        </div>
+                    </div>
+
+                    <!-- Pro+ Team (Price Announce Soon) -->
+                    <div onclick="showPriceAnnounceModal('Pro+ Team')" id="plan-pro_plus" class="plan-card p-4 rounded-xl border border-[#1c2f54] bg-[#0d1627] flex flex-col justify-between opacity-85 hover:opacity-100">
+                        <div>
+                            <span class="text-[10px] font-bold uppercase tracking-wider text-[#d946ef] bg-[#d946ef]/10 px-2 py-0.5 rounded">Esports</span>
+                            <h3 class="text-base font-bold font-orbitron mt-2 text-[#d946ef]">Pro+ Team</h3>
+                            <p class="text-xs text-[#8da2c0] mt-1">1080p60 Ultra Bitrate • Unlimited Batch Queue • OCR Killfeed Stats</p>
+                        </div>
+                        <div class="mt-4 pt-3 border-t border-[#1c2f54]/50">
+                            <span class="text-xs font-black font-orbitron text-[#d946ef] tracking-wider block">PRICE ANNOUNCE SOON</span>
+                            <span class="text-[10px] text-[#8da2c0]">Post-Testing Phase</span>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- Customer Information Form -->
+            <div class="space-y-4">
+                <label class="block text-xs font-bold uppercase tracking-wider text-[#8da2c0]">2. Your Information</label>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div>
+                        <input type="text" id="cust-name" placeholder="Full Name or Gamer Tag (e.g. MAAK)" class="w-full px-3.5 py-2.5 rounded-lg bg-[#0a0f1d] border border-[#1c2f54] text-white text-sm focus:outline-none focus:border-[#00e5ff] font-medium">
+                    </div>
+                    <div>
+                        <input type="email" id="cust-email" placeholder="Your Email Address" class="w-full px-3.5 py-2.5 rounded-lg bg-[#0a0f1d] border border-[#1c2f54] text-white text-sm focus:outline-none focus:border-[#00e5ff] font-medium">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Submit Button -->
+            <button onclick="submitNewLicense()" id="btn-submit-new" class="btn-cyan w-full py-3.5 rounded-xl text-black font-black font-orbitron text-sm uppercase tracking-wider flex items-center justify-center space-x-2">
+                <span>⚡ Get Instant 15-Day Free Trial Key</span>
+            </button>
+
+        </div>
+
+        <!-- TAB 2: SEARCH PLAN / UPGRADE -->
+        <div id="section-upgrade" class="hidden space-y-6">
+            <div>
+                <label class="block text-xs font-bold uppercase tracking-wider text-[#8da2c0] mb-2">Search Your Plan by License Key</label>
+                <div class="flex flex-col md:flex-row space-y-2 md:space-y-0 md:space-x-2">
+                    <input type="text" id="lookup-email" placeholder="Enter License Key (e.g. THUNDER-PK-TRIAL-...)" class="flex-1 px-3.5 py-2.5 rounded-lg bg-[#0a0f1d] border border-[#1c2f54] text-white text-sm focus:outline-none focus:border-[#00e5ff] font-medium font-mono">
+                    <button onclick="lookupExistingLicense()" id="btn-search-plan" class="px-6 py-2.5 rounded-lg bg-[#101b30] hover:bg-[#162544] border border-[#00e5ff]/40 text-[#00e5ff] text-xs font-bold uppercase tracking-wider flex items-center justify-center">
+                        Search Plan
+                    </button>
+                </div>
+            </div>
+
+            <!-- Existing Customer Status Box -->
+            <div id="upgrade-status-box" class="hidden p-5 rounded-xl bg-[#0a0f1d] border border-[#00e5ff]/30 space-y-4">
+                <div class="flex items-center justify-between border-b border-[#1c2f54] pb-3">
+                    <span class="text-xs text-[#8da2c0]">License Key:</span>
+                    <span id="status-key" class="text-xs font-mono font-bold text-[#00e5ff]">THUNDER-PK-...</span>
+                </div>
+                <div class="grid grid-cols-3 gap-2 text-xs">
+                    <div>User: <strong id="status-name" class="text-white block mt-0.5">-</strong></div>
+                    <div>Plan: <strong id="status-plan" class="text-[#00e5ff] uppercase block mt-0.5">15-Day Trial</strong></div>
+                    <div>Time Left: <strong id="status-days" class="text-[#f59e0b] block mt-0.5">15 Days</strong></div>
+                </div>
+                
+                <div class="p-3.5 rounded-lg bg-[#101b30] border border-[#1c2f54] text-xs text-[#8da2c0]">
+                    <span class="text-[#00e5ff] font-bold block mb-1">🚀 Upgrades & Renewals</span>
+                    Paid subscription pricing will be announced at the end of the 15-day testing phase. Your key is already securely stored in our system and will upgrade smoothly!
+                </div>
+            </div>
+        </div>
+
+        <!-- Result / Success Modal -->
+        <div id="result-box" class="hidden mt-6 p-6 rounded-xl bg-[#0a1829] border border-[#00e5ff] text-center space-y-4">
+            <div class="w-12 h-12 rounded-full bg-[#00e5ff]/20 text-[#00e5ff] flex items-center justify-center mx-auto text-2xl font-black">
+                ✓
+            </div>
+            <h3 class="text-xl font-bold font-orbitron text-white" id="result-title">15-Day Free Trial Active!</h3>
+            <p class="text-xs text-[#8da2c0]" id="result-subtitle">Your pass is active and ready to use in THUNDER Studio.</p>
+
+            <div class="p-3.5 rounded-lg bg-[#070e1b] border border-[#00e5ff]/40 flex items-center justify-between">
+                <span class="font-mono text-xs md:text-sm font-bold text-[#00e5ff] tracking-wide break-all mr-2" id="result-key">THUNDER-PK-XXXX...</span>
+                <button onclick="copyResultKey()" class="px-3.5 py-1.5 rounded bg-[#00e5ff] text-black font-bold text-xs hover:bg-[#33eaff] transition-all shrink-0">
+                    Copy Key
+                </button>
+            </div>
+
+            <!-- Important Key Retention Notice -->
+            <div class="p-4 rounded-xl bg-[#f59e0b]/10 border border-[#f59e0b]/40 text-left text-xs space-y-2">
+                <div class="text-[#f59e0b] font-bold flex items-center space-x-1.5 uppercase tracking-wide">
+                    <span>⚠️</span>
+                    <span>SAVE THIS LICENSE KEY (UPGRADABLE)</span>
+                </div>
+                <p class="text-[#cbd5e1] leading-relaxed">
+                    Please copy and save this key in your notes or WhatsApp! <strong>This exact key will upgrade directly to your paid subscription after your trial</strong> without needing a new key. You can also search your plan anytime using this key or your email.
+                </p>
+            </div>
+
+            <div class="text-left text-xs text-[#8da2c0] bg-[#101b30] p-3.5 rounded-lg border border-[#1c2f54]">
+                <strong class="text-white block mb-1">How to Activate in THUNDER Studio:</strong>
+                1. Launch THUNDER Studio on your PC.<br>
+                2. Paste your key into the activation box.<br>
+                3. The app will bind to your PC hardware and unlock all features!
+            </div>
+        </div>
+
+    </div>
+
+    <!-- MODAL: Price Announce Soon -->
+    <div id="price-announce-modal" class="fixed inset-0 modal-overlay z-50 hidden flex items-center justify-center p-4">
+        <div class="max-w-md w-full glass-card border border-[#f59e0b]/50 rounded-2xl p-6 text-center space-y-4 shadow-2xl">
+            <div class="w-14 h-14 rounded-full bg-[#f59e0b]/10 text-[#f59e0b] flex items-center justify-center mx-auto text-2xl font-black">
+                📢
+            </div>
+            <h3 class="text-xl font-bold font-orbitron text-white" id="modal-plan-title">PRICE ANNOUNCE SOON</h3>
+            <p class="text-xs text-[#8da2c0] leading-relaxed">
+                As announced in the official THUNDER Trailer, we are currently in our <strong class="text-[#00e5ff]">15-Day Free Trial Testing Phase</strong>.
+            </p>
+            <div class="p-3.5 rounded-lg bg-[#0d1627] border border-[#1c2f54] text-left text-xs text-[#cbd5e1] space-y-1.5">
+                <div class="text-[#00e5ff] font-bold">✨ What you can do right now:</div>
+                <p>
+                    Claim your <strong>15-Day Free Trial</strong> today. Save your trial key—when the official pricing launches, you can upgrade this exact key seamlessly without losing your settings or project data!
+                </p>
+            </div>
+            <div class="flex space-x-3 pt-2">
+                <button onclick="closePriceModalAndSelectTrial()" class="flex-1 btn-cyan py-2.5 rounded-xl text-black font-black font-orbitron text-xs uppercase tracking-wider">
+                    ⚡ Get 15-Day Trial Now
+                </button>
+                <button onclick="closePriceModal()" class="px-4 py-2.5 rounded-xl bg-[#101b30] hover:bg-[#162544] border border-[#1c2f54] text-[#8da2c0] font-bold text-xs uppercase">
+                    Close
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Script Logic & Direct Firebase Firestore Integration -->
+    <script>
+        // Official Firebase Project Configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyBpWeW72diIAq9enlq9y-Gh5U_33ta8RPg",
+            authDomain: "maakthunder-studio.firebaseapp.com",
+            projectId: "maakthunder-studio",
+            storageBucket: "maakthunder-studio.firebasestorage.app",
+            messagingSenderId: "502710751184",
+            appId: "1:502710751184:web:53d9cf377f1c23062373d5"
+        };
+
+        let db = null;
+        try {
+            if (!firebase.apps.length) {
+                firebase.initializeApp(firebaseConfig);
+            }
+            db = firebase.firestore();
+        } catch (e) {
+            console.error("Firebase init error:", e);
+        }
+
+        let currentPlan = 'trial';
+
+        function switchTab(tab) {
+            if (tab === 'new') {
+                document.getElementById('section-new').classList.remove('hidden');
+                document.getElementById('section-upgrade').classList.add('hidden');
+                document.getElementById('tab-new').className = 'flex-1 py-2.5 rounded-lg text-sm font-bold transition-all bg-[#00e5ff] text-black shadow-md flex items-center justify-center space-x-2';
+                document.getElementById('tab-upgrade').className = 'flex-1 py-2.5 rounded-lg text-sm font-bold transition-all text-[#8da2c0] hover:text-white flex items-center justify-center space-x-2';
+            } else {
+                document.getElementById('section-new').classList.add('hidden');
+                document.getElementById('section-upgrade').classList.remove('hidden');
+                document.getElementById('tab-upgrade').className = 'flex-1 py-2.5 rounded-lg text-sm font-bold transition-all bg-[#00e5ff] text-black shadow-md flex items-center justify-center space-x-2';
+                document.getElementById('tab-new').className = 'flex-1 py-2.5 rounded-lg text-sm font-bold transition-all text-[#8da2c0] hover:text-white flex items-center justify-center space-x-2';
+            }
+            document.getElementById('result-box').classList.add('hidden');
+        }
+
+        function selectPlan(plan, price, title) {
+            currentPlan = plan;
+            ['trial', 'basic', 'pro', 'pro_plus'].forEach(p => {
+                const el = document.getElementById('plan-' + p);
+                if (el) {
+                    if (p === plan) el.classList.add('selected');
+                    else el.classList.remove('selected');
+                }
+            });
+        }
+
+        function showPriceAnnounceModal(planName) {
+            document.getElementById('modal-plan-title').innerText = `${planName.toUpperCase()} — PRICE ANNOUNCE SOON`;
+            document.getElementById('price-announce-modal').classList.remove('hidden');
+        }
+
+        function closePriceModal() {
+            document.getElementById('price-announce-modal').classList.add('hidden');
+        }
+
+        function closePriceModalAndSelectTrial() {
+            closePriceModal();
+            selectPlan('trial', 0, '15-Day Free Trial');
+            document.getElementById('cust-name').focus();
+        }
+
+        function generateRandomHex(len) {
+            const chars = '0123456789ABCDEF';
+            let res = '';
+            for (let i = 0; i < len; i++) {
+                res += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            return res;
+        }
+
+        function cleanEmailKey(email) {
+            return email.toLowerCase().replace(/[^a-z0-9]/g, '_');
+        }
+
+        async function submitNewLicense() {
+            const name = document.getElementById('cust-name').value.trim();
+            const email = document.getElementById('cust-email').value.trim().toLowerCase();
+
+            if (!name) {
+                alert('Please enter your Name or Gamer Tag.');
+                return;
+            }
+            if (!email || !email.includes('@') || !email.includes('.')) {
+                alert('Please enter a valid Email address.');
+                return;
+            }
+
+            const btn = document.getElementById('btn-submit-new');
+            btn.disabled = true;
+            btn.innerText = '⏳ Generating Your Official Pass...';
+
+            try {
+                if (!db) throw new Error("Database not connected");
+
+                const nowSec = Math.floor(Date.now() / 1000);
+                const days = 15;
+                const expiresAt = nowSec + (days * 86400);
+                const emailDocId = cleanEmailKey(email);
+
+                // 1. Check if email already has an active license
+                const licRef = db.collection('pk_licenses').doc(emailDocId);
+                const existingDoc = await licRef.get();
+
+                let key = '';
+                if (existingDoc.exists) {
+                    const data = existingDoc.data();
+                    key = data.key;
+                    document.getElementById('result-title').innerText = 'Active License Pass Found!';
+                    document.getElementById('result-subtitle').innerText = `Welcome back ${name}! Here is your registered 15-day trial key.`;
+                } else {
+                    // Generate guaranteed format key
+                    key = `THUNDER-PK-TRIAL-${generateRandomHex(8)}`;
+                    const payload = {
+                        key: key,
+                        email: email,
+                        name: name,
+                        plan: 'trial',
+                        status: 'active',
+                        hwid: null,
+                        created_at: nowSec,
+                        expires_at: expiresAt,
+                        days: days
+                    };
+
+                    // Write to pk_licenses
+                    await licRef.set(payload);
+
+                    // Write to pk_licenses_by_key for indexed lookup
+                    await db.collection('pk_licenses_by_key').doc(key).set(payload);
+
+                    document.getElementById('result-title').innerText = '15-Day Free Trial Key Generated!';
+                    document.getElementById('result-subtitle').innerText = 'Your pass is active and ready to use in THUNDER Studio.';
+                }
+
+                document.getElementById('result-key').innerText = key;
+                document.getElementById('result-box').classList.remove('hidden');
+                document.getElementById('result-box').scrollIntoView({ behavior: 'smooth' });
+
+                // Real-time Discord Sentinel Notification
+                const webhookUrl = 'https://discord.com/api/webhooks/1566833699712925806/qihzAN0sGmPsVa8uXPktUxZidLcy-CV2KIvWpIJ0Ig34S8vAOppqJlPhbxWOUBBT00Jo';
+                fetch(webhookUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        username: 'THUNDER Studio Sentinel',
+                        embeds: [{
+                            title: '⚡ New Pass Claimed: 15-Day Free Trial',
+                            description: 'A creator claimed their **15-Day Free Trial** on the official Pakistan Portal.',
+                            color: 58367, // 0x00E5FF
+                            fields: [
+                                { name: 'Gamer Tag / Name', value: name, inline: true },
+                                { name: 'Email', value: email, inline: true },
+                                { name: 'Plan', value: '15-Day Free Trial', inline: true },
+                                { name: 'License Key', value: '`' + key + '`', inline: false }
+                            ],
+                            footer: { text: 'MAAKTHUNDER Studios • Domestic Portal' },
+                            timestamp: new Date().toISOString()
+                        }]
+                    })
+                }).catch(e => console.warn('Discord notify sync:', e));
+            } catch (err) {
+                console.error("Firestore error:", err);
+                alert("Notice: License engine error: " + (err.message || err));
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<span>⚡ Get Instant 15-Day Free Trial Key</span>';
+            }
+        }
+
+        async function lookupExistingLicense() {
+            const rawId = document.getElementById('lookup-email').value.trim();
+            if (!rawId) {
+                alert('Please enter your License Key (THUNDER-PK-...) or Email address.');
+                return;
+            }
+
+            const searchBtn = document.getElementById('btn-search-plan');
+            searchBtn.disabled = true;
+            searchBtn.innerText = 'Searching...';
+
+            try {
+                if (!db) throw new Error("Database not connected");
+
+                let docData = null;
+
+                if (rawId.toUpperCase().startsWith("THUNDER-PK-")) {
+                    const doc = await db.collection('pk_licenses_by_key').doc(rawId.toUpperCase()).get();
+                    if (doc.exists) docData = doc.data();
+                } else {
+                    const emailDocId = cleanEmailKey(rawId);
+                    const doc = await db.collection('pk_licenses').doc(emailDocId).get();
+                    if (doc.exists) docData = doc.data();
+                }
+
+                if (docData) {
+                    const nowSec = Math.floor(Date.now() / 1000);
+                    const expiresAt = docData.expires_at || (nowSec + 86400 * 15);
+                    const daysRemaining = Math.max(0, Math.ceil((expiresAt - nowSec) / 86400));
+
+                    document.getElementById('status-key').innerText = docData.key;
+                    document.getElementById('status-name').innerText = docData.name || '-';
+                    document.getElementById('status-plan').innerText = (docData.plan || 'TRIAL').toUpperCase();
+                    document.getElementById('status-days').innerText = `${daysRemaining} Days`;
+                    document.getElementById('upgrade-status-box').classList.remove('hidden');
+                    document.getElementById('upgrade-status-box').scrollIntoView({ behavior: 'smooth' });
+                } else {
+                    alert('No active license found for "' + rawId + '". Please verify the key or email address.');
+                }
+            } catch (e) {
+                console.error("Lookup error:", e);
+                alert('Error looking up license: ' + (e.message || e));
+            } finally {
+                searchBtn.disabled = false;
+                searchBtn.innerText = 'Search Plan';
+            }
+        }
+
+        function copyResultKey() {
+            const keyText = document.getElementById('result-key').innerText;
+            navigator.clipboard.writeText(keyText).then(() => {
+                alert('License Key copied to clipboard! Save it safely.');
+            });
+        }
+    </script>
+</body>
+</html>
