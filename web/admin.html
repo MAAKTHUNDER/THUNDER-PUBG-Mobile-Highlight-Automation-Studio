@@ -551,7 +551,7 @@
             } catch (err) {
                 console.error("Google Auth error:", err);
                 if (err.code === 'auth/configuration-not-found' || (err.message && err.message.includes('CONFIGURATION_NOT_FOUND'))) {
-                    showAuthError("Firebase Authentication setup required: Google sign-in provider is not enabled in Firebase Console. Please click 'Get Started' at https://console.firebase.google.com/project/maakthunder-studio/authentication");
+                    showAuthError("Firebase Authentication setup required: Google sign-in provider is not enabled in Firebase Authentication settings.");
                 } else if (err.code === 'auth/operation-not-allowed') {
                     showAuthError("Google Sign-In is disabled. Please enable 'Google' under Firebase Console -> Authentication -> Sign-in method.");
                 } else {
