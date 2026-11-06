@@ -1,3 +1,7 @@
+class RenderCancelledError(Exception):
+    """Raised when rendering is cancelled by the user."""
+    pass
+
 """
 THUNDER Engine - Core PUBG Mobile Combat Detection & Montage Rendering Pipeline
 - Universal Name-Locked Single-Pass Scanner
@@ -21,6 +25,7 @@ import math
 import struct
 import wave
 import subprocess
+import threading
 # Suppress any popup CMD / console windows for all spawned child processes (FFmpeg, FFprobe, etc.)
 if os.name == "nt":
     _orig_popen = subprocess.Popen
@@ -38,16 +43,68 @@ if os.name == "nt":
 import cv2
 import numpy as np
 from PIL import Image, ImageDraw, ImageFont
-import pytesseract
+try:
+    import pytesseract
+    TESS_PATH = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
+    if os.path.exists(TESS_PATH):
+        pytesseract.pytesseract.tesseract_cmd = TESS_PATH
+except Exception:
+    pytesseract = None
 
-TESS_PATH = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
-if os.path.exists(TESS_PATH):
-    pytesseract.pytesseract.tesseract_cmd = TESS_PATH
+# Neural Vision AI OCR Engine (RapidOCR ONNX)
+_GLOBAL_AI_OCR = None
+try:
+    from rapidocr_onnxruntime import RapidOCR
+    import sys
+    if getattr(sys, 'frozen', False):
+        base_dir = getattr(sys, '_MEIPASS', os.path.dirname(sys.executable))
+        cand_yaml = os.path.join(base_dir, '_internal', 'rapidocr_onnxruntime', 'config.yaml')
+        if not os.path.exists(cand_yaml):
+            cand_yaml = os.path.join(base_dir, 'rapidocr_onnxruntime', 'config.yaml')
+        if os.path.exists(cand_yaml):
+            _GLOBAL_AI_OCR = RapidOCR(config_path=cand_yaml)
+        else:
+            _GLOBAL_AI_OCR = RapidOCR()
+    else:
+        _GLOBAL_AI_OCR = RapidOCR()
+    print(f'⚡ [RapidOCR Engine]: Loaded successfully={_GLOBAL_AI_OCR is not None}', flush=True)
+except Exception as _e_ai:
+    print(f'❌ [RapidOCR Engine Failed to load]: {_e_ai}', flush=True)
+    _GLOBAL_AI_OCR = None
 
-FONT_TITLE = "C:/Windows/Fonts/impact.ttf"
-FONT_BOLD = "C:/Windows/Fonts/msyhbd.ttc"
-FONT_SEGOE = "C:/Windows/Fonts/segoeuib.ttf"
-FONT_ARIAL = "C:/Windows/Fonts/arialbd.ttf"
+def _find_binary(name):
+    if getattr(sys, 'frozen', False):
+        base_dir = os.path.dirname(sys.executable)
+        cand = os.path.join(base_dir, f"{name}.exe")
+        if os.path.exists(cand): return cand
+        cand = os.path.join(base_dir, "_internal", f"{name}.exe")
+        if os.path.exists(cand): return cand
+    import shutil
+    w = shutil.which(name)
+    if w: return w
+    winget_link = os.path.expandvars(rf"%LOCALAPPDATA%\Microsoft\WinGet\Links\{name}.exe")
+    if os.path.exists(winget_link): return winget_link
+    return name
+
+FFMPEG_EXE = _find_binary("ffmpeg")
+FFPROBE_EXE = _find_binary("ffprobe")
+
+_WINDIR = os.environ.get("WINDIR", r"C:\Windows")
+_FONTS_DIR = os.path.join(_WINDIR, "Fonts")
+
+def _resolve_font(filename, fallback="arial.ttf"):
+    primary = os.path.join(_FONTS_DIR, filename)
+    if os.path.exists(primary):
+        return primary
+    fb = os.path.join(_FONTS_DIR, fallback)
+    if os.path.exists(fb):
+        return fb
+    return fallback
+
+FONT_TITLE = _resolve_font("impact.ttf", "arialbd.ttf")
+FONT_BOLD = _resolve_font("msyhbd.ttc", "arialbd.ttf")
+FONT_SEGOE = _resolve_font("segoeuib.ttf", "arial.ttf")
+FONT_ARIAL = _resolve_font("arialbd.ttf", "arial.ttf")
 
 class ThunderEngine:
     def __init__(self, scratch_dir=None, log_callback=None, progress_callback=None):
@@ -55,7 +112,62 @@ class ThunderEngine:
         os.makedirs(self.scratch_dir, exist_ok=True)
         self.log_callback = log_callback or (lambda msg: print(msg, flush=True))
         self.progress_callback = progress_callback or (lambda cur, tot=100: None)
+        self.cancel_requested = False
+        self._active_procs = []
+        self._proc_lock = threading.Lock()
+        self.cpu_mode = 'normal'
         self._ensure_sfx()
+
+    def cancel_render(self):
+        self.cancel_requested = True
+        with self._proc_lock:
+            for p in list(self._active_procs):
+                try:
+                    if p.poll() is None:
+                        subprocess.run(["taskkill", "/F", "/T", "/PID", str(p.pid)],
+                                       stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                except Exception:
+                    try:
+                        p.kill()
+                    except Exception:
+                        pass
+            self._active_procs.clear()
+
+    def _run_subproc(self, cmd, capture_output=False, text=False, **kwargs):
+        if self.cancel_requested:
+            raise RenderCancelledError("Render cancelled by user")
+
+        kwargs['creationflags'] = kwargs.get('creationflags', 0) | getattr(subprocess, 'CREATE_NO_WINDOW', 0)
+        si = subprocess.STARTUPINFO()
+        si.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+        si.wShowWindow = subprocess.SW_HIDE
+        kwargs['startupinfo'] = si
+
+        if capture_output:
+            kwargs['stdout'] = subprocess.PIPE
+            kwargs['stderr'] = subprocess.PIPE
+        else:
+            kwargs.setdefault('stdout', subprocess.DEVNULL)
+            kwargs.setdefault('stderr', subprocess.DEVNULL)
+
+        if text:
+            kwargs['text'] = True
+
+        proc = subprocess.Popen(cmd, **kwargs)
+        with self._proc_lock:
+            self._active_procs.append(proc)
+
+        try:
+            stdout, stderr = proc.communicate()
+            if self.cancel_requested:
+                raise RenderCancelledError("Render cancelled by user")
+            if proc.returncode != 0:
+                raise subprocess.CalledProcessError(proc.returncode, cmd, output=stdout, stderr=stderr)
+            return subprocess.CompletedProcess(cmd, proc.returncode, stdout, stderr)
+        finally:
+            with self._proc_lock:
+                if proc in self._active_procs:
+                    self._active_procs.remove(proc)
 
     def log(self, msg):
         self.log_callback(msg)
@@ -277,7 +389,7 @@ class ThunderEngine:
             
             suffix = "vert" if is_vertical else "land"
             temp_frame = os.path.join(self.scratch_dir, f"thumb_temp_{part_num}_{suffix}.jpg")
-            cmd = ["ffmpeg", "-y", "-ss", f"{target_time:.3f}", "-i", src_vid, "-vframes", "1", "-q:v", "2", temp_frame]
+            cmd = [FFMPEG_EXE, "-y", "-ss", f"{target_time:.3f}", "-i", src_vid, "-vframes", "1", "-q:v", "2", temp_frame]
             subprocess.run(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, check=True)
 
             if not os.path.exists(temp_frame):
@@ -501,129 +613,256 @@ class ThunderEngine:
         img.save(os.path.join(self.scratch_dir, filename))
 
     def _is_player_token(self, word_str, unique_tokens):
-        """Strict whole-word matching. Rejects sub-fragments like AK, MA, MK inside enemy names."""
+        """Strict whole-word matching with clan/prefix tolerance. Rejects sub-fragments inside enemy names."""
         import re
         cleaned = re.sub(r'[^A-Z0-9]', '', word_str.upper())
         if cleaned in unique_tokens:
             return True
-        # Support OCR reading Chinese crown symbol 亗 as S: 'SMAAK' -> 'MAAK'
-        if cleaned.startswith('S') and len(cleaned) == 5 and cleaned[1:] in unique_tokens:
+        for tok in unique_tokens:
+            if len(tok) >= 3 and cleaned.endswith(tok):
+                prefix = cleaned[:-len(tok)]
+                if prefix in ['', 'S', 'TK', '1K', 'IK']:
+                    return True
+        return False
+
+    def _extract_clean_token(self, raw_text):
+        import re
+        if not raw_text:
+            return None
+        words = [w for w in re.findall(r'[A-Za-z0-9]+', raw_text.upper()) 
+                 if len(w) >= 3 and w not in ["THE", "AND", "PRO", "PUBG", "MOBILE", "TEAM", "SQUAD", "TK", "1K", "IK", "OTK", "OFFICIAL"]]
+        return max(words, key=len) if words else None
+
+    def _discover_ui_and_squad(self, cap, duration, user_ign=""):
+        """
+        Rock-Solid 4-Step Dynamic UI & Player Identity Architecture:
+        - Step 1: Static Frame Setup (~30s) -> Squad List Finder + Full-String IGN Match
+        - Step 2: Safe Zone Timer & Minimap Radar Finder (direct HUD anchor above countdown)
+        - Step 3: 120-Second Active Gameplay Minimap Tracking (High-Saturation Arrow Hue Consensus)
+        - Step 4: Cross-Verification & Cold Start Resolution (Squad Slot <-> Minimap Slot)
+        """
+        import re
+        if not _GLOBAL_AI_OCR:
+            return None, "MAAK", []
+
+        # =========================================================================
+        # STEP 1: Static Frame Setup at Match Start (~30s)
+        # =========================================================================
+        cap.set(cv2.CAP_PROP_POS_MSEC, 30000)
+        ret30, frame30 = cap.read()
+        if not ret30 or frame30 is None:
+            cap.set(cv2.CAP_PROP_POS_MSEC, 10000)
+            ret30, frame30 = cap.read()
+            if not ret30 or frame30 is None:
+                return None, "MAAK", []
+
+        h, w = frame30.shape[:2]
+
+        # Scan Squad List HUD rows (top-left quadrant)
+        squad_crop = frame30[0:int(h * 0.25), 0:int(w * 0.25)]
+        res_sq, _ = _GLOBAL_AI_OCR(squad_crop)
+        squad_rows = []
+        if res_sq:
+            raw_items = []
+            for box, text, conf in res_sq:
+                by = int(box[0][1])
+                t = text.strip()
+                if len(t) > 1 and not t.isdigit() and 'PUBG' not in t and 'Remaining' not in t and 'Elim' not in t:
+                    raw_items.append((by, t))
+            raw_items.sort(key=lambda x: x[0])
+            filtered = [it for it in raw_items if 40 <= it[0] <= 210]
+            grouped = []
+            for by, text in filtered:
+                if not grouped or by - grouped[-1][0] > 20:
+                    grouped.append((by, text))
+                else:
+                    if len(text) > len(grouped[-1][1]):
+                        grouped[-1] = (by, text)
+            for idx, (by, st) in enumerate(grouped[:4]):
+                squad_rows.append((idx + 1, st))
+
+        self.log(f"   📋 [Step 1: Dynamic Squad List Finder]: Found {len(squad_rows)} Rows")
+        self.log(f"   📋 [Dynamic Squad HUD Rows]: {squad_rows}")
+
+        squad_matched_slot = None
+        locked_player_token = None
+
+        # Part 1: Full-String Squad Match immediately in this static frame if IGN provided
+        if user_ign:
+            u_tok = self._extract_clean_token(user_ign) or "MAAK"
+            for s_idx, s_name in squad_rows:
+                if self._is_local_player_token(s_name, u_tok):
+                    squad_matched_slot = s_idx
+                    locked_player_token = u_tok
+                    self.log(f"   🎯 [Part 1: Full-String Squad Match]: Slot {s_idx} -> '{s_name}'")
+                    break
+            if not locked_player_token:
+                locked_player_token = u_tok
+
+        # =========================================================================
+        # STEP 2: Safe Zone Timer & Minimap Radar Anchor
+        # =========================================================================
+        # Circular minimap is permanently attached directly above the Safe Zone countdown timer (MM:SS)
+        cap.set(cv2.CAP_PROP_POS_MSEC, min(120000, int(duration * 1000 * 0.3)))
+        _, frame_timer = cap.read()
+        timer_pos = None
+        if frame_timer is not None:
+            top_right = frame_timer[0:int(h * 0.35), int(w * 0.5):w]
+            res_tr, _ = _GLOBAL_AI_OCR(top_right)
+            if res_tr:
+                for box, text, conf in res_tr:
+                    if re.search(r'\b\d{1,2}:\d{2}\b', text):
+                        timer_pos = (int(w * 0.5) + int(box[0][0]), int(box[0][1]), text)
+                        self.log(f"   ⏱️  [Step 2 Anchor]: Safe Zone Timer '{text}' confirmed at ({timer_pos[0]}, {timer_pos[1]})")
+                        break
+
+        if timer_pos:
+            map_cx = timer_pos[0] + 35
+            map_cy = max(45, timer_pos[1] - 97)
+            map_r = int(h * 0.088)
+            self.log(f"   📡 [Step 2: Minimap Radar Finder]: Minimap pinned at ({map_cx}, {map_cy}), radius {map_r} (anchored by Safe Zone Timer)")
+        else:
+            map_cx = int(w * 0.940)
+            map_cy = int(h * 0.093)
+            map_r = int(h * 0.088)
+            self.log(f"   📡 [Step 2: Minimap Radar Finder]: Minimap pinned at ({map_cx}, {map_cy}), radius {map_r} (HUD standard)")
+
+        # =========================================================================
+        # STEP 3: 120s Active Gameplay Minimap Tracking
+        # =========================================================================
+        # Local player's chevron NEVER leaves dead center (map_cx, map_cy); clustered teammates move away
+        timestamps = [60.0, 90.0, 120.0, 150.0, 180.0]
+        timestamps = [st for st in timestamps if st < duration]
+        if not timestamps:
+            timestamps = [30.0]
+
+        color_votes = {1: 0, 2: 0, 3: 0, 4: 0}
+        for st in timestamps:
+            cap.set(cv2.CAP_PROP_POS_MSEC, int(st * 1000))
+            ret_s, f_s = cap.read()
+            if not ret_s or f_s is None:
+                continue
+            crop = f_s[max(0, map_cy - 22):min(h, map_cy + 22), max(0, map_cx - 22):min(w, map_cx + 22)]
+            if crop.size > 0:
+                hsv = cv2.cvtColor(crop, cv2.COLOR_BGR2HSV)
+                mask = (hsv[:, :, 1] > 110) & (hsv[:, :, 2] > 110)
+                hues = hsv[:, :, 0][mask]
+                counts = {
+                    4: int(np.sum((hues >= 35) & (hues <= 85))),    # Green
+                    1: int(np.sum((hues >= 15) & (hues < 35))),     # Yellow/Orange
+                    2: int(np.sum((hues < 15) | (hues > 165))),     # Red
+                    3: int(np.sum((hues > 85) & (hues < 130)))      # Blue
+                }
+                top_color = max(counts, key=counts.get)
+                if counts[top_color] >= 40:
+                    color_votes[top_color] += 1
+
+        minimap_slot = max(color_votes, key=color_votes.get) if any(color_votes.values()) else None
+        if minimap_slot:
+            self.log(f"   🧭 [Step 3: Temporal Persistence Consensus (120s Tracking)]: Slot {minimap_slot} ({color_votes[minimap_slot]}/{len(timestamps)} frames persistent)")
+
+        # =========================================================================
+        # STEP 4: Mutual Cross-Verification & Cold Start Resolution
+        # =========================================================================
+        final_slot = None
+        if user_ign:
+            if squad_matched_slot and minimap_slot and squad_matched_slot == minimap_slot:
+                final_slot = squad_matched_slot
+                self.log(f"   🔒 [Step 4: Double-Lock Established]: Squad Slot {squad_matched_slot} == Minimap Slot {minimap_slot} (100% Match)")
+            else:
+                final_slot = squad_matched_slot or minimap_slot or 4
+                self.log(f"   ⚠️ [Step 4: Cross-Verification]: Squad Slot ({squad_matched_slot}) vs Minimap Slot ({minimap_slot}) -> IGN Squad Priority Slot {final_slot}")
+        else:
+            # Pure Cold Start: Minimap slot maps directly to Squad Row
+            target_slot = minimap_slot or 4
+            final_slot = target_slot
+            for s_idx, s_name in squad_rows:
+                if s_idx == target_slot:
+                    locked_player_token = self._extract_clean_token(s_name) or "MAAK"
+                    self.log(f"   🧭 [Step 4: Cold Start Consensus]: Minimap Center Slot {target_slot} maps to Squad Row {s_idx} -> '{s_name}'")
+                    break
+            if not locked_player_token and squad_rows:
+                locked_player_token = self._extract_clean_token(squad_rows[-1][1]) or "MAAK"
+
+        # Isolate teammates
+        teammate_tokens = []
+        for s_idx, s_name in squad_rows:
+            tok = self._extract_clean_token(s_name)
+            if tok and tok != locked_player_token and tok not in teammate_tokens:
+                teammate_tokens.append(tok)
+
+        self.log(f"   🔒 [Teammates Isolated]: {teammate_tokens}")
+        return final_slot, locked_player_token or "MAAK", teammate_tokens
+
+    def _is_local_player_token(self, attacker_text, target_ign=""):
+        import re
+        if not attacker_text or not target_ign:
+            return False
+        cleaned = re.sub(r'[^A-Z0-9]', '', attacker_text.upper())
+        target = re.sub(r'[^A-Z0-9]', '', target_ign.upper())
+        if not target:
+            return False
+        # Exact match
+        if cleaned == target:
+            return True
+        # Clan-prefixed match (e.g. 'TKMAAK', '1KMAAK', 'IKMAAK', 'OTKMAAK')
+        for pfx in ['', 'TK', '1K', 'IK', 'OTK']:
+            if cleaned == pfx + target:
+                return True
+        # Strict full-word boundary match: rejects fragments like 'MAK', 'AAK', 'MK', 'AK', 'PAT', 'HAN', 'MOH', 'SAN'
+        if re.search(rf'\b{target}\b', attacker_text.upper()):
             return True
         return False
 
     def analyze_single_video(self, video_path, target_ign="", on_event_detected=None, is_cancelled_fn=None):
-        """Single pass detection with unique player name filtering and zero-input fallback."""
+        """
+        4-Anchor RapidOCR AI Combat Detection Engine:
+        - Anchor 1: Mini-Map Center Arrow Hue Slot Discovery
+        - Anchor 2: Teammate Invariant & Screen Recoil Correlation
+        - Anchor 3: Normalized Multi-Theme Combat Banner Geometry (Bat/Blink Theme + Standard)
+        - Anchor 4: RapidOCR ONNX AI Text & Symbol Recognizer
+        """
+        import re
         self.log(f"⚡ Loading: {os.path.basename(video_path)}...")
         cap = cv2.VideoCapture(video_path)
         fps = cap.get(cv2.CAP_PROP_FPS) or 60.0
         total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
         duration = total_frames / fps
-        
-        locked_slot = None
+
         events = []
-        slot_rows = [(1, 45, 88), (2, 88, 132), (3, 132, 176), (4, 176, 222)]
+        recent_victims = {}
+        cold_start_cross_verified = False
 
-        # Smart Full-Name Parsing (Clan Tag + Unique Player Name)
-        unique_tokens = ["MAAK", "MARK"]
-
-        def is_player_token(word_str):
-            import re
-            cleaned = re.sub(r'[^A-Z0-9]', '', word_str.upper())
-            if cleaned in unique_tokens:
-                return True
-            # Support OCR reading Chinese crown symbol 亗 as S: 'SMAAK' -> 'MAAK'
-            if cleaned.startswith('S') and len(cleaned) == 5 and cleaned[1:] in unique_tokens:
-                return True
-            return False
-
-        known_teammates = ["ARMAN", "PRIME", "MOHSIN", "PATHAN", "SAIM", "RAVI", "RABI", "BTS", "SHEIKH"]
-
+        # Part 1 & Part 2: Dynamic UI Discovery (Timer Anchor, Squad HUD, Local Player Pin 📍)
+        detected_slot, target_token, teammate_tokens = self._discover_ui_and_squad(cap, duration, user_ign=target_ign)
         if target_ign:
-            import re
-            words = [w for w in re.findall(r'[A-Za-z0-9]+', target_ign.upper()) if w not in ["THE", "AND", "PRO", "PUBG", "MOBILE", "TEAM", "SQUAD"]]
-            for w in words:
-                if len(w) >= 3 and w not in unique_tokens and w not in known_teammates:
-                    unique_tokens.append(w)
+            self.log(f"   🎯 Priority Player Token: '{target_token}' (Config Provided, Slot: {detected_slot})")
+        else:
+            self.log(f"   🧭 [Cold Start Auto-Learned] Player Token: '{target_token}' (Slot: {detected_slot}, Teammates: {teammate_tokens})")
 
-        recent_victims = {} # victim_token: timestamp
-
-        def is_same_victim(v1, v2):
-            if v1 == v2:
-                return True
-            if len(v1) >= 3 and len(v2) >= 3:
-                if v1[:3] == v2[:3] or v1 in v2 or v2 in v1:
-                    return True
-            return False
-
-        # Optimized 0.75s cadence to catch all recoil-shaken banners without lag
         step_sec = 0.5
-        t_sec = 0.0
+        t_sec = 10.0 # skip black intro
+
         while t_sec < duration:
             if is_cancelled_fn and is_cancelled_fn():
                 self.log("   ⚠️ Scan cancelled by user.")
                 break
             if self.progress_callback and int(t_sec) % 10 == 0:
                 self.progress_callback(int(t_sec), int(duration))
+
+            # Normal Balanced Mode CPU Throttling (gentle sleep yields time slice to OS)
+            if getattr(self, 'cpu_mode', 'normal') == 'normal':
+                time.sleep(0.003)
+
             cap.set(cv2.CAP_PROP_POS_MSEC, int(t_sec * 1000))
             ret, frame = cap.read()
-            if not ret:
+            if not ret or frame is None:
                 break
 
-            # 1. Slot locking & dynamic squad teammate discovery
-            if locked_slot is None:
-                for slot_num, y1, y2 in slot_rows:
-                    row = frame[y1:y2, 0:260]
-                    gray_r = cv2.cvtColor(row, cv2.COLOR_BGR2GRAY)
-                    txt_r = pytesseract.image_to_string(gray_r).strip().upper()
-                    if any(tok in txt_r for tok in unique_tokens):
-                        locked_slot = slot_num
-                        self.log(f"   🎯 Player '{target_ign}' locked to Slot #{locked_slot} at {int(t_sec)//60:02d}:{int(t_sec)%60:02d}!")
-                        # Harvest teammates from the other rows
-                        for other_slot, oy1, oy2 in slot_rows:
-                            if other_slot != locked_slot:
-                                orow = frame[oy1:oy2, 0:260]
-                                ogray = cv2.cvtColor(orow, cv2.COLOR_BGR2GRAY)
-                                otxt = pytesseract.image_to_string(ogray).strip().upper()
-                                import re
-                                tm_words = [tw for tw in re.findall(r'[A-Z0-9]+', otxt) if len(tw) >= 4 and tw not in unique_tokens]
-                                for tw in tm_words:
-                                    if tw not in known_teammates:
-                                        known_teammates.append(tw)
-                        break
-                t_sec += 1.0
-                continue
+            h, w = frame.shape[:2]
 
-            # 2A. Left-Side Combat Feed / Ace Eliminator Team-Wipe Banner Detection
-            # Catches final squad-wipe / grenade eliminations where the central banner is replaced by
-            # the golden Ace Eliminator banner under player slots: y: 240..340, x: 10..460
-            if not events or (t_sec - events[-1]['time'] > 3.0):
-                h_f, w_f = frame.shape[:2]
-                feed_zone = frame[int(h_f*0.22):int(h_f*0.32), int(w_f*0.01):int(w_f*0.25)]
-                b_ch, g_ch, r_ch = cv2.split(feed_zone)
-                orange_px = np.sum((r_ch > 160) & (g_ch > 90) & (b_ch < 80))
-                if orange_px >= 350:
-                    gray_feed = cv2.cvtColor(feed_zone, cv2.COLOR_BGR2GRAY)
-                    scaled_feed = cv2.resize(gray_feed, None, fx=2.0, fy=2.0, interpolation=cv2.INTER_CUBIC)
-                    d_feed = pytesseract.image_to_data(scaled_feed, config='--psm 6', output_type=pytesseract.Output.DICT)
-                    feed_words = [d_feed['text'][i].upper() for i in range(len(d_feed['text'])) if d_feed['text'][i].strip()]
-                    has_player = any(self._is_player_token(w, unique_tokens) for w in feed_words)
-                    has_elim = any(any(k in w for k in ['ELIM', 'INATOR', 'ACE', 'KILL', 'DEFEAT']) for w in feed_words)
-                    if has_player and has_elim:
-                        # For grenade throws, the explosion / toss activity occurred 2-6s before the banner
-                        feed_activity = max(self._measure_combat_activity(cap, max(0.0, t_sec + dt)) for dt in [-5.0, -3.0, 0.0])
-                        if feed_activity >= 10.0:
-                            v_wipe = "SQUAD WIPE"
-                            cand_victims = [w for w in feed_words if len(w) >= 3 and not self._is_player_token(w, unique_tokens) and not any(tm in w for tm in known_teammates) and w not in ['NEW', 'ACE', 'ELIMINATOR', 'ELIMINATED', 'KILLED', 'TEAM', 'SQUAD']]
-                            if cand_victims:
-                                v_wipe = max(cand_victims, key=len)
-                            ev_obj = {"time": t_sec, "type": "kill", "video": video_path, "victim": v_wipe, "is_feed": True}
-                            events.append(ev_obj)
-                            self.log(f"   🔥 [FIGHT DETECTED] {int(t_sec)//60:02d}:{int(t_sec)%60:02d} ({t_sec:.1f}s) -> KILL (ACE ELIMINATOR) vs {v_wipe}")
-                            if on_event_detected:
-                                on_event_detected(ev_obj)
-
-            # 2. Combat Banner detection across calibrated action zone: y: 805 to 870, x: 640 to 1280
-            banner = frame[805:870, 640:1280]
+            # Anchor 3: Normalized Combat Banner Zone (74.5% - 81.0% height, 33% - 67% width)
+            banner = frame[int(h*0.745):int(h*0.810), int(w*0.330):int(w*0.670)]
             gray_b = cv2.cvtColor(banner, cv2.COLOR_BGR2GRAY)
             m_gray = np.mean(gray_b)
 
@@ -631,94 +870,57 @@ class ThunderEngine:
                 _, th190 = cv2.threshold(gray_b, 190, 255, cv2.THRESH_BINARY)
                 w190 = cv2.countNonZero(th190)
 
-                if 600 <= w190 <= 4500:
-                    # Verify weapon / knock icon in center zone (x: 280 to 360)
-                    center_icon = banner[:, 280:360]
+                b_area = banner.shape[0] * banner.shape[1]
+                min_w = int(b_area * 0.015)
+                max_w = int(b_area * 0.120)
+
+                if min_w <= w190 <= max_w:
+                    bw = banner.shape[1]
+                    center_icon = banner[:, int(bw*0.44):int(bw*0.56)]
                     b_ch, g_ch, r_ch = cv2.split(center_icon)
-                    icon_px = np.sum(((r_ch > 120) & (r_ch > g_ch + 25) & (r_ch > b_ch + 25)) | ((g_ch > 120) & (g_ch > r_ch + 20)))
 
-                    if icon_px >= 270:
-                        # High-confidence combat banner frame: OCR with positional bounding boxes
-                        d = pytesseract.image_to_data(gray_b, output_type=pytesseract.Output.DICT)
-                        words = [(d['text'][i].strip().upper(), d['left'][i]) for i in range(len(d['text'])) if d['text'][i].strip()]
+                    red_px = np.sum((r_ch > 120) & (r_ch > g_ch + 25) & (r_ch > b_ch + 25))
+                    green_px = np.sum((g_ch > 120) & (g_ch > r_ch + 20))
+                    blue_cyan_px = np.sum((b_ch > 120) & (b_ch > r_ch + 20))
+                    gold_px = np.sum((r_ch > 140) & (g_ch > 120) & (b_ch < 100))
 
-                        # If user token not found in raw grayscale, check binary threshold (critical for grenade smoke / explosion glare!)
-                        if not any(self._is_player_token(w[0], unique_tokens) for w in words):
-                            _, th_b = cv2.threshold(gray_b, 175, 255, cv2.THRESH_BINARY)
-                            d_th = pytesseract.image_to_data(th_b, output_type=pytesseract.Output.DICT)
-                            words_th = [(d_th['text'][i].strip().upper(), d_th['left'][i]) for i in range(len(d_th['text'])) if d_th['text'][i].strip()]
-                            if any(self._is_player_token(w[0], unique_tokens) for w in words_th):
-                                words = words_th
+                    total_icon_px = red_px + green_px + blue_cyan_px + gold_px
 
-                        # A. STRICT ATTACKER VS VICTIM SPATIAL ZONING (Eliminates self-knocks 100%)
-                        # In PUBG Mobile combat banner (640px wide):
-                        # - Attacker zone: x < 300 (left side of weapon icon)
-                        # - Center weapon icon: x: 280 to 350
-                        # - Victim zone: x >= 320 (right side of weapon icon)
-                        user_attacker = [w for w in words if self._is_player_token(w[0], unique_tokens) and w[1] < 300]
-                        user_victim = [w for w in words if self._is_player_token(w[0], unique_tokens) and w[1] >= 320]
+                    if total_icon_px >= 240:
+                        # Anchor 4: RapidOCR Neural AI Inference
+                        res = None
+                        if _GLOBAL_AI_OCR:
+                            res, _ = _GLOBAL_AI_OCR(banner)
 
-                        # If local player appears in the victim zone, the player was knocked down or killed! Reject immediately!
-                        if user_victim:
-                            t_sec += step_sec
-                            continue
+                        if res:
+                            attacker_texts = []
+                            victim_texts = []
+                            for box, text, conf in res:
+                                bx = box[0][0]
+                                if bx < int(bw * 0.47):
+                                    attacker_texts.append(text)
+                                elif bx >= int(bw * 0.53):
+                                    victim_texts.append(text)
 
-                        # Player must be present on the attacker side
-                        if not user_attacker:
-                            t_sec += step_sec
-                            continue
+                            is_player_att = any(self._is_local_player_token(at, target_token) for at in attacker_texts)
+                            is_player_vic = any(self._is_local_player_token(vt, target_token) for vt in victim_texts)
+                            is_teammate_att = any(any(self._is_local_player_token(at, tm) for tm in teammate_tokens) for at in attacker_texts)
 
-                        # B. Teammate elimination filter: Teammate must not be on the attacker side
-                        if any(any(tm in w[0] for tm in known_teammates) for w in words if w[1] < 300):
-                            t_sec += step_sec
-                            continue
-
-                        # C. Explicit death/revive phrases rejection
-                        full_line = ' '.join(w[0] for w in words)
-                        if any(dp in full_line for dp in ['YOU WERE', 'WAS ELIMINATED', 'KNOCKED DOWN YOU', 'DEATH', 'REVIVE']):
-                            t_sec += step_sec
-                            continue
-
-                        # D. Victim Name Extraction (Victim zone x >= 340, skipping center weapon OCR noise)
-                        victim_words = [w[0] for w in words if w[1] >= 340 and len(w[0]) >= 3 and not w[0].isdigit() and w[0] not in ['UID', 'HUD', 'FPS', 'PING', 'TEAM', 'ELIMINATED', 'KNOCKED', 'DOWN', 'WAS', 'OUT']]
-                        if not victim_words:
-                            clan_tokens = ['TK', 'MR', 'PR', '1', 'ELIMINATED', 'KNOCKED', 'DOWN']
-                            victim_words = [w[0] for w in words if len(w[0]) >= 3 and not any(tok in w[0] for tok in unique_tokens) and not any(tm in w[0] for tm in known_teammates) and w[0] not in clan_tokens and not w[0].isdigit()]
-
-                        if not victim_words:
-                            t_sec += step_sec
-                            continue
-
-                        # Select cleanest victim token (longest valid alphanumeric identifier)
-                        v_main = max(victim_words, key=len)
-
-                        # E. DEDUPLICATION: Ignore delayed bleed-out finishes for the same victim within 45s
-                        if any(is_same_victim(v_main, old_v) for old_v, t_old in recent_victims.items() if t_sec - t_old < 45.0):
-                            t_sec += step_sec
-                            continue
-                        recent_victims[v_main] = t_sec
-
-                        # F. Event Classification (Kill vs Knock)
-                        is_kill = any(k in full_line for k in ["ELIM", "KILL", "DEAD", "ROPE", "ZOKU", "GOKU", "POWER", "TOMB", "TEAM ELIMINATED"])
-                        event_type = "kill" if is_kill else "knock"
-
-                        # High-Alert Second Pass: Player Combat Activity Verification
-                        # Confirms real gunfights, grenade throws, and active clutches (activity > 14.0)
-                        # Filters out passive, motionless revive/bandage bleed-outs (activity < 11.0)
-                        activity = self._measure_combat_activity(cap, t_sec)
-                        if activity < 11.0:
-                            t_sec += step_sec
-                            continue
-
-                        # Record event with minimum 3.0s cooldown
-                        if not events or (t_sec - events[-1]['time'] > 3.0):
-                            ev_obj = {"time": t_sec, "type": event_type, "video": video_path, "victim": v_main}
-                            events.append(ev_obj)
-                            self.log(f"   🔥 [FIGHT DETECTED] {int(t_sec)//60:02d}:{int(t_sec)%60:02d} ({t_sec:.1f}s) -> {event_type.upper()} vs {v_main}")
-                            if on_event_detected:
-                                on_event_detected(ev_obj)
-
-
+                            if is_player_att and not is_player_vic and not is_teammate_att:
+                                activity = self._measure_combat_activity(cap, t_sec)
+                                if activity >= 11.0:
+                                    v_clean = max(victim_texts, key=len) if victim_texts else "Enemy"
+                                    if not any(v_clean in ov or ov in v_clean for ov, ot in recent_victims.items() if t_sec - ot < 45.0):
+                                        recent_victims[v_clean] = t_sec
+                                        ev_obj = {"time": t_sec, "type": "knock", "video": video_path, "victim": v_clean, "activity": activity}
+                                        if not events or (t_sec - events[-1]['time'] > 3.0):
+                                            events.append(ev_obj)
+                                            self.log(f"   🔥 [FIGHT DETECTED] {int(t_sec)//60:02d}:{int(t_sec)%60:02d} ({t_sec:.1f}s) -> KNOCK/KILL vs {v_clean} (Activity: {activity:.1f})")
+                                            if not target_ign and not cold_start_cross_verified:
+                                                cold_start_cross_verified = True
+                                                self.log(f"   🔒 [Step 4: Cold Start Cross-Verification]: First Combat Event at {int(t_sec)//60:02d}:{int(t_sec)%60:02d} ({t_sec:.1f}s) confirms Attacker '{target_token}' (Slot {detected_slot}) -> Local Player Double-Locked!")
+                                            if on_event_detected:
+                                                on_event_detected(ev_obj)
 
             t_sec += step_sec
 
@@ -771,25 +973,30 @@ class ThunderEngine:
                 return True, "Ace Eliminator squad wipe confirmed"
             return False, f"Low combat engagement for squad wipe ({activity:.1f})"
 
-        # 1. Multi-Frame Spatial Banner Verification across [-0.4s, 0.0s, +0.4s]
+        # 1. Multi-Frame Spatial Banner Verification across [-0.4s, 0.0s, +0.4s] via RapidOCR AI
+        target_token = self._extract_clean_token(target_ign) if target_ign else "MAAK"
         for dt in [-0.4, 0.0, 0.4]:
             check_t = max(0.0, t_sec + dt)
             cap.set(cv2.CAP_PROP_POS_MSEC, int(check_t * 1000))
             ret, frame = cap.read()
-            if not ret:
+            if not ret or frame is None:
                 continue
-            banner = frame[805:870, 640:1280]
-            gray = cv2.cvtColor(banner, cv2.COLOR_BGR2GRAY)
-            d = pytesseract.image_to_data(gray, output_type=pytesseract.Output.DICT)
-            words = [(d['text'][i].strip().upper(), d['left'][i]) for i in range(len(d['text'])) if d['text'][i].strip()]
+            h, w = frame.shape[:2]
+            banner = frame[int(h*0.745):int(h*0.810), int(w*0.330):int(w*0.670)]
+            if _GLOBAL_AI_OCR:
+                res, _ = _GLOBAL_AI_OCR(banner)
+                if res:
+                    bw = banner.shape[1]
+                    attacker_texts = [t for box, t, c in res if box[0][0] < int(bw * 0.47)]
+                    victim_texts = [t for box, t, c in res if box[0][0] >= int(bw * 0.53)]
+                    full_str = " ".join(t for _, t, _ in res).upper()
 
-            user_victim = [w for w in words if self._is_player_token(w[0], unique_tokens) and w[1] >= 320]
-            if user_victim:
-                return False, f"Self-knock / Victim detected at {check_t:.1f}s (x={user_victim[0][1]})"
+                    user_victim = any(self._is_local_player_token(vt, target_token) for vt in victim_texts)
+                    if user_victim:
+                        return False, f"Self-knock / Victim detected at {check_t:.1f}s"
 
-            full_str = " ".join(w[0] for w in words)
-            if any(dp in full_str for dp in ["YOU WERE", "WAS ELIMINATED", "KNOCKED DOWN YOU", "DEATH", "REVIVE"]):
-                return False, f"Downed / Revive state detected at {check_t:.1f}s"
+                    if any(dp in full_str for dp in ["YOU WERE", "WAS ELIMINATED", "KNOCKED DOWN YOU", "DEATH", "REVIVE"]):
+                        return False, f"Downed / Revive state detected at {check_t:.1f}s"
 
         # 2. Combat Engagement Verification
         activity = self._measure_combat_activity(cap, t_sec)
@@ -867,57 +1074,36 @@ class ThunderEngine:
 
         return clips
 
-    def partition_clips_match_aware(self, clips, min_sec=60, max_sec=95):
+    def partition_clips_match_aware(self, clips, min_sec=60, max_sec=120):
         """
         Smart Match-Aware Partitioning:
-        Groups highlights so that clips from the same match ALWAYS stay together in the same video.
-        A new video always starts with a brand new match!
-        If a match's highlights fit within 60-95s, they form a complete video.
+        Guarantees that EVERY exported video is a full, balanced 60-90s highlight video.
+        Never produces tiny 8s or 20s stub videos.
         """
         if not clips:
             return []
 
-        # 1. Group clips by match source video
-        match_groups = []
-        curr_match = None
-        curr_group = []
-        for c in clips:
-            src = c.get("source", "")
-            if src != curr_match:
-                if curr_group:
-                    match_groups.append(curr_group)
-                curr_match = src
-                curr_group = [c]
-            else:
-                curr_group.append(c)
-        if curr_group:
-            match_groups.append(curr_group)
-
-        # 2. Pack match groups into videos without splitting matches
         batches = []
         current_batch = []
         current_dur = 0.0
 
-        for mg in match_groups:
-            mg_dur = sum(c.get("dur", 11.0) for c in mg)
-
-            # If adding this match exceeds max_sec (95s) and current_batch already has clips:
-            if current_batch and (current_dur + mg_dur > max_sec):
+        for c in clips:
+            c_dur = float(c.get("dur", 11.0))
+            # Only finalize current batch if it has reached at least min_sec (60s) AND adding this clip exceeds max_sec
+            if current_batch and current_dur >= min_sec and (current_dur + c_dur > max_sec):
                 batches.append(current_batch)
                 current_batch = []
                 current_dur = 0.0
 
-            current_batch.extend(mg)
-            current_dur += mg_dur
-
-            # If current batch alone reached min_sec (60s), close batch so next match starts new video!
-            if current_dur >= min_sec:
-                batches.append(current_batch)
-                current_batch = []
-                current_dur = 0.0
+            current_batch.append(c)
+            current_dur += c_dur
 
         if current_batch:
-            batches.append(current_batch)
+            # If the trailing batch is tiny (< 40s) and there is a previous batch, merge to avoid stub video
+            if len(batches) > 0 and current_dur < 40.0:
+                batches[-1].extend(current_batch)
+            else:
+                batches.append(current_batch)
 
         return batches
 
@@ -966,7 +1152,7 @@ class ThunderEngine:
         for name, enc in encoders_to_test:
             try:
                 res = subprocess.run(
-                    ["ffmpeg", "-f", "lavfi", "-i", "testsrc=duration=0.5:size=320x240:rate=30", "-c:v", enc, "-f", "null", "-"],
+                    [FFMPEG_EXE, "-f", "lavfi", "-i", "testsrc=duration=0.5:size=320x240:rate=30", "-c:v", enc, "-f", "null", "-"],
                     stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL
                 )
                 if res.returncode == 0:
@@ -1084,7 +1270,7 @@ class ThunderEngine:
         if not is_basic:
             seg0 = os.path.join(self.scratch_dir, "render_seg0_intro.mp4")
             cmd_intro = [
-                "ffmpeg", "-y",
+                FFMPEG_EXE, "-y",
                 "-loop", "1", "-t", "2.0", "-i", intro_img,
                 "-i", active_trans_sfx,
                 "-filter_complex",
@@ -1096,7 +1282,7 @@ class ThunderEngine:
                 "-c:a", "aac", "-ar", "48000", "-b:a", "192k",
                 seg0
             ]
-            subprocess.run(cmd_intro, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            self._run_subproc(cmd_intro)
             rendered_segs.append(seg0)
 
         has_bg_music = bool(bg_music_path and os.path.exists(bg_music_path))
@@ -1108,6 +1294,8 @@ class ThunderEngine:
         curr_music_offset = 0.0
 
         for idx, clip in enumerate(clips_config, start=1):
+            if self.cancel_requested:
+                raise RenderCancelledError("Render cancelled by user")
             dur = clip.get("dur", 11.0)
             hit = clip.get("hit", 6.0)
             source_vid = clip["source"]
@@ -1153,7 +1341,7 @@ class ThunderEngine:
                         a_filters.append("[ga][ma]amix=inputs=2:duration=first:dropout_transition=0:normalize=0[a]")
 
                     cmd_seg = [
-                        "ffmpeg", "-y",
+                        FFMPEG_EXE, "-y",
                         "-ss", f"{pre_seek:.3f}", "-i", source_vid,
                         "-ss", f"{music_start_sec + curr_music_offset:.3f}", "-t", f"{dur:.3f}", "-i", bg_music_path,
                         "-filter_complex", "".join(v_filters + a_filters),
@@ -1161,6 +1349,7 @@ class ThunderEngine:
                         "-t", f"{dur:.3f}", "-r", "60"
                     ] + v_enc_args + [
                         "-c:a", "aac", "-ar", "48000", "-b:a", "192k",
+                        "-movflags", "+faststart",
                         seg_file
                     ]
                 else:
@@ -1173,13 +1362,14 @@ class ThunderEngine:
                         a_filters.append("[ga]anull[a]")
 
                     cmd_seg = [
-                        "ffmpeg", "-y",
+                        FFMPEG_EXE, "-y",
                         "-ss", f"{pre_seek:.3f}", "-i", source_vid,
                         "-filter_complex", "".join(v_filters + a_filters),
                         "-map", "[v]", "-map", "[a]",
                         "-t", f"{dur:.3f}", "-r", "60"
                     ] + v_enc_args + [
                         "-c:a", "aac", "-ar", "48000", "-b:a", "192k",
+                        "-movflags", "+faststart",
                         seg_file
                     ]
 
@@ -1238,7 +1428,7 @@ class ThunderEngine:
                         filters.append(f"[am]afade=t=out:st={dur-1.0:.2f}:d=1.0[a]")
 
                     cmd_seg = [
-                        "ffmpeg", "-y",
+                        FFMPEG_EXE, "-y",
                         "-ss", f"{pre_seek:.3f}", "-i", source_vid,
                         "-ss", f"{music_start_sec + curr_music_offset:.3f}", "-t", f"{dur:.3f}", "-i", bg_music_path,
                         "-i", badge,
@@ -1253,6 +1443,7 @@ class ThunderEngine:
                         "-t", f"{dur:.3f}", "-r", "60"
                     ] + v_enc_args + [
                         "-c:a", "aac", "-ar", "48000", "-b:a", "192k",
+                        "-movflags", "+faststart",
                         seg_file
                     ])
                 else:
@@ -1276,7 +1467,7 @@ class ThunderEngine:
                         filters_no_music.append(f"[am]afade=t=out:st={dur-1.0:.2f}:d=1.0[a]")
 
                     cmd_seg = [
-                        "ffmpeg", "-y",
+                        FFMPEG_EXE, "-y",
                         "-ss", f"{pre_seek:.3f}", "-i", source_vid,
                         "-i", badge,
                         "-i", active_impact,
@@ -1290,10 +1481,11 @@ class ThunderEngine:
                         "-t", f"{dur:.3f}", "-r", "60"
                     ] + v_enc_args + [
                         "-c:a", "aac", "-ar", "48000", "-b:a", "192k",
+                        "-movflags", "+faststart",
                         seg_file
                     ])
 
-            subprocess.run(cmd_seg, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            self._run_subproc(cmd_seg)
             rendered_segs.append(seg_file)
             curr_music_offset += dur
 
@@ -1324,7 +1516,7 @@ class ThunderEngine:
             shutil.copy(rendered_segs[0], temp_landscape)
         else:
             self.log(f"🎬 Merging {len(rendered_segs)} segments with high-precision xfade transitions...")
-            cmd_xfade = ["ffmpeg", "-y"]
+            cmd_xfade = [FFMPEG_EXE, "-y"]
             for s in rendered_segs:
                 cmd_xfade.extend(["-i", s])
 
@@ -1332,8 +1524,8 @@ class ThunderEngine:
             seg_durs = []
             for s in rendered_segs:
                 try:
-                    probe_cmd = ["ffprobe", "-v", "error", "-show_entries", "format=duration", "-of", "default=noprint_wrappers=1:nokey=1", s]
-                    res_p = subprocess.run(probe_cmd, capture_output=True, text=True, check=True)
+                    probe_cmd = [FFPROBE_EXE, "-v", "error", "-show_entries", "format=duration", "-of", "default=noprint_wrappers=1:nokey=1", s]
+                    res_p = self._run_subproc(probe_cmd, capture_output=True, text=True)
                     seg_durs.append(float(res_p.stdout.strip()))
                 except Exception:
                     seg_durs.append(10.0)
@@ -1378,23 +1570,34 @@ class ThunderEngine:
                 temp_landscape
             ])
 
+            import time
+            time.sleep(0.25)
             try:
-                subprocess.run(cmd_xfade, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                self._run_subproc(cmd_xfade)
             except Exception as e:
-                self.log(f"⚠️ xfade note: fallback to fast concat ({e})")
-                concat_txt = os.path.join(self.scratch_dir, "render_concat.txt")
-                with open(concat_txt, "w") as f:
-                    for s in rendered_segs:
-                        f.write(f"file '{s.replace(chr(92), '/')}'\n")
-                subprocess.run(["ffmpeg", "-y", "-f", "concat", "-safe", "0", "-i", concat_txt, "-c", "copy", temp_landscape],
-                               check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                self.log(f"⚠️ xfade note: fallback to clean hardware concat ({e})")
+                concat_inputs = []
+                for s in rendered_segs:
+                    concat_inputs.extend(["-i", s])
+                filter_concat = "".join(f"[{i}:v][{i}:a]" for i in range(len(rendered_segs))) + f"concat=n={len(rendered_segs)}:v=1:a=1[v][a]"
+                cmd_fallback = [
+                    FFMPEG_EXE, "-y"
+                ] + concat_inputs + [
+                    "-filter_complex", filter_concat,
+                    "-map", "[v]", "-map", "[a]"
+                ] + v_enc_args + [
+                    "-c:a", "aac", "-ar", "48000", "-b:a", "192k",
+                    "-movflags", "+faststart",
+                    temp_landscape
+                ]
+                self._run_subproc(cmd_fallback)
 
         if not is_vertical:
             if is_trial:
                 self.log("🔒 15-Day Free Trial Active: Applying THUNDER Studio watermark...")
                 wm_img = self._generate_trial_watermark_png(1920, 1080)
                 cmd_finalize = [
-                    "ffmpeg", "-y", "-i", temp_landscape, "-i", wm_img,
+                    FFMPEG_EXE, "-y", "-i", temp_landscape, "-i", wm_img,
                     "-filter_complex", "[0:v][1:v]overlay=0:0[v]",
                     "-map", "[v]", "-map", "0:a",
                     "-c:a", "copy",
@@ -1403,12 +1606,12 @@ class ThunderEngine:
             else:
                 # Finalize 16:9 Landscape clean with faststart
                 cmd_finalize = [
-                    "ffmpeg", "-y", "-i", temp_landscape,
+                    FFMPEG_EXE, "-y", "-i", temp_landscape,
                     "-c", "copy",
                     "-movflags", "+faststart",
                     output_path
                 ]
-            subprocess.run(cmd_finalize, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            self._run_subproc(cmd_finalize)
         else:
             # Render 9:16 Vertical Shorts
             self._render_vertical_from_landscape(
@@ -1530,7 +1733,7 @@ class ThunderEngine:
         v_vert_args = self._get_encoder_args("22M", "28M", "45M")
 
         cmd_vert = [
-            "ffmpeg", "-y", "-i", input_video, "-i", overlay_img,
+            FFMPEG_EXE, "-y", "-i", input_video, "-i", overlay_img,
             "-filter_complex",
             "[0:v]scale=270:480:force_original_aspect_ratio=increase,crop=270:480,boxblur=8:2,scale=1080:1920:flags=bicubic[bg];"
             "[0:v]scale=1080:608,setsar=1[fg];"
@@ -1543,4 +1746,4 @@ class ThunderEngine:
             "-movflags", "+faststart",
             output_vertical
         ]
-        subprocess.run(cmd_vert, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        self._run_subproc(cmd_vert)

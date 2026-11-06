@@ -1,7 +1,7 @@
 # ⚡ THUNDER — PUBG Mobile Highlight Automation Studio
 
 [![Platform](https://img.shields.io/badge/Platform-Windows%2010%20%7C%2011-00e5ff?style=for-the-badge&logo=windows)]()
-[![Release](https://img.shields.io/badge/Release-Setup%20v1.0.0-ffd21e?style=for-the-badge)](https://github.com/MAAKTHUNDER/THUNDER-PUBG-Mobile-Highlight-Automation-Studio/releases/latest)
+[![Release](https://img.shields.io/badge/Release-Setup%20v1.1.0-ffd21e?style=for-the-badge)](https://github.com/MAAKTHUNDER/THUNDER-PUBG-Mobile-Highlight-Automation-Studio/releases/latest)
 [![Website](https://img.shields.io/badge/Portal-maakthunder--studio.web.app-00c853?style=for-the-badge)](https://maakthunder-studio.web.app)
 [![GPU](https://img.shields.io/badge/GPU%20Acceleration-NVIDIA%20NVENC%2060FPS-76b900?style=for-the-badge)]()
 
@@ -28,9 +28,11 @@
 
 ## 📥 Download & Installation
 
-1. Visit the **[Official Web Portal](https://maakthunder-studio.web.app)** or download from **[Latest GitHub Releases](https://github.com/MAAKTHUNDER/THUNDER-PUBG-Mobile-Highlight-Automation-Studio/releases/latest)**.
-2. Download **`THUNDER_Setup_v1.0.0.exe`**.
-3. Run the installer and launch **THUNDER Studio**.
+[![Download Windows Installer](https://img.shields.io/badge/Download_Installer-THUNDER__Studio__Setup__v1.1.exe-00e5ff?style=for-the-badge&logo=windows&logoColor=white)](https://github.com/MAAKTHUNDER/THUNDER-PUBG-Mobile-Highlight-Automation-Studio/releases/download/v1.1.0/THUNDER_Studio_Setup_v1.1.exe)
+
+1. **[Direct Download: THUNDER_Studio_Setup_v1.1.exe](https://github.com/MAAKTHUNDER/THUNDER-PUBG-Mobile-Highlight-Automation-Studio/releases/download/v1.1.0/THUNDER_Studio_Setup_v1.1.exe)** (or visit the **[Official Web Portal](https://maakthunder-studio.web.app)** / **[Latest GitHub Releases](https://github.com/MAAKTHUNDER/THUNDER-PUBG-Mobile-Highlight-Automation-Studio/releases/latest)**).
+2. Run the downloaded installer `THUNDER_Studio_Setup_v1.1.exe`.
+3. Launch **THUNDER Studio** from your Desktop shortcut or Start Menu.
 4. Every new installation includes an automatic **15-Day Free Trial** with full PRO+ capabilities!
 
 ---

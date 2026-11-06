@@ -1,18 +1,17 @@
 {
-  "latest_version": "1.0.0",
+  "latest_version": "1.1",
   "release_date": "November 2026",
-  "download_url": "https://maakthunder-studio.web.app/downloads/THUNDER_Studio_Setup_v1.0.0.exe",
-  "setup_filename": "THUNDER_Studio_Setup_v1.0.0.exe",
-  "file_size": "70.4 MB",
-  "mandatory": true,
+  "download_url": "https://github.com/MAAKTHUNDER/THUNDER-PUBG-Mobile-Highlight-Automation-Studio/releases/download/v1.1.0/THUNDER_Studio_Setup_v1.1.exe",
+  "setup_filename": "THUNDER_Studio_Setup_v1.1.exe",
+  "file_size": "89.7 MB",
+  "mandatory": false,
   "changelog": [
-    "⚡ Self-Contained Standalone Installer (Python & all dependencies bundled)",
-    "🔕 Pure Background Processing - Zero CMD / terminal popups during rendering",
-    "🛡️ Hardware-Bound HMAC-SHA256 Encrypted Offline Anti-Tamper Security",
-    "📂 Live Real-Time Output Highlights Gallery with Instant Playback & Explorer Sync",
-    "🚀 Hardware-Accelerated NVIDIA NVENC 60 FPS Export (25-30 Mbps)",
-    "📱 Dual 16:9 Landscape & 9:16 Vertical Shorts (TikTok/Reels/Shorts)",
-    "💎 3 Production Tiers: Basic (1080p), Pro (Esports Dynamic), Pro+ (VFX & Auto-Upload)",
-    "👑 Universal Domestic & International Licensing Integration"
+    "⚡ 3-Tier Hardware Acceleration (Normal 25%, Balanced 50%, Turbo 75% Safe Max)",
+    "🎬 Live Dedicated Preview Suite & Manual Episode Part Organizer",
+    "📱 Both at Once Dual Export (16:9 Landscape + 9:16 Vertical Shorts)",
+    "⏱️ High-Precision Performance Benchmarking Timers",
+    "🛡️ Centered Futuristic Esports Confirmation Modals (Zero Web Popups)",
+    "🔄 Smart Previous Scan Cache Verification & Instant Resume",
+    "🚀 Hardware-Accelerated NVENC 1080p 60fps Compilation"
   ]
 }

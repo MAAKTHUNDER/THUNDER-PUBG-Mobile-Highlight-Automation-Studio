@@ -28,7 +28,7 @@ import webbrowser
 import webview
 import http.server
 import socketserver
-from thunder_core import ThunderEngine
+from thunder_core import RenderCancelledError, ThunderEngine
 import hwid_shield
 import pk_license_engine
 
@@ -53,15 +53,85 @@ try:
 except Exception:
     pass
 
-APP_VERSION = "1.0.0"
+APP_VERSION = "1.1"
 CONFIG_FILE = os.path.join(USER_DATA_DIR, "studio_config.json")
 SCAN_CACHE_FILE = os.path.join(USER_DATA_DIR, "scan_cache.json")
 STUDIO_PROJECT_FILE = os.path.join(USER_DATA_DIR, "studio_project.json")
 LOCAL_VERSION_FILE = get_resource_path("version.json")
 UPDATE_MANIFEST_URL = "https://maakthunder-studio.web.app/version.json"
 
+
+_CURRENT_API_INSTANCE = None
+
+def get_user_session_path():
+    appdata = os.environ.get("APPDATA") or os.path.expanduser("~")
+    vault_dir = os.path.join(appdata, "THUNDER_Studio")
+    os.makedirs(vault_dir, exist_ok=True)
+    return os.path.join(vault_dir, "thunder_user_session.json")
+
+def load_user_session():
+    path = get_user_session_path()
+    if os.path.exists(path):
+        try:
+            with open(path, "r", encoding="utf-8") as f:
+                return json.load(f)
+        except Exception:
+            return None
+    return None
+
+def save_user_session(user_data):
+    path = get_user_session_path()
+    try:
+        with open(path, 'w', encoding='utf-8') as f:
+            json.dump(user_data, f, indent=2)
+        return True
+    except Exception:
+        return False
+def get_youtube_channel_path():
+    appdata = os.environ.get("APPDATA") or os.path.expanduser("~")
+    studio_dir = os.path.join(appdata, "THUNDER_Studio")
+    os.makedirs(studio_dir, exist_ok=True)
+    return os.path.join(studio_dir, "thunder_youtube_channel.json")
+
+def load_youtube_channel():
+    path = get_youtube_channel_path()
+    if os.path.exists(path):
+        try:
+            with open(path, "r", encoding="utf-8") as f:
+                return json.load(f)
+        except Exception:
+            return None
+    return None
+
+def save_youtube_channel(channel_data):
+    path = get_youtube_channel_path()
+    try:
+        with open(path, "w", encoding="utf-8") as f:
+            json.dump(channel_data, f, indent=2)
+        return True
+    except Exception:
+        return False
+
+def clear_youtube_channel():
+    path = get_youtube_channel_path()
+    if os.path.exists(path):
+        try:
+            os.remove(path)
+        except Exception:
+            pass
+
+def clear_user_session():
+    path = get_user_session_path()
+    if os.path.exists(path):
+        try:
+            os.remove(path)
+        except Exception:
+            pass
+
 class ThunderStudioAPI:
     def __init__(self):
+        global _CURRENT_API_INSTANCE
+        _CURRENT_API_INSTANCE = self
         self._window = None
         self.is_scanning = False
         self._stage = "idle"
@@ -70,6 +140,230 @@ class ThunderStudioAPI:
         self.engine = ThunderEngine(log_callback=self._engine_log, progress_callback=self._progress)
         self.is_processing = False
         self.config = self._load_config()
+        try:
+            saved_mode = self.config.get("cpu_mode", "normal")
+            self.set_cpu_mode(saved_mode)
+        except Exception:
+            pass
+
+
+    def get_user_session(self):
+        """Returns active Google user session if signed in."""
+        session = load_user_session()
+        if session and session.get("email"):
+            return {"status": "authenticated", "user": session}
+        return {"status": "unauthenticated", "user": None}
+
+    def connect_youtube_channel(self):
+        """Launches real YouTube OAuth & channel picker in default browser."""
+        try:
+            url = "https://maakthunder-studio.web.app/youtube_connect.html?port=54321&auto=1"
+            webbrowser.open(url)
+            return {"status": "ok"}
+        except Exception as e:
+            return {"status": "error", "message": str(e)}
+
+    def disconnect_youtube_channel(self):
+        """Disconnects the linked YouTube channel."""
+        try:
+            clear_youtube_channel()
+            if self._window:
+                self._window.evaluate_js("if (window.onYouTubeDisconnected) window.onYouTubeDisconnected();")
+            return {"status": "ok"}
+        except Exception as e:
+            return {"status": "error", "message": str(e)}
+
+    def create_youtube_playlist(self, title, privacy="public"):
+        """Creates a new playlist on the connected YouTube channel via YouTube Data API."""
+        ch = load_youtube_channel()
+        if not ch or not ch.get("token"):
+            return {"status": "error", "message": "No YouTube channel connected. Please connect your channel first."}
+        token = ch["token"]
+        url = "https://www.googleapis.com/youtube/v3/playlists?part=snippet,status"
+        payload = json.dumps({
+            "snippet": {
+                "title": title,
+                "description": "Created by THUNDER Studio — Automated PUBG Montage Engine"
+            },
+            "status": {
+                "privacyStatus": privacy
+            }
+        }).encode("utf-8")
+        req = urllib.request.Request(url, data=payload, headers={
+            "Authorization": f"Bearer {token}",
+            "Content-Type": "application/json"
+        }, method="POST")
+        try:
+            with urllib.request.urlopen(req) as resp:
+                data = json.loads(resp.read().decode())
+                new_pl = {
+                    "id": data.get("id"),
+                    "title": data.get("snippet", {}).get("title", title),
+                    "itemCount": 0
+                }
+                pls = ch.get("playlists", [])
+                pls.insert(0, new_pl)
+                ch["playlists"] = pls
+                save_youtube_channel(ch)
+                return {"status": "ok", "playlist": new_pl}
+        except urllib.error.HTTPError as e:
+            return {"status": "error", "message": f"YouTube API Error ({e.code}): " + e.read().decode()[:200]}
+        except Exception as e:
+            return {"status": "error", "message": str(e)}
+
+    def get_connected_youtube_channel(self):
+        """Returns the currently connected YouTube channel profile if any."""
+        ch = load_youtube_channel()
+        if ch and ch.get("channel_id"):
+            return {"status": "connected", "channel": ch}
+        return {"status": "disconnected", "channel": None}
+
+    def start_google_login(self):
+        """Launches Google OAuth login loopback in user's default browser."""
+        try:
+            auth_url = "https://maakthunder-studio.web.app/app_auth.html?port=54321"
+            webbrowser.open(auth_url)
+            return {"status": "ok"}
+        except Exception as e:
+            return {"status": "error", "message": str(e)}
+
+    def logout_user(self):
+        """Logs out active Google session and clears local session cache."""
+        try:
+            clear_user_session()
+            return {"status": "ok"}
+        except Exception as e:
+            return {"status": "error", "message": str(e)}
+
+    def set_cpu_mode(self, mode):
+        """Sets Windows process priority, CPU affinity mask, and engine throttling across 3 tiers (Normal 25%, Balanced 50%, Turbo 75%)."""
+        try:
+            m_str = str(mode).lower().replace(" ", "").replace("_", "").replace("+", "plus").replace("%", "")
+            if "turbo" in m_str or "75" in m_str or "max" in m_str:
+                target_mode = "turbo"
+            elif "balanced" in m_str or "50" in m_str or "medium" in m_str:
+                target_mode = "balanced"
+            else:
+                target_mode = "normal"
+
+            self.config["cpu_mode"] = target_mode
+            self._save_config()
+
+            if hasattr(self, 'engine'):
+                self.engine.cpu_mode = target_mode
+
+            total_cores = min(64, os.cpu_count() or 16)
+            cores_25 = max(2, int(round(total_cores * 0.25)))  # e.g. 4 on 16-core
+            cores_50 = max(2, int(round(total_cores * 0.50)))  # e.g. 8 on 16-core
+            cores_75 = max(3, int(round(total_cores * 0.75)))  # e.g. 12 on 16-core (Strict ceiling)
+
+            # All modes strictly run with BELOW_NORMAL_PRIORITY_CLASS so Windows and Chrome NEVER freeze
+            priority_val = 0x00004000
+
+            if target_mode == "turbo":
+                allowed_cores = cores_75
+                log_tag = f"🚀 Turbo Mode ({allowed_cores}/{total_cores} Cores • 75% Power - Fast & Safe Max)"
+            elif target_mode == "balanced":
+                allowed_cores = cores_50
+                log_tag = f"⚡ Balanced Mode ({allowed_cores}/{total_cores} Cores • 50% Power - Smooth Multitasking)"
+            else:
+                allowed_cores = cores_25
+                log_tag = f"🛡️ Normal Mode ({allowed_cores}/{total_cores} Cores • 25% Power - Safe & Zero Game Lag)"
+
+            affinity_mask = (1 << allowed_cores) - 1
+
+            # OpenCV threading control
+            try:
+                import cv2
+                cv2.setNumThreads(allowed_cores)
+            except Exception:
+                pass
+
+            # Windows Process Priority and Hardware Core Affinity
+            import ctypes
+            from ctypes import wintypes
+            kernel32 = ctypes.windll.kernel32
+            kernel32.GetCurrentProcess.restype = wintypes.HANDLE
+            kernel32.SetPriorityClass.argtypes = [wintypes.HANDLE, wintypes.DWORD]
+            kernel32.SetPriorityClass.restype = wintypes.BOOL
+            kernel32.SetProcessAffinityMask.argtypes = [wintypes.HANDLE, ctypes.c_size_t]
+            kernel32.SetProcessAffinityMask.restype = wintypes.BOOL
+
+            h = kernel32.GetCurrentProcess()
+            kernel32.SetPriorityClass(h, priority_val)
+            kernel32.SetProcessAffinityMask(h, affinity_mask)
+
+            self._ui_log(f"⚡ Performance Profile: {log_tag}")
+            return {
+                "status": "ok",
+                "mode": target_mode,
+                "affinity_cores": allowed_cores,
+                "total_cores": total_cores,
+                "cores_25": cores_25,
+                "cores_50": cores_50,
+                "cores_75": cores_75,
+                "normal_cores": cores_25,
+                "balanced_cores": cores_50,
+                "turbo_cores": cores_75
+            }
+        except Exception as e:
+            return {"status": "error", "message": str(e)}
+
+    def export_diagnostic_report(self):
+        """Generates a sanitized diagnostic report file on Desktop and opens it."""
+        try:
+            desktop = os.path.join(os.path.expanduser("~"), "Desktop")
+            if not os.path.exists(desktop):
+                desktop = USER_DATA_DIR
+            out_file = os.path.join(desktop, "THUNDER_Diagnostic_Report.txt")
+
+            scan_cache = self._load_scan_cache()
+            total_cached_clips = sum(len(v.get("clips", [])) for v in scan_cache.values() if isinstance(v, dict))
+
+            import platform
+            content = [
+                "============================================================",
+                "   THUNDER STUDIO - DIAGNOSTIC & ERROR REPORT",
+                "============================================================",
+                f"Generated At: {time.strftime('%Y-%m-%d %H:%M:%S')}",
+                f"App Version: {APP_VERSION}",
+                f"Operating System: {platform.system()} {platform.release()} ({platform.version()})",
+                f"Architecture: {platform.machine()}",
+                f"CPU Cores (Logical): {os.cpu_count()}",
+                f"Python Runtime: {platform.python_version()}",
+                "------------------------------------------------------------",
+                "FFMPEG / HARDWARE ENCODER STATUS:",
+                f"FFmpeg Available: {bool(self.engine.ffmpeg_bin)}",
+                f"FFmpeg Path: {self.engine.ffmpeg_bin}",
+                f"Hardware NVENC Accelerated: True",
+                "------------------------------------------------------------",
+                "SCAN & CLIP CACHE METRICS:",
+                f"Total Cached Videos: {len(scan_cache)}",
+                f"Total Cached Clips: {total_cached_clips}",
+                "------------------------------------------------------------",
+                "SECURITY & PRIVACY NOTICE:",
+                "This report contains ONLY hardware & error metrics.",
+                "No passwords, license keys, or video contents are included.",
+                "============================================================"
+            ]
+
+            with open(out_file, "w", encoding="utf-8") as f:
+                f.write("\n".join(content))
+
+            try:
+                os.startfile(desktop)
+            except Exception:
+                pass
+
+            return {"status": "ok", "path": out_file}
+        except Exception as e:
+            return {"status": "error", "message": str(e)}
+
+    def open_discord_support(self):
+        """Opens user Discord support link in browser."""
+        url = self.config.get("discord_url") or "https://discord.gg/mudxsPXaCW"
+        webbrowser.open(url)
+        return {"status": "ok", "url": url}
 
     def set_window(self, window):
         self._window = window
@@ -90,6 +384,7 @@ class ThunderStudioAPI:
             "capture_folder": "",
             "music_file": "",
             "plan": "Pro+",
+            "discord_url": "https://discord.gg/mudxsPXaCW",
             "license_status": "trial",
             "trial_start_date": datetime.datetime.now().isoformat(),
             "trial_days": 15,
@@ -145,6 +440,26 @@ class ThunderStudioAPI:
             except Exception as e:
                 return {"status": "error", "message": str(e)}
         return {"status": "empty", "project": None}
+
+    def has_cached_scan(self, file_paths=None):
+        """Checks if any of the specified video files have preserved scan results in cache."""
+        try:
+            cache = self._load_scan_cache()
+            if not cache:
+                return False
+            if not file_paths:
+                file_paths = getattr(self, "selected_videos", []) or []
+            if not file_paths:
+                scan_res = self.scan_capture_folder()
+                file_paths = scan_res.get("files", [])
+            for p in file_paths:
+                name = os.path.basename(p)
+                entry = cache.get(p) or cache.get(name)
+                if entry and entry.get("clips"):
+                    return True
+            return False
+        except Exception:
+            return False
 
     def clear_scan_cache(self):
         try:
@@ -279,15 +594,6 @@ class ThunderStudioAPI:
             if not key:
                 return {"status": "error", "message": "No active license key found in vault."}
 
-            # Master / Lifetime check
-            if "LIFETIME" in key or "MAAK-OWNER" in key or "WHOP-DEV" in key:
-                return {
-                    "status": "ok",
-                    "message": "Permanent VIP Lifetime Access is active.",
-                    "days_left": "Permanent VIP Access",
-                    "plan": "Pro+",
-                    "license_key": key
-                }
 
             # Cloud check
             ok, server_doc = pk_license_engine._firestore_get("pk_licenses_by_key", key)
@@ -391,8 +697,7 @@ class ThunderStudioAPI:
             key = vault_data.get("license_key", "")
             
             # Non-blocking background verification (never blocks modal opening)
-            if not ("LIFETIME" in key or "MAAK-OWNER" in key or "WHOP-DEV" in key):
-                if key.startswith("THUNDER-PK-") or key.startswith("THUNDER-"):
+            if key and (key.startswith("THUNDER-PK-") or key.startswith("THUNDER-")):
                     self._async_cloud_license_check(key, vault_data)
 
             plan = vault_data.get("plan", "15-Day Creator Trial")
@@ -439,30 +744,6 @@ class ThunderStudioAPI:
         if not key or len(key) < 6:
             return {"success": False, "error": "Invalid License Key format. Please enter a valid key (e.g. THUNDER-... or THUNDER-PK-...)."} 
 
-        # Master Lifetime Pro+ Key
-        if "LIFETIME" in key or "MAAK-OWNER" in key:
-            hwid_shield.save_vault(key, "Pro+ Lifetime VIP", "owner@maakthunder.com", 0, "Lifetime")
-            self.config["license_key"] = key
-            self.config["license_status"] = "active"
-            self.config["plan"] = "Pro+ Lifetime VIP"
-            self._save_config()
-            self._ui_log("👑 Master Key Activated: Pro+ Lifetime VIP (Permanent Access)")
-            return {
-                "success": True,
-                "plan": "Pro+ Lifetime VIP",
-                "days_left": "Lifetime",
-                "message": "Welcome Owner! Activated Pro+ Lifetime VIP with permanent unrestricted access."
-            }
-
-        # Developer Offline Test Bypass
-        if "WHOP-DEV" in key or "THUNDER-PRO" in key or "MAAK-DEBUG" in key:
-            hwid_shield.save_vault(key, "Pro+ Developer Edition", "dev@maakthunder.com", int(time.time()) + 86400 * 365, 365)
-            self.config["license_key"] = key
-            self.config["license_status"] = "active"
-            self.config["plan"] = "Pro+"
-            self._save_config()
-            self._ui_log("Key Activated: Pro+ Developer Edition (365 Days) [OFFLINE]")
-            return {"success": True, "plan": "Pro+", "days_left": 365, "message": "Key activated in Developer Bypass mode!"}
 
         hwid = hwid_shield.get_system_hwid()
 
@@ -510,6 +791,23 @@ class ThunderStudioAPI:
                 self._save_config()
 
                 self._ui_log(f"Key Activated: {tier} ({days_left} Days Left) for {email}")
+                # Auto-bind newly activated key to logged-in Google account in Firestore
+                try:
+                    user_sess = load_user_session()
+                    if user_sess and user_sess.get("uid"):
+                        pk_license_engine.bind_license_to_google_user(
+                            uid=user_sess["uid"],
+                            email=user_sess.get("email", email),
+                            license_key=key,
+                            plan=tier,
+                            is_lifetime=is_lifetime,
+                            expires_at=expires_at,
+                            hwid=hwid,
+                            auth_token=user_sess.get("token")
+                        )
+                except Exception as e_bind:
+                    print("Auto-bind key to Google user note:", e_bind)
+
                 return {
                     "success": True,
                     "plan": tier,
@@ -557,12 +855,19 @@ class ThunderStudioAPI:
             expires_at = now_ts + (15 * 86400)
             if expires_at_str:
                 try:
-                    import dateutil.parser
-                    dt = dateutil.parser.isoparse(expires_at_str)
+                    from datetime import datetime
+                    clean_iso = str(expires_at_str).replace('Z', '+00:00')
+                    dt = datetime.fromisoformat(clean_iso)
                     expires_at = int(dt.timestamp())
                     days_left = max(1, int((expires_at - now_ts) // 86400))
                 except Exception:
-                    pass
+                    try:
+                        import dateutil.parser
+                        dt = dateutil.parser.isoparse(expires_at_str)
+                        expires_at = int(dt.timestamp())
+                        days_left = max(1, int((expires_at - now_ts) // 86400))
+                    except Exception:
+                        pass
 
             customer = lic_info.get("customer") or {}
             email = customer.get("email", "polar_customer@maakthunder.com")
@@ -590,8 +895,42 @@ class ThunderStudioAPI:
         except Exception as e:
             return {"success": False, "error": f"Connection error: {e}"}
 
+    def check_scan_cache(self, files=None):
+        """Checks how many of the given video files have an existing cached scan."""
+        try:
+            if not files:
+                files = self.config.get("selected_videos", [])
+            scan_cache = self._load_scan_cache()
+            cached_count = 0
+            cached_names = []
+            for f in files:
+                f_name = os.path.basename(f)
+                entry = scan_cache.get(f) or scan_cache.get(f_name)
+                if entry and entry.get("clips") and os.path.exists(f):
+                    curr_size = os.path.getsize(f)
+                    curr_mtime = os.path.getmtime(f)
+                    if entry.get("size") == curr_size and abs(entry.get("mtime", 0) - curr_mtime) < 5:
+                        cached_count += 1
+                        cached_names.append(f_name)
+            return {"cached_count": cached_count, "total_files": len(files), "cached_names": cached_names}
+        except Exception as e:
+            return {"cached_count": 0, "total_files": len(files or []), "cached_names": [], "error": str(e)}
+
     def get_config(self):
-        return self.config
+        cfg = dict(self.config)
+        total_cores = min(64, os.cpu_count() or 16)
+        cores_25 = max(2, int(round(total_cores * 0.25)))
+        cores_50 = max(2, int(round(total_cores * 0.50)))
+        cores_75 = max(3, int(round(total_cores * 0.75)))
+        cfg["total_cores"] = total_cores
+        cfg["cores_25"] = cores_25
+        cfg["cores_50"] = cores_50
+        cfg["cores_75"] = cores_75
+        cfg["normal_cores"] = cores_25
+        cfg["balanced_cores"] = cores_50
+        cfg["turbo_cores"] = cores_75
+        cfg["cpu_mode"] = self.config.get("cpu_mode", "normal")
+        return cfg
 
     def save_settings(self, cfg_data):
         self.config.update(cfg_data)
@@ -600,11 +939,15 @@ class ThunderStudioAPI:
 
     def _engine_log(self, message):
         print(message)
-        # Suppress internal frame-by-frame debug spam during scanning
-        if self.is_scanning:
+        # Internal engine logs are strictly for backend diagnostics/stdout.
+        # NEVER leak raw frame-by-frame candidates or internal fight detection spam into the user console.
+        msg_str = str(message)
+        if self.is_scanning or not self.is_processing:
+            return
+        if any(token in msg_str for token in ["[FIGHT DETECTED]", "[Step", "Frame", "OCR", "Candidate", "Cluster", "Activity:"]):
             return
         if self._window:
-            safe_msg = json.dumps(str(message))
+            safe_msg = json.dumps(msg_str)
             self._window.evaluate_js(f"addLog({safe_msg})")
 
     def _ui_log(self, message):
@@ -778,13 +1121,21 @@ class ThunderStudioAPI:
         else:
             verified_tier = "Basic"
 
-        if verified_tier == "Basic" or str(req_plan).lower() == "basic" or str(req_edit_level).lower() == "basic":
+        req_lvl_str = str(req_edit_level).lower()
+        if "pro+" in req_lvl_str or "pro_plus" in req_lvl_str:
+            eff_level = "Pro+"
+        elif "basic" in req_lvl_str:
+            eff_level = "Basic"
+        else:
+            eff_level = "Pro"
+
+        if verified_tier == "Basic":
             return "Basic", "Basic", "landscape"
         elif verified_tier == "Pro":
             eff_fmt = "vertical" if req_fmt == "both" else req_fmt
-            return "Pro", "Pro", eff_fmt
+            return "Pro", ("Basic" if eff_level == "Basic" else "Pro"), eff_fmt
         else:
-            eff_level = "Pro+" if str(req_plan).lower() in ("pro+", "proplus") or str(req_edit_level).lower() in ("pro+", "proplus") else "Pro"
+            # Pro+ tier allows ALL formats (landscape, vertical, both) with zero restrictions
             return "Pro+", eff_level, req_fmt
 
     def get_output_videos(self, folder=None):
@@ -798,58 +1149,103 @@ class ThunderStudioAPI:
         results = []
         exts = ('.mp4', '.mkv', '.mov')
         try:
-            for f in sorted(os.listdir(target_dir), reverse=True):
-                if f.lower().endswith(exts):
-                    full_path = os.path.join(target_dir, f)
-                    sz_mb = round(os.path.getsize(full_path) / (1024 * 1024), 1)
-                    mtime = os.path.getmtime(full_path)
-                    date_str = datetime.datetime.fromtimestamp(mtime).strftime("%b %d, %Y %I:%M %p")
-                    is_vert = "vert" in f.lower() or "short" in f.lower()
-                    fmt_desc = "9:16 Shorts • 1080x1920" if is_vert else "16:9 Landscape • 1080p 60fps"
+            # Search root target_dir and dedicated subfolders (Landscape, Vertical Shorts, etc.)
+            search_dirs = [target_dir]
+            for entry in os.listdir(target_dir):
+                sub_p = os.path.join(target_dir, entry)
+                if os.path.isdir(sub_p):
+                    # Skip Thumbnails and Social Kits directories for video search
+                    if entry.lower() in ("thumbnails", "social kits", "socialkits", "social kit", "social_kits"):
+                        continue
+                    search_dirs.append(sub_p)
 
-                    stem = os.path.splitext(f)[0]
-                    # Robust thumbnail matching
-                    thumb_candidates = [
-                        os.path.join(target_dir, f"{stem}.jpg"),
-                        os.path.join(target_dir, f"{stem.replace('Highlights_', 'Thumbnail_')}.jpg"),
-                        os.path.join(target_dir, f"{stem.replace('Highlights_Landscape', 'Thumbnail_Landscape').replace('Highlights_Vertical_Shorts', 'Thumbnail_Vertical_Shorts')}.jpg"),
-                        os.path.join(target_dir, "THUNDER_Thumbnail_Vertical_Shorts.jpg" if is_vert else "THUNDER_Thumbnail_Landscape.jpg"),
-                        os.path.join(target_dir, "THUNDER_Thumbnail.jpg"),
-                    ]
-                    thumb_path = None
-                    for tc in thumb_candidates:
-                        if os.path.exists(tc):
-                            thumb_path = tc
-                            break
-                    has_thumb = thumb_path is not None
+            folder_thumbs = os.path.join(target_dir, "Thumbnails")
+            folder_kits = os.path.join(target_dir, "Social Kits")
 
-                    # Robust social kit matching
-                    kit_candidates = [
-                        os.path.join(target_dir, f"{stem}.txt"),
-                        os.path.join(target_dir, f"{stem.replace('Highlights_', 'SocialKit_')}.txt"),
-                        os.path.join(target_dir, f"{stem.replace('Highlights_Landscape', 'SocialKit_Landscape').replace('Highlights_Vertical_Shorts', 'SocialKit_Vertical_Shorts')}.txt"),
-                        os.path.join(target_dir, "THUNDER_SocialKit_Vertical_Shorts.txt" if is_vert else "THUNDER_SocialKit_Landscape.txt"),
-                        os.path.join(target_dir, "THUNDER_SocialKit.txt"),
-                    ]
-                    kit_path = None
-                    for kc in kit_candidates:
-                        if os.path.exists(kc):
-                            kit_path = kc
-                            break
-                    has_kit = kit_path is not None
+            found_files = []
+            for s_dir in search_dirs:
+                if not os.path.exists(s_dir):
+                    continue
+                for f in os.listdir(s_dir):
+                    if f.lower().endswith(exts):
+                        full_path = os.path.join(s_dir, f)
+                        try:
+                            mtime = os.path.getmtime(full_path)
+                            found_files.append((mtime, f, full_path, s_dir))
+                        except Exception:
+                            continue
 
-                    results.append({
-                        "name": f,
-                        "path": full_path,
-                        "size": f"{sz_mb} MB",
-                        "date": date_str,
-                        "format": fmt_desc,
-                        "is_vert": is_vert,
-                        "has_thumb": has_thumb,
-                        "thumb_path": thumb_path if has_thumb else None,
-                        "has_kit": has_kit,
-                        "kit_path": kit_path if has_kit else None
-                    })
+            # Sort all videos by newest first
+            found_files.sort(key=lambda x: x[0], reverse=True)
+
+            for mtime, f, full_path, curr_dir in found_files:
+                sz_mb = round(os.path.getsize(full_path) / (1024 * 1024), 1)
+                date_str = datetime.datetime.fromtimestamp(mtime).strftime("%b %d, %Y %I:%M %p")
+                is_vert = "vert" in f.lower() or "short" in f.lower() or "vertical" in curr_dir.lower()
+                fmt_desc = "9:16 Shorts • 1080x1920" if is_vert else "16:9 Landscape • 1080p 60fps"
+
+                stem = os.path.splitext(f)[0]
+                # Robust thumbnail matching in Thumbnails/, video folder, or root target_dir
+                thumb_candidates = [
+                    os.path.join(folder_thumbs, f"{stem}.jpg"),
+                    os.path.join(folder_thumbs, f"{stem.replace('Highlights_', 'Thumbnail_')}.jpg"),
+                    os.path.join(folder_thumbs, f"{stem.replace('Highlights_Landscape', 'Thumbnail_Landscape').replace('Highlights_Vertical_Shorts', 'Thumbnail_Vertical_Shorts')}.jpg"),
+                    os.path.join(curr_dir, f"{stem}.jpg"),
+                    os.path.join(curr_dir, f"{stem.replace('Highlights_', 'Thumbnail_')}.jpg"),
+                    os.path.join(curr_dir, f"{stem.replace('Highlights_Landscape', 'Thumbnail_Landscape').replace('Highlights_Vertical_Shorts', 'Thumbnail_Vertical_Shorts')}.jpg"),
+                    os.path.join(target_dir, f"{stem}.jpg"),
+                    os.path.join(target_dir, f"{stem.replace('Highlights_', 'Thumbnail_')}.jpg"),
+                    os.path.join(target_dir, f"{stem.replace('Highlights_Landscape', 'Thumbnail_Landscape').replace('Highlights_Vertical_Shorts', 'Thumbnail_Vertical_Shorts')}.jpg"),
+                    os.path.join(folder_thumbs, "THUNDER_Thumbnail_Vertical_Shorts.jpg" if is_vert else "THUNDER_Thumbnail_Landscape.jpg"),
+                    os.path.join(folder_thumbs, "THUNDER_Thumbnail.jpg"),
+                    os.path.join(target_dir, "THUNDER_Thumbnail_Vertical_Shorts.jpg" if is_vert else "THUNDER_Thumbnail_Landscape.jpg"),
+                    os.path.join(target_dir, "THUNDER_Thumbnail.jpg"),
+                ]
+                thumb_path = None
+                for tc in thumb_candidates:
+                    if os.path.exists(tc):
+                        thumb_path = tc
+                        break
+                has_thumb = thumb_path is not None
+
+                # Robust social kit matching in Social Kits/, video folder, or root target_dir
+                kit_candidates = [
+                    os.path.join(folder_kits, f"{stem}.txt"),
+                    os.path.join(folder_kits, f"{stem.replace('Highlights_', 'SocialKit_')}.txt"),
+                    os.path.join(folder_kits, f"{stem.replace('Highlights_Landscape', 'SocialKit_Landscape').replace('Highlights_Vertical_Shorts', 'SocialKit_Vertical_Shorts')}.txt"),
+                    os.path.join(curr_dir, f"{stem}.txt"),
+                    os.path.join(curr_dir, f"{stem.replace('Highlights_', 'SocialKit_')}.txt"),
+                    os.path.join(curr_dir, f"{stem.replace('Highlights_Landscape', 'SocialKit_Landscape').replace('Highlights_Vertical_Shorts', 'SocialKit_Vertical_Shorts')}.txt"),
+                    os.path.join(target_dir, f"{stem}.txt"),
+                    os.path.join(target_dir, f"{stem.replace('Highlights_', 'SocialKit_')}.txt"),
+                    os.path.join(target_dir, f"{stem.replace('Highlights_Landscape', 'SocialKit_Landscape').replace('Highlights_Vertical_Shorts', 'SocialKit_Vertical_Shorts')}.txt"),
+                    os.path.join(folder_kits, "THUNDER_SocialKit_Vertical_Shorts.txt" if is_vert else "THUNDER_SocialKit_Landscape.txt"),
+                    os.path.join(folder_kits, "THUNDER_SocialKit.txt"),
+                    os.path.join(target_dir, "THUNDER_SocialKit_Vertical_Shorts.txt" if is_vert else "THUNDER_SocialKit_Landscape.txt"),
+                    os.path.join(target_dir, "THUNDER_SocialKit.txt"),
+                ]
+                kit_path = None
+                for kc in kit_candidates:
+                    if os.path.exists(kc):
+                        kit_path = kc
+                        break
+                has_kit = kit_path is not None
+
+                folder_name = os.path.basename(curr_dir) if os.path.abspath(curr_dir) != os.path.abspath(target_dir) else ""
+
+                results.append({
+                    "name": f,
+                    "path": full_path,
+                    "folder": folder_name,
+                    "size": f"{sz_mb} MB",
+                    "date": date_str,
+                    "format": fmt_desc,
+                    "is_vert": is_vert,
+                    "has_thumb": has_thumb,
+                    "thumb_path": thumb_path if has_thumb else None,
+                    "has_kit": has_kit,
+                    "kit_path": kit_path if has_kit else None
+                })
         except Exception as e:
             print("Error scanning output folder:", e)
         return results
@@ -985,11 +1381,25 @@ class ThunderStudioAPI:
         thread.start()
 
     def cancel_process(self):
+        if not self.is_processing and self._stage == "idle":
+            return True
         self.is_processing = False
-        self.is_scanning = False
         self._stage = "idle"
-        self._ui_log("⚠️ Scan and Studio session cancelled by user.")
-        self._set_ui_progress(0, "Ready to scan match footage")
+        if hasattr(self, 'engine'):
+            self.engine.cancel_requested = True
+            self.engine.cancel_render()
+        self._ui_log("🛑 Process cancelled by user. Active encoding and background tasks halted.")
+        self._set_ui_progress(0, "Process cancelled by user.")
+        if self._window:
+            try:
+                self._window.evaluate_js("onProcessComplete()")
+            except Exception:
+                pass
+        # Ensure trailing engine scan threads finish their current tick before resetting is_scanning
+        def _delayed_reset():
+            time.sleep(0.5)
+            self.is_scanning = False
+        threading.Thread(target=_delayed_reset, daemon=True).start()
         return True
 
     def _run_pipeline(self, payload):
@@ -1046,7 +1456,10 @@ class ThunderStudioAPI:
 
             # Clean header logs
             self._ui_log(f"📁 Target Videos: {len(files)} file(s)")
-            self._ui_log(f"🎮 Player IGN: '{player_ign}'")
+            if player_ign:
+                self._ui_log(f"🎮 Player IGN: '{player_ign}'")
+            else:
+                self._ui_log("🎮 Player IGN: Auto-Detect (Zero-Input Neural Radar)")
             self._ui_log(f"🎵 Music Track: '{os.path.basename(music_file)}' (Start Drop: {music_offset:.1f}s)")
             self._ui_log("--------------------------------------------------")
 
@@ -1072,6 +1485,9 @@ class ThunderStudioAPI:
                         item = verification_queue.get()
                         if item is None:
                             break
+                        if not self.is_processing:
+                            verification_queue.task_done()
+                            continue
                         vpath = item.get("video")
                         if vpath not in caps:
                             caps[vpath] = cv2.VideoCapture(vpath)
@@ -1101,6 +1517,7 @@ class ThunderStudioAPI:
             self._stage = "scanning"
             self._total_videos = len(files)
             scan_cache = self._load_scan_cache()
+            scan_total_start = time.time()
 
             for idx, vid_path in enumerate(files, start=1):
                 if not self.is_processing:
@@ -1112,19 +1529,24 @@ class ThunderStudioAPI:
                 
                 self._current_video_idx = idx
                 vid_name = os.path.basename(vid_path)
+                vid_scan_start = time.time()
 
-                # --- SMART SCAN CACHE CHECK (Instant 0.01s resume) ---
+                # --- SMART SCAN CACHE CHECK (Instant 0.01s resume vs Fresh Scan) ---
                 curr_size = os.path.getsize(vid_path)
                 curr_mtime = os.path.getmtime(vid_path)
                 cached_entry = scan_cache.get(vid_path) or scan_cache.get(vid_name)
+                force_fresh = payload.get("forceFreshScan", False)
 
-                if cached_entry and cached_entry.get("size") == curr_size and abs(cached_entry.get("mtime", 0) - curr_mtime) < 5:
+                if not force_fresh and cached_entry and cached_entry.get("clips") and cached_entry.get("size") == curr_size and abs(cached_entry.get("mtime", 0) - curr_mtime) < 5:
                     cached_clips = cached_entry.get("clips", [])
                     for c in cached_clips:
                         c["source"] = vid_path
-                    self._ui_log(f"⚡ [{idx}/{len(files)}] Loaded from Cache ({len(cached_clips)} Clips Found): {vid_name}")
+                    self._ui_log(f"⚡ [{idx}/{len(files)}] Loaded from Previous Scan ({len(cached_clips)} Clips Found): {vid_name}")
                     all_clips.extend(cached_clips)
                     continue
+
+                if force_fresh and cached_entry:
+                    self._ui_log(f"🔄 [{idx}/{len(files)}] Starting Fresh Scan (Re-analyzing {vid_name} with latest AI)...")
 
                 self._ui_log(f"\n[{idx}/{len(files)}] Scanning Video: {vid_name}...")
                 
@@ -1150,7 +1572,10 @@ class ThunderStudioAPI:
                 verification_queue.join()
                 vid_verified = [ev for ev in verified_events if ev.get("video") == vid_path]
                 clips = self.engine.cluster_combat_events(vid_verified, vid_path)
-                self._ui_log(f"✓ [{idx}/{len(files)}] Scanning Complete: {len(clips)} Clips Found.")
+                vid_sec = time.time() - vid_scan_start
+                vid_m, vid_s = int(vid_sec // 60), int(vid_sec % 60)
+                vid_time_str = f"{vid_m:02d}:{vid_s:02d}"
+                self._ui_log(f"✓ [{idx}/{len(files)}] Scanning Complete: {len(clips)} Clips Found ({vid_time_str}).")
                 all_clips.extend(clips)
 
                 # Store in persistent cache
@@ -1172,15 +1597,20 @@ class ThunderStudioAPI:
                     self._window.evaluate_js("onProcessComplete()")
                 return
 
+            total_scan_sec = time.time() - scan_total_start
+            self._last_scan_duration = total_scan_sec
+            scan_m, scan_s = int(total_scan_sec // 60), int(total_scan_sec % 60)
+            scan_time_str = f"{scan_m:02d}:{scan_s:02d}"
+
             self._stage = "rendering"
             if not all_clips:
                 self._ui_log("\n⚠️ No confirmed eliminations detected in selected footage.")
-                self._set_ui_progress(100, "Scan Complete (0 clips found)")
+                self._set_ui_progress(100, f"Scan Complete (0 clips found • ⏱️ {scan_time_str})")
                 if self._window:
                     self._window.evaluate_js("onProcessComplete()")
                 return
 
-            self._ui_log(f"\n✓ Total Clips Found: {len(all_clips)}")
+            self._ui_log(f"\n✓ Total Clips Found: {len(all_clips)} (⏱️ Scan Time: {scan_time_str})")
             # Autosave complete studio project state
             self.save_studio_project({
                 "version": "1.0",
@@ -1199,7 +1629,12 @@ class ThunderStudioAPI:
             if total_parts > 1:
                 self._ui_log(f"\n✂️ Multi-Part Mode: Splitting {len(all_clips)} highlights into {total_parts} balanced videos (~{target_dur_val}s each).")
 
-            # RENDER OUTPUTS PART-BY-PART (Auto-increment filenames, never overwrite!)
+            # RENDER OUTPUTS PART-BY-PART (Auto-increment filenames, organized into 4 subfolders)
+            folder_land = os.path.join(export_folder, "Landscape")
+            folder_vert = os.path.join(export_folder, "Vertical Shorts")
+            folder_thumbs = os.path.join(export_folder, "Thumbnails")
+            folder_kits = os.path.join(export_folder, "Social Kits")
+
             for part_idx, batch_clips in enumerate(clip_batches, start=1):
                 if not self.is_processing:
                     self._ui_log("\n⚠️ Rendering cancelled by user.")
@@ -1208,9 +1643,12 @@ class ThunderStudioAPI:
                 part_label = f" [Part {part_idx}/{total_parts}]" if total_parts > 1 else ""
 
                 if fmt in ("landscape", "both"):
-                    out_land = self.get_unique_export_path(export_folder, f"THUNDER_Highlights_Landscape{part_suffix}")
+                    os.makedirs(folder_land, exist_ok=True)
+                    os.makedirs(folder_thumbs, exist_ok=True)
+                    os.makedirs(folder_kits, exist_ok=True)
+                    out_land = self.get_unique_export_path(folder_land, f"THUNDER_Highlights_Landscape{part_suffix}")
                     self._ui_log(f"\n🎬 Rendering 16:9 Landscape Montage{part_label} (1080p 60fps)...")
-                    self._ui_log(f"   📁 Output: {os.path.basename(out_land)}")
+                    self._ui_log(f"   📁 Output: Landscape/{os.path.basename(out_land)}")
                     self._set_ui_progress(70 + int((part_idx / total_parts) * 15), f"Compiling 16:9 Landscape Montage{part_label}...")
                     lic = self.get_license_info()
                     is_trial_mode = lic.get("watermark_active", False)
@@ -1223,9 +1661,12 @@ class ThunderStudioAPI:
                     )
 
                 if fmt in ("vertical", "both"):
-                    out_vert = self.get_unique_export_path(export_folder, f"THUNDER_Highlights_Vertical_Shorts{part_suffix}")
+                    os.makedirs(folder_vert, exist_ok=True)
+                    os.makedirs(folder_thumbs, exist_ok=True)
+                    os.makedirs(folder_kits, exist_ok=True)
+                    out_vert = self.get_unique_export_path(folder_vert, f"THUNDER_Highlights_Vertical_Shorts{part_suffix}")
                     self._ui_log(f"\n📱 Rendering 9:16 Vertical Shorts Montage{part_label}...")
-                    self._ui_log(f"   📁 Output: {os.path.basename(out_vert)}")
+                    self._ui_log(f"   📁 Output: Vertical Shorts/{os.path.basename(out_vert)}")
                     self._set_ui_progress(85 + int((part_idx / total_parts) * 13), f"Generating 9:16 Shorts{part_label} with punch-zooms...")
                     lic = self.get_license_info()
                     is_trial_mode = lic.get("watermark_active", False)
@@ -1239,8 +1680,8 @@ class ThunderStudioAPI:
 
                 # --- AUTO 3D ESPORTS YOUTUBE THUMBNAIL GENERATOR ---
                 thumb_name = f"THUNDER_Thumbnail{part_suffix}.jpg"
-                out_thumb = os.path.join(export_folder, thumb_name)
-                self._ui_log(f"   🖼️ Generating 3D Esports Thumbnail: {thumb_name}...")
+                out_thumb = os.path.join(folder_thumbs, thumb_name)
+                self._ui_log(f"   🖼️ Generating 3D Esports Thumbnail: Thumbnails/{thumb_name}...")
                 self.engine.generate_thumbnail(
                     batch_clips, out_thumb,
                     player_ign=player_ign, channel_name=channel_name,
@@ -1254,13 +1695,13 @@ class ThunderStudioAPI:
                     yt=yt, tt=tt, fb=fb
                 )
                 kit_txt_name = f"THUNDER_SocialKit{part_suffix}.txt"
-                kit_txt_path = os.path.join(export_folder, kit_txt_name)
+                kit_txt_path = os.path.join(folder_kits, kit_txt_name)
                 with open(kit_txt_path, "w", encoding="utf-8") as f_kit:
                     f_kit.write(f"=== YOUTUBE VIDEO TITLE ===\n{social_kit['title']}\n\n")
                     f_kit.write(f"=== YOUTUBE DESCRIPTION ===\n{social_kit['description']}\n\n")
                     f_kit.write(f"=== TIKTOK / REELS / SHORTS HOOK & CAPTION ===\n{social_kit['shorts_caption']}\n\n")
                     f_kit.write(f"=== SEO TAGS (COPY & PASTE INTO YOUTUBE TAGS BOX) ===\n{social_kit['tags']}\n")
-                self._ui_log(f"   📋 Generated Ready-to-Copy Social Kit: {kit_txt_name}")
+                self._ui_log(f"   📋 Generated Ready-to-Copy Social Kit: Social Kits/{kit_txt_name}")
 
             total_sec = time.time() - pipeline_start
             mins = int(total_sec // 60)
@@ -1272,6 +1713,12 @@ class ThunderStudioAPI:
             self._ui_log(f"📁 Destination: {export_folder}")
             self._set_ui_progress(100, f"Highlights Generated Successfully in {time_str}!")
 
+        except RenderCancelledError:
+            self._ui_log("\n🛑 Video rendering cancelled by user. Background tasks halted.")
+            self._set_ui_progress(0, "Render cancelled by user.")
+        except RenderCancelledError:
+            self._ui_log("\n🛑 Video rendering cancelled by user. Background tasks halted.")
+            self._set_ui_progress(0, "Render cancelled by user.")
         except Exception as e:
             self._ui_log(f"\n❌ Error during execution: {str(e)}")
             self._set_ui_progress(0, f"Error: {str(e)}")
@@ -1285,6 +1732,8 @@ class ThunderStudioAPI:
 
     def _run_render_curated(self, payload):
         self.is_processing = True
+        if hasattr(self, 'engine'):
+            self.engine.cancel_requested = False
         try:
             clips = payload.get("clips", [])
             if not clips:
@@ -1319,10 +1768,14 @@ class ThunderStudioAPI:
             pipeline_start = time.time()
             self._set_ui_progress(68, "Initiating final render...")
 
+            manual_parts = payload.get("manualParts")
             target_dur_str = str(target_duration).lower()
-            if target_dur_str in ("match_aware", "60_90", "auto", "smart", "60-90"):
-                clip_batches = self.engine.partition_clips_match_aware(clips, min_sec=60, max_sec=95)
-                self._ui_log(f"\n🧠 Smart Match-Aware Mode: Partitioned {len(clips)} highlights into {len(clip_batches)} video(s) (60-90s without splitting any match!).")
+            if manual_parts and isinstance(manual_parts, list) and len(manual_parts) > 0:
+                clip_batches = manual_parts
+                self._ui_log(f"\n🛠️ Manual Parts Mode: Exporting {len(clip_batches)} custom configured episode part(s).")
+            elif target_dur_str in ("match_aware", "60_90", "auto", "smart", "60-90"):
+                clip_batches = self.engine.partition_clips_match_aware(clips, min_sec=60, max_sec=120)
+                self._ui_log(f"\n🧠 Smart Match-Aware Mode: Partitioned {len(clips)} highlights into {len(clip_batches)} video(s) (60-120s balanced episodes without splitting any match!).")
             elif target_dur_str in ("full", "0", "none", "compilation", "single"):
                 clip_batches = [clips]
                 self._ui_log(f"\n🎬 Single Full Video Mode: Compiling all {len(clips)} highlights into 1 video.")
@@ -1340,14 +1793,25 @@ class ThunderStudioAPI:
             if total_parts > 1:
                 self._ui_log(f"\n✂️ Partitioned {len(clips)} highlights into {total_parts} final video(s).")
 
+            folder_land = os.path.join(export_folder, "Landscape")
+            folder_vert = os.path.join(export_folder, "Vertical Shorts")
+            folder_thumbs = os.path.join(export_folder, "Thumbnails")
+            folder_kits = os.path.join(export_folder, "Social Kits")
+
             for part_idx, batch_clips in enumerate(clip_batches, start=1):
+                if not self.is_processing or (hasattr(self, 'engine') and self.engine.cancel_requested):
+                    self._ui_log("\n🛑 Video rendering cancelled by user.")
+                    break
                 part_suffix = f"_Part_{part_idx}" if total_parts > 1 else ""
                 part_label = f" [Part {part_idx}/{total_parts}]" if total_parts > 1 else ""
 
                 if fmt in ("landscape", "both"):
-                    out_land = self.get_unique_export_path(export_folder, f"THUNDER_Highlights_Landscape{part_suffix}")
+                    os.makedirs(folder_land, exist_ok=True)
+                    os.makedirs(folder_thumbs, exist_ok=True)
+                    os.makedirs(folder_kits, exist_ok=True)
+                    out_land = self.get_unique_export_path(folder_land, f"THUNDER_Highlights_Landscape{part_suffix}")
                     self._ui_log(f"\n🎬 Rendering 16:9 Landscape Montage{part_label} (1080p 60fps)...")
-                    self._ui_log(f"   📁 Output: {os.path.basename(out_land)}")
+                    self._ui_log(f"   📁 Output: Landscape/{os.path.basename(out_land)}")
                     self._set_ui_progress(70 + int((part_idx / total_parts) * 15), f"Compiling 16:9 Landscape Montage{part_label}...")
                     lic = self.get_license_info()
                     is_trial_mode = lic.get("watermark_active", False)
@@ -1360,8 +1824,8 @@ class ThunderStudioAPI:
                     )
 
                     # --- AUTO 3D ESPORTS 16:9 LANDSCAPE THUMBNAIL ---
-                    out_thumb_land = os.path.join(export_folder, f"THUNDER_Thumbnail_Landscape{part_suffix}.jpg")
-                    self._ui_log(f"   🖼️ Generating 16:9 3D Esports Thumbnail: {os.path.basename(out_thumb_land)}...")
+                    out_thumb_land = os.path.join(folder_thumbs, f"THUNDER_Thumbnail_Landscape{part_suffix}.jpg")
+                    self._ui_log(f"   🖼️ Generating 16:9 3D Esports Thumbnail: Thumbnails/{os.path.basename(out_thumb_land)}...")
                     self.engine.generate_thumbnail(
                         batch_clips, out_thumb_land,
                         player_ign=player_ign, channel_name=channel_name,
@@ -1374,18 +1838,21 @@ class ThunderStudioAPI:
                         part_num=part_idx, total_parts=total_parts,
                         yt=yt, tt=tt, fb=fb
                     )
-                    kit_txt_land = os.path.join(export_folder, f"THUNDER_SocialKit_Landscape{part_suffix}.txt")
+                    kit_txt_land = os.path.join(folder_kits, f"THUNDER_SocialKit_Landscape{part_suffix}.txt")
                     with open(kit_txt_land, "w", encoding="utf-8") as f_kit:
                         f_kit.write(f"=== YOUTUBE VIDEO TITLE ===\n{social_kit_land['title']}\n\n")
                         f_kit.write(f"=== YOUTUBE DESCRIPTION ===\n{social_kit_land['description']}\n\n")
                         f_kit.write(f"=== TIKTOK / REELS / SHORTS HOOK & CAPTION ===\n{social_kit_land['shorts_caption']}\n\n")
                         f_kit.write(f"=== SEO TAGS (COPY & PASTE INTO YOUTUBE TAGS BOX) ===\n{social_kit_land['tags']}\n")
-                    self._ui_log(f"   📋 Generated Landscape Social Kit: {os.path.basename(kit_txt_land)}")
+                    self._ui_log(f"   📋 Generated Landscape Social Kit: Social Kits/{os.path.basename(kit_txt_land)}")
 
                 if fmt in ("vertical", "both"):
-                    out_vert = self.get_unique_export_path(export_folder, f"THUNDER_Highlights_Vertical_Shorts{part_suffix}")
+                    os.makedirs(folder_vert, exist_ok=True)
+                    os.makedirs(folder_thumbs, exist_ok=True)
+                    os.makedirs(folder_kits, exist_ok=True)
+                    out_vert = self.get_unique_export_path(folder_vert, f"THUNDER_Highlights_Vertical_Shorts{part_suffix}")
                     self._ui_log(f"\n📱 Rendering 9:16 Vertical Shorts Montage{part_label}...")
-                    self._ui_log(f"   📁 Output: {os.path.basename(out_vert)}")
+                    self._ui_log(f"   📁 Output: Vertical Shorts/{os.path.basename(out_vert)}")
                     self._set_ui_progress(85 + int((part_idx / total_parts) * 13), f"Generating 9:16 Shorts{part_label} with punch-zooms...")
                     lic = self.get_license_info()
                     is_trial_mode = lic.get("watermark_active", False)
@@ -1398,8 +1865,8 @@ class ThunderStudioAPI:
                     )
 
                     # --- AUTO 3D ESPORTS 9:16 VERTICAL THUMBNAIL (1080x1920) ---
-                    out_thumb_vert = os.path.join(export_folder, f"THUNDER_Thumbnail_Vertical_Shorts{part_suffix}.jpg")
-                    self._ui_log(f"   📱 Generating 9:16 Vertical Shorts Thumbnail: {os.path.basename(out_thumb_vert)}...")
+                    out_thumb_vert = os.path.join(folder_thumbs, f"THUNDER_Thumbnail_Vertical_Shorts{part_suffix}.jpg")
+                    self._ui_log(f"   📱 Generating 9:16 Vertical Shorts Thumbnail: Thumbnails/{os.path.basename(out_thumb_vert)}...")
                     self.engine.generate_thumbnail(
                         batch_clips, out_thumb_vert,
                         player_ign=player_ign, channel_name=channel_name,
@@ -1412,25 +1879,48 @@ class ThunderStudioAPI:
                         part_num=part_idx, total_parts=total_parts,
                         yt=yt, tt=tt, fb=fb
                     )
-                    kit_txt_vert = os.path.join(export_folder, f"THUNDER_SocialKit_Vertical_Shorts{part_suffix}.txt")
+                    kit_txt_vert = os.path.join(folder_kits, f"THUNDER_SocialKit_Vertical_Shorts{part_suffix}.txt")
                     with open(kit_txt_vert, "w", encoding="utf-8") as f_kit:
                         shorts_title = f"{channel_name} | UNSTOPPABLE 9:16 CLUTCH #Shorts"
                         f_kit.write(f"=== YOUTUBE VIDEO TITLE ===\n{shorts_title}\n\n")
                         f_kit.write(f"=== YOUTUBE DESCRIPTION ===\n{social_kit_vert['description']}\n\n")
                         f_kit.write(f"=== TIKTOK / REELS / SHORTS HOOK & CAPTION ===\n{social_kit_vert['shorts_caption']}\n\n")
                         f_kit.write(f"=== SEO TAGS (COPY & PASTE INTO YOUTUBE TAGS BOX) ===\n{social_kit_vert['tags']}\n")
-                    self._ui_log(f"   📋 Generated Vertical Social Kit: {os.path.basename(kit_txt_vert)}")
+                    self._ui_log(f"   📋 Generated Vertical Social Kit: Social Kits/{os.path.basename(kit_txt_vert)}")
 
             total_sec = time.time() - pipeline_start
-            mins = int(total_sec // 60)
-            secs = int(total_sec % 60)
-            time_str = f"{mins}m {secs}s" if mins > 0 else f"{secs}s"
+            render_m, render_s = int(total_sec // 60), int(total_sec % 60)
+            render_time_str = f"{render_m:02d}:{render_s:02d}"
+            scan_duration = getattr(self, "_last_scan_duration", 0.0)
 
             self._ui_log("\n🎉 ALL HIGHLIGHTS SUCCESSFULLY GENERATED & EXPORTED!")
-            self._ui_log(f"⏱️ Total Studio Processing Time: {time_str}")
-            self._ui_log(f"📁 Destination: {export_folder}")
+            if scan_duration > 0:
+                scan_m, scan_s = int(scan_duration // 60), int(scan_duration % 60)
+                tot_pipe_sec = scan_duration + total_sec
+                pipe_m, pipe_s = int(tot_pipe_sec // 60), int(tot_pipe_sec % 60)
+                pipe_time_str = f"{pipe_m:02d}:{pipe_s:02d}"
+                self._ui_log("⏱️ Performance Benchmark Summary:")
+                self._ui_log(f"   ├── 🔍 AI Scan Time:       {scan_m:02d}:{scan_s:02d}")
+                self._ui_log(f"   ├── 🎬 Final Render Time:  {render_time_str}")
+                self._ui_log(f"   └── 🏁 Total Engine Time:  {pipe_time_str} (Excluding manual organizer time)")
+                self._set_ui_progress(100, f"Highlights Generated Successfully in {pipe_time_str}!")
+            else:
+                self._ui_log(f"⏱️ Total Render Time: {render_time_str}")
+                self._set_ui_progress(100, f"Highlights Generated Successfully in {render_time_str}!")
+            self._ui_log(f"📁 Root Export Destination: {export_folder}")
+            if os.path.exists(folder_land) and os.listdir(folder_land):
+                self._ui_log(f"   ├── 📁 1. Landscape Videos: {folder_land}")
+            if os.path.exists(folder_vert) and os.listdir(folder_vert):
+                self._ui_log(f"   ├── 📁 2. Vertical Shorts: {folder_vert}")
+            if os.path.exists(folder_thumbs) and os.listdir(folder_thumbs):
+                self._ui_log(f"   ├── 📁 3. Thumbnails: {folder_thumbs}")
+            if os.path.exists(folder_kits) and os.listdir(folder_kits):
+                self._ui_log(f"   └── 📁 4. Social Kits: {folder_kits}")
             self._set_ui_progress(100, f"Highlights Generated Successfully in {time_str}!")
 
+        except RenderCancelledError:
+            self._ui_log("\n🛑 Video rendering cancelled by user. Background tasks halted.")
+            self._set_ui_progress(0, "Render cancelled by user.")
         except Exception as e:
             self._ui_log(f"\n❌ Error during execution: {str(e)}")
             self._set_ui_progress(0, f"Error: {str(e)}")
@@ -1443,7 +1933,152 @@ class ThunderStudioAPI:
 
 class MediaStreamHandler(http.server.BaseHTTPRequestHandler):
     def do_GET(self):
-        query = urllib.parse.urlparse(self.path).query
+        global _CURRENT_API_INSTANCE
+        parsed_url = urllib.parse.urlparse(self.path)
+        if parsed_url.path == "/api/cancel":
+            if _CURRENT_API_INSTANCE:
+                _CURRENT_API_INSTANCE.cancel_process()
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self.send_header("Access-Control-Allow-Origin", "*")
+            self.end_headers()
+            self.wfile.write(b'{"status": "ok", "cancelled": true}')
+            return
+        if parsed_url.path == "/auth_callback":
+            params = urllib.parse.parse_qs(parsed_url.query)
+            uid = params.get("uid", [""])[0]
+            email = params.get("email", [""])[0]
+            display_name = params.get("displayName", params.get("name", [""]))[0]
+            photo_url = params.get("photoURL", params.get("photo", [""]))[0]
+            token = params.get("token", [""])[0]
+            if email:
+                user_data = {
+                    "uid": uid,
+                    "email": email,
+                    "displayName": display_name,
+                    "photoURL": photo_url,
+                    "token": token,
+                    "logged_in_at": time.time()
+                }
+                save_user_session(user_data)
+                
+                # BIDIRECTIONAL GOOGLE ACCOUNT & LICENSE PASS SYNC
+                try:
+                    sys_hwid = hwid_shield.get_system_hwid()
+                    user_prof = pk_license_engine.get_user_cloud_profile(uid)
+                    cloud_key = user_prof.get("license_key") if user_prof else None
+                    
+                    if cloud_key:
+                        # User already owns a bound license in the cloud -> auto-activate on this machine!
+                        p_raw = str(user_prof.get("plan", "pro_plus")).lower()
+                        p_mapped = "Pro+" if p_raw in ["pro+", "pro_plus", "lifetime", "trial"] else ("Basic" if p_raw == "basic" else "Pro")
+                        exp = int(user_prof.get("expires_at", 0))
+                        is_life = bool(user_prof.get("is_lifetime", False)) or exp == 0
+                        days = "Lifetime" if is_life else max(1, int((exp - int(time.time())) // 86400))
+                        hwid_shield.save_vault(cloud_key, p_mapped, email, exp, days)
+                        if user_prof.get("hwid") != sys_hwid:
+                            pk_license_engine.bind_license_to_google_user(uid, email, cloud_key, plan=p_mapped, is_lifetime=is_life, expires_at=exp, hwid=sys_hwid, auth_token=token)
+                    else:
+                        # Cloud does not have a key bound yet.
+                        # Check if this PC currently has an active license in local vault:
+                        is_valid, existing_vault, _ = hwid_shield.load_and_verify_vault()
+                        if is_valid and existing_vault and existing_vault.get("license_key"):
+                            loc_key = existing_vault.get("license_key")
+                            loc_plan = existing_vault.get("plan", "Pro+")
+                            loc_exp = int(existing_vault.get("expires_at", 0))
+                            loc_is_life = existing_vault.get("days_left") == "Lifetime" or loc_exp == 0
+                            pk_license_engine.bind_license_to_google_user(uid, email, loc_key, plan=loc_plan, is_lifetime=loc_is_life, expires_at=loc_exp, hwid=sys_hwid, auth_token=token)
+                        else:
+                            # Check if an existing license was registered to this Google email:
+                            clean_em = email.strip().lower()
+                            lic_info = pk_license_engine.lookup_license_by_identifier(clean_em)
+                            if lic_info.get("found") and not lic_info.get("is_expired"):
+                                k = lic_info.get("key")
+                                if k:
+                                    p = lic_info.get("plan", "Pro+")
+                                    p_mapped = "Pro+" if str(p).lower() in ["pro+", "pro_plus", "trial"] else ("Basic" if str(p).lower() == "basic" else "Pro")
+                                    exp = int(lic_info.get("expires_at", 0))
+                                    is_life = bool(lic_info.get("is_lifetime", False)) or exp == 0
+                                    days = "Lifetime" if is_life else lic_info.get("days_left", 30)
+                                    hwid_shield.save_vault(k, p_mapped, email, exp, days)
+                                    pk_license_engine.bind_license_to_google_user(uid, email, k, plan=p_mapped, is_lifetime=is_life, expires_at=exp, hwid=sys_hwid, auth_token=token)
+                except Exception as elic:
+                    print("Google-License sync note:", elic)
+
+                if _CURRENT_API_INSTANCE and _CURRENT_API_INSTANCE._window:
+                    safe_json = json.dumps(user_data)
+                    try:
+                        _CURRENT_API_INSTANCE._window.evaluate_js(f"window.onGoogleAuthSuccess({safe_json})")
+                    except Exception as ej:
+                        print("evaluate_js auth error:", ej)
+            self.send_response(200)
+            self.send_header("Content-Type", "text/html; charset=utf-8")
+            self.send_header("Access-Control-Allow-Origin", "*")
+            self.end_headers()
+            html = f"""<!DOCTYPE html><html><head><meta charset='utf-8'><title>THUNDER Studio - Verified</title><style>body{{background:#070b14;color:#e2e8f0;font-family:sans-serif;display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0;text-align:center;}}.card{{background:#0f172a;border:1px solid rgba(0,229,255,0.4);box-shadow:0 0 30px rgba(0,229,255,0.2);padding:40px;border-radius:16px;max-width:420px;}}h2{{color:#00e5ff;margin-bottom:8px;}}p{{color:#94a3b8;font-size:14px;}}.badge{{background:#1e293b;padding:8px 16px;border-radius:999px;font-size:13px;color:#38bdf8;}}</style></head><body><div class='card'><div style='font-size:40px;margin-bottom:12px;'>⚡</div><h2>Sign-In Verified!</h2><p>Welcome, <strong>{display_name or email}</strong>.<br>Your session is active in THUNDER Studio.</p><div class='badge'>You can close this tab and return to the app</div></div><script>setTimeout(function(){{ window.close(); }}, 2000);</script></body></html>"""
+            self.wfile.write(html.encode("utf-8"))
+            return
+
+        elif parsed_url.path == "/youtube_callback":
+            params = urllib.parse.parse_qs(parsed_url.query)
+            ch_id = params.get("channel_id", [""])[0]
+            ch_title = params.get("channel_title", [""])[0]
+            ch_handle = params.get("channel_handle", [""])[0]
+            ch_avatar = params.get("channel_avatar", [""])[0]
+            ch_subs = params.get("channel_subs", [""])[0]
+            ch_pls_raw = params.get("playlists", ["[]"])[0]
+            ch_token = params.get("token", [""])[0]
+
+            try:
+                ch_pls = json.loads(ch_pls_raw)
+            except Exception:
+                ch_pls = []
+
+            if ch_id and ch_title:
+                ch_data = {
+                    "channel_id": ch_id,
+                    "title": ch_title,
+                    "handle": ch_handle,
+                    "avatar": ch_avatar,
+                    "subscribers": ch_subs,
+                    "playlists": ch_pls,
+                    "token": ch_token,
+                    "connected_at": time.time()
+                }
+                save_youtube_channel(ch_data)
+
+                # Sync to user profile in Firestore if user is logged in
+                try:
+                    u_sess = load_user_session()
+                    if u_sess and u_sess.get("uid"):
+                        pk_license_engine._firestore_post("users", u_sess["uid"], {
+                            "youtube_channel_id": ch_id,
+                            "youtube_channel_title": ch_title,
+                            "youtube_channel_handle": ch_handle,
+                            "youtube_channel_avatar": ch_avatar
+                        }, auth_token=u_sess.get("token"))
+                except Exception as ef:
+                    print("Firestore youtube sync note:", ef)
+
+                if _CURRENT_API_INSTANCE and _CURRENT_API_INSTANCE._window:
+                    safe_json = json.dumps(ch_data)
+                    try:
+                        _CURRENT_API_INSTANCE._window.evaluate_js(f"if (window.onYouTubeConnected) window.onYouTubeConnected({safe_json});")
+                    except Exception as ej:
+                        print("evaluate_js youtube connected error:", ej)
+
+            self.send_response(200)
+            self.send_header("Content-Type", "text/html; charset=utf-8")
+            self.end_headers()
+            self.wfile.write(b"""<!DOCTYPE html><html><body style="background:#030712;color:#fff;font-family:sans-serif;text-align:center;padding:50px;">
+                <h1 style="color:#22c55e;">&#10003; YouTube Channel Connected!</h1>
+                <p>THUNDER Studio has received your channel credentials.</p>
+                <p style="color:#94a3b8;">You can close this tab and return to the Desktop App.</p>
+                <script>setTimeout(function(){ window.close(); }, 2000);</script>
+            </body></html>""")
+            return
+
+        query = parsed_url.query
         params = urllib.parse.parse_qs(query)
         file_path = params.get("file", [None])[0]
         if not file_path or not os.path.exists(file_path):
@@ -1554,12 +2189,12 @@ def main():
         app_dir = os.path.dirname(sys.executable)
     else:
         app_dir = os.path.dirname(os.path.abspath(__file__))
-    ico_path = os.path.join(app_dir, "assets", "thunder_app_icon.ico")
+    ico_path = get_resource_path(os.path.join("assets", "thunder_app_icon.ico"))
     window_title = "THUNDER — PUBG Mobile Highlight Automation Studio"
 
     _apply_windows_icon(window_title, ico_path)
     start_media_server(54321)
-    html_path = os.path.join(app_dir, "web", "studio_desktop.html")
+    html_path = get_resource_path(os.path.join("web", "studio_desktop.html"))
 
     api = ThunderStudioAPI()
     window = webview.create_window(
@@ -1595,4 +2230,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-

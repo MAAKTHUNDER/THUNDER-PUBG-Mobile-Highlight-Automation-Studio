@@ -7,7 +7,7 @@
 
 #define MyAppName "THUNDER Studio"
 #define MyAppFullName "THUNDER — PUBG Mobile Highlight Automation Studio"
-#define MyAppVersion "1.0.0"
+#define MyAppVersion "1.1"
 #define MyAppPublisher "MAAKTHUNDER Studios"
 #define MyAppURL "https://maakthunder-studio.web.app"
 #define MyAppExeName "THUNDER Studio.exe"
@@ -25,6 +25,8 @@ AppUpdatesURL={#MyAppURL}/version.json
 DefaultDirName={autopf}\{#MyAppPublisher}\{#MyAppName}
 DefaultGroupName={#MyAppPublisher}\{#MyAppName}
 AllowNoIcons=yes
+CloseApplications=yes
+RestartApplications=no
 
 ; Mandatory Legal Agreement & ReadMe Screens
 LicenseFile=LICENSE_AND_DISCLAIMER.txt
@@ -38,21 +40,35 @@ SolidCompression=yes
 WizardStyle=modern
 PrivilegesRequired=lowest
 OutputDir=dist_installer
-OutputBaseFilename=THUNDER_Studio_Setup_v1.0.0
+OutputBaseFilename=THUNDER_Studio_Setup_v1.1
 
 ; Version Information Embedded in the Setup .exe Metadata
-VersionInfoVersion=1.0.0.0
+VersionInfoVersion=1.1.0.0
 VersionInfoCompany={#MyAppPublisher}
 VersionInfoDescription={#MyAppFullName} Setup
 VersionInfoCopyright=(c) 2026 MAAKTHUNDER Studios
 VersionInfoProductName={#MyAppName}
-VersionInfoProductVersion=1.0.0.0
+VersionInfoProductVersion=1.1.0.0
 
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"
 
 [Tasks]
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: checkedonce
+
+[InstallDelete]
+; Clean up any legacy loose files/folders from previous installations
+Type: filesandordirs; Name: "{app}\_internal"
+Type: filesandordirs; Name: "{app}\web"
+Type: filesandordirs; Name: "{app}\assets"
+Type: files; Name: "{app}\*.py"
+Type: files; Name: "{app}\version.json"
+Type: filesandordirs; Name: "{app}\__pycache__"
+Type: filesandordirs; Name: "{app}\cloudflare_worker"
+Type: filesandordirs; Name: "{app}\dist_installer"
+Type: filesandordirs; Name: "{app}\scratch"
+Type: filesandordirs; Name: "{app}\.firebase"
+Type: filesandordirs; Name: "{app}\.rules"
 
 [Files]
 ; Standalone compiled binaries & all dependencies (Self-contained, No Python installation required)

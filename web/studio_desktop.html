@@ -222,6 +222,26 @@
 
         }
 
+                .fmt-badge {
+            background: rgba(0, 229, 255, 0.15);
+            color: #00e5ff;
+            border: 1px solid rgba(0, 229, 255, 0.35);
+            font-size: 9px;
+            font-weight: 800;
+            padding: 1px 4px;
+            border-radius: 4px;
+            letter-spacing: 0.3px;
+            transition: all 0.15s ease;
+            white-space: nowrap;
+        }
+
+        .fmt-btn.active .fmt-badge {
+            background: #050b14 !important;
+            color: #ffd700 !important;
+            border: 1px solid rgba(0, 0, 0, 0.5) !important;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+        }
+
         .fmt-btn.active {
 
             background: #00e5ff;
@@ -1542,11 +1562,11 @@
 
                 </button>
 
-                <button onclick="confirmAndExecuteRender()" class="btn-3d-cyan flex-2 py-3 px-6 rounded-xl font-orbitron font-bold text-sm text-black flex items-center justify-center space-x-2 shadow-[0_0_25px_rgba(0,229,255,0.4)]">
+                <button onclick="handleContinueClick()" class="btn-3d-cyan flex-2 py-3 px-6 rounded-xl font-orbitron font-bold text-sm text-black flex items-center justify-center space-x-2 shadow-[0_0_25px_rgba(0,229,255,0.4)]">
 
                     <span>🚀</span>
 
-                    <span id="review-render-btn-text">EXPORT FINAL VIDEO</span>
+                    <span id="review-render-btn-text">CONTINUE ➔</span>
 
                 </button>
 
@@ -1561,6 +1581,208 @@
 
 
     
+
+    <!-- ================================================================= -->
+    <!-- UNIVERSAL ESPORTS CONFIRM & ALERT MODAL                          -->
+    <!-- ================================================================= -->
+    <div id="modal-esports-dialog" class="hidden fixed inset-0 z-[9999999] flex items-center justify-center bg-[#040812]/90 backdrop-blur-md p-4 animate-in fade-in duration-150">
+        <div class="glass-card max-w-md w-full rounded-2xl p-6 border-2 border-[#00e5ff]/60 shadow-[0_0_50px_rgba(0,229,255,0.3)] space-y-4 animate-in zoom-in duration-150 flex flex-col">
+            <div class="flex items-center space-x-3 pb-3 border-b border-[#1b2742]">
+                <div id="esports-dialog-icon-box" class="w-10 h-10 rounded-xl bg-cyan-950/80 border border-cyan-500/50 flex items-center justify-center text-xl shadow-[0_0_12px_rgba(0,229,255,0.3)] shrink-0">
+                    <span id="esports-dialog-icon">⚠️</span>
+                </div>
+                <div>
+                    <h3 id="esports-dialog-title" class="font-orbitron font-bold text-base text-white tracking-wide">
+                        CONFIRMATION
+                    </h3>
+                    <p id="esports-dialog-subtitle" class="text-xs text-[#6e85a5]">Please confirm your action</p>
+                </div>
+            </div>
+
+            <p id="esports-dialog-message" class="text-xs text-[#9bb3d6] leading-relaxed whitespace-pre-line py-1">
+                Are you sure you want to proceed?
+            </p>
+
+            <div id="esports-dialog-buttons" class="flex items-center justify-end space-x-3 pt-2 border-t border-[#141f33]">
+                <!-- Buttons injected dynamically -->
+            </div>
+        </div>
+    </div>
+
+    <!-- MULTI-PART STRATEGY CHOICE MODAL -->
+    <div id="modal-multipart-choice" class="hidden fixed inset-0 z-[65] flex items-center justify-center bg-black/85 backdrop-blur-md p-4">
+        <div class="glass-card max-w-lg w-full rounded-2xl p-6 border-2 border-[#00e5ff]/60 shadow-[0_0_50px_rgba(0,229,255,0.35)] space-y-5 animate-in fade-in zoom-in duration-200">
+            <div class="flex items-center justify-between pb-3 border-b border-[#1c2d50]">
+                <div class="flex items-center space-x-3">
+                    <span class="text-3xl">🎬</span>
+                    <div>
+                        <h3 class="font-orbitron font-bold text-lg text-white">MULTI-PART EXPORT</h3>
+                        <p class="text-xs text-[#8da2c0]">Select how you want your highlights divided into parts</p>
+                    </div>
+                </div>
+                <button onclick="closeMultiPartChoiceModal()" class="text-gray-400 hover:text-white text-lg font-bold px-2">✕</button>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <!-- Option A: AUTO PARTS -->
+                <div onclick="chooseAutoPartsExport()" class="p-4 rounded-xl border-2 border-[#00e5ff] bg-[#00e5ff]/10 hover:bg-[#00e5ff]/20 cursor-pointer transition-all flex flex-col justify-between group shadow-[0_0_20px_rgba(0,229,255,0.2)]">
+                    <div class="space-y-2">
+                        <div class="flex items-center space-x-2">
+                            <span class="text-2xl">🤖</span>
+                            <div class="font-orbitron font-bold text-white text-sm">Auto Parts</div>
+                        </div>
+                        <p class="text-[11px] text-[#8da2c0] leading-relaxed">
+                            AI automatically calculates balanced 60–90s episodes (Part 1, Part 2...) and starts exporting immediately.
+                        </p>
+                    </div>
+                    <button class="mt-4 w-full py-2 rounded-lg text-xs font-bold bg-[#00e5ff] text-black font-orbitron group-hover:scale-105 transition-transform">
+                        EXPORT AUTO PARTS
+                    </button>
+                </div>
+
+                <!-- Option B: MANUAL PART ORGANIZER -->
+                <div onclick="openManualPartOrganizer()" class="p-4 rounded-xl border-2 border-purple-500/60 bg-purple-950/20 hover:bg-purple-950/40 cursor-pointer transition-all flex flex-col justify-between group shadow-[0_0_20px_rgba(168,85,247,0.2)]">
+                    <div class="space-y-2">
+                        <div class="flex items-center space-x-2">
+                            <span class="text-2xl">🛠️</span>
+                            <div class="font-orbitron font-bold text-white text-sm">Manual Organizer</div>
+                        </div>
+                        <p class="text-[11px] text-[#8da2c0] leading-relaxed">
+                            Organize clips yourself: move highlights between Part 1, Part 2, add new parts, and preview before rendering.
+                        </p>
+                    </div>
+                    <button class="mt-4 w-full py-2 rounded-lg text-xs font-bold bg-purple-500 hover:bg-purple-400 text-black font-orbitron group-hover:scale-105 transition-transform">
+                        OPEN ORGANIZER
+                    </button>
+                </div>
+            </div>
+
+            <div class="text-center pt-1">
+                <button onclick="closeMultiPartChoiceModal()" class="text-xs text-gray-400 hover:text-white underline">
+                    Back to Timeline
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MANUAL PART ORGANIZER FULL MODAL -->
+    <div id="modal-manual-part-organizer" class="hidden fixed inset-0 z-[70] flex items-center justify-center bg-black/92 backdrop-blur-md p-4">
+        <div class="glass-card max-w-[1440px] w-[97vw] h-[92vh] max-h-[900px] rounded-2xl p-5 border-2 border-purple-500/60 shadow-[0_0_60px_rgba(168,85,247,0.35)] flex flex-col justify-between animate-in fade-in zoom-in duration-200">
+            <!-- Header -->
+            <div class="flex items-center justify-between pb-3 border-b border-[#1c2d50] flex-shrink-0">
+                <div class="flex items-center space-x-3">
+                    <span class="text-3xl">🛠️</span>
+                    <div>
+                        <h3 class="font-orbitron font-bold text-lg text-white flex items-center space-x-2">
+                            <span>MANUAL PART ORGANIZER</span>
+                            <span class="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-purple-500/20 text-purple-300 border border-purple-500/40">LIVE PREVIEW SUITE</span>
+                        </h3>
+                        <p class="text-xs text-[#8da2c0]" id="manual-organizer-subtitle">Organize, preview each part independently, or click any clip to play instantly.</p>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-3">
+                    <button onclick="addManualPart()" class="btn-3d-cyan px-4 py-2 rounded-xl text-xs font-bold text-black font-orbitron flex items-center space-x-1.5 shadow-[0_0_15px_rgba(0,229,255,0.3)]">
+                        <span>➕</span>
+                        <span>ADD NEW PART</span>
+                    </button>
+                    <button onclick="closeManualPartOrganizer()" class="text-gray-400 hover:text-white text-lg font-bold px-2">✕</button>
+                </div>
+            </div>
+
+            <!-- Main Content Area: Left Parts List (Red Box Area) & Right Live Player (Blue Box Area) -->
+            <div class="flex-1 grid grid-cols-12 gap-5 py-3 overflow-hidden min-h-0">
+                <!-- LEFT COLUMN: Red Box Area (5 cols) -> Parts List -->
+                <div class="col-span-12 lg:col-span-5 flex flex-col h-full overflow-hidden border-r border-[#1c2d50]/70 pr-3">
+                    <div class="flex items-center justify-between pb-2 mb-2 border-b border-[#18263f] flex-shrink-0">
+                        <span class="text-xs font-bold font-orbitron tracking-wider text-[#00e5ff] flex items-center space-x-1.5">
+                            <span>📋</span>
+                            <span>PART LIST &amp; CLIPS</span>
+                        </span>
+                        <span class="text-[11px] text-[#8da2c0]">Click any clip to play</span>
+                    </div>
+                    <div id="manual-parts-container" class="flex-1 overflow-y-auto space-y-3 pr-1.5 custom-scrollbar">
+                        <!-- Part cards dynamically rendered here -->
+                    </div>
+                </div>
+
+                <!-- RIGHT COLUMN: Blue Box Area (7 cols) -> Live Video Player -->
+                <div class="col-span-12 lg:col-span-7 flex flex-col h-full overflow-hidden bg-[#070c14]/90 rounded-2xl border-2 border-[#1c2d50] p-4 shadow-inner">
+                    <!-- Player Header / Status -->
+                    <div class="flex items-center justify-between pb-3 border-b border-[#18263f] flex-shrink-0">
+                        <div class="flex items-center space-x-2.5 truncate">
+                            <span id="org-player-indicator" class="w-2.5 h-2.5 rounded-full bg-gray-500"></span>
+                            <div class="truncate">
+                                <div class="text-xs font-bold font-orbitron text-white truncate" id="org-player-title">SELECT A PART OR CLIP TO PREVIEW</div>
+                                <div class="text-[10px] text-gray-400 font-mono" id="org-player-sub">Live Dedicated Player • Auto-Stops when Part Ends</div>
+                            </div>
+                        </div>
+                        <span id="org-player-badge" class="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-[#14233c] text-gray-400 border border-[#233b63]">STANDBY</span>
+                    </div>
+
+                    <!-- Video Container -->
+                    <div class="flex-1 my-3 rounded-xl overflow-hidden bg-black border border-[#18263f] relative flex items-center justify-center group min-h-0">
+                        <video id="organizer-preview-video" class="w-full h-full object-contain" playsinline></video>
+                        
+                        <!-- Overlay when stopped / idle -->
+                        <div id="org-video-overlay" class="absolute inset-0 bg-[#070c14]/90 flex flex-col items-center justify-center p-6 text-center space-y-3">
+                            <div class="w-16 h-16 rounded-2xl bg-[#0e192d] border border-[#00e5ff]/30 flex items-center justify-center text-3xl shadow-[0_0_30px_rgba(0,229,255,0.2)]">
+                                🎬
+                            </div>
+                            <div>
+                                <h4 class="font-orbitron font-bold text-white text-sm">LIVE PART PREVIEW</h4>
+                                <p class="text-xs text-gray-400 max-w-sm mt-1">Click <b class="text-[#00e5ff]">▶ Play Part</b> to preview all clips in that part with seamless auto-stop, or click any individual clip to inspect it.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Player Controls -->
+                    <div class="flex-shrink-0 space-y-2 pt-1 border-t border-[#18263f]">
+                        <!-- Progress bar -->
+                        <div class="w-full bg-[#101b2e] rounded-full h-1.5 overflow-hidden cursor-pointer" onclick="scrubOrganizerVideo(event)">
+                            <div id="org-progress-bar" class="bg-gradient-to-r from-[#00e5ff] to-purple-500 h-full w-0 transition-all duration-100"></div>
+                        </div>
+
+                        <!-- Buttons & Timecodes -->
+                        <div class="flex items-center justify-between text-xs">
+                            <div class="flex items-center space-x-2">
+                                <button id="btn-org-play-pause" onclick="toggleOrganizerPlayback()" class="px-3.5 py-1.5 rounded-lg bg-[#00e5ff] hover:bg-[#33ebff] text-black font-bold font-orbitron flex items-center space-x-1.5 transition-all shadow-sm">
+                                    <span>▶</span>
+                                    <span>PLAY</span>
+                                </button>
+                                <button onclick="stopOrganizerPlayback()" class="px-3 py-1.5 rounded-lg bg-[#14233c] hover:bg-[#1f375f] text-gray-300 hover:text-white font-bold flex items-center space-x-1 transition-all border border-[#1e3355]">
+                                    <span>⏹</span>
+                                    <span>STOP</span>
+                                </button>
+                                <button onclick="toggleOrganizerMute()" id="btn-org-mute" class="px-2.5 py-1.5 rounded-lg bg-[#14233c] hover:bg-[#1f375f] text-gray-300 font-bold transition-all border border-[#1e3355]">
+                                    🔊
+                                </button>
+                            </div>
+
+                            <div class="font-mono text-gray-300 text-xs flex items-center space-x-2">
+                                <span id="org-timecode" class="text-white font-bold">00:00 / 00:00</span>
+                                <span class="text-gray-500">•</span>
+                                <span id="org-clip-counter" class="text-[#00e5ff] font-bold">Clip 0/0</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <div class="pt-3 border-t border-[#1c2d50] flex items-center justify-between flex-shrink-0">
+                <button onclick="closeManualPartOrganizer()" class="btn-3d-navy px-5 py-2.5 rounded-xl text-xs font-bold text-[#8da2c0] hover:text-white">
+                    ↩ Back to Timeline
+                </button>
+                <div class="flex items-center space-x-4">
+                    <div id="manual-parts-summary" class="text-xs text-[#8da2c0] font-mono"></div>
+                    <button onclick="executeManualPartsExport()" class="btn-3d-cyan px-7 py-3 rounded-xl font-orbitron font-bold text-sm text-black flex items-center space-x-2 shadow-[0_0_30px_rgba(0,229,255,0.4)]">
+                        <span>🚀</span>
+                        <span>EXPORT ALL PARTS NOW</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!-- STUDIO EXIT CONFIRMATION MODAL -->
 
@@ -2286,7 +2508,7 @@
 
                             <h3 id="modal-update-title" class="font-orbitron font-bold text-xl text-[#00e5ff]">THUNDER UPDATE AVAILABLE</h3>
 
-                            <span id="modal-update-ver-badge" class="px-2 py-0.5 rounded text-[10px] font-extrabold bg-[#00e5ff] text-black">v1.0.0</span>
+                            <span id="modal-update-ver-badge" class="px-2 py-0.5 rounded text-[10px] font-extrabold bg-[#00e5ff] text-black">v1.1</span>
 
                         </div>
 
@@ -2322,7 +2544,7 @@
 
                     <div class="text-[10px] uppercase tracking-wider text-[#697d9b] font-bold">Your Installed Version:</div>
 
-                    <div id="modal-curr-ver" class="text-sm font-bold text-white font-mono mt-0.5">v1.0.0</div>
+                    <div id="modal-curr-ver" class="text-sm font-bold text-white font-mono mt-0.5">v1.1</div>
 
                 </div>
 
@@ -2330,7 +2552,7 @@
 
                     <div class="text-[10px] uppercase tracking-wider text-[#697d9b] font-bold">Latest Release:</div>
 
-                    <div id="modal-latest-ver" class="text-sm font-bold text-[#00e5ff] font-mono mt-0.5">v1.0.0</div>
+                    <div id="modal-latest-ver" class="text-sm font-bold text-[#00e5ff] font-mono mt-0.5">v1.1</div>
 
                 </div>
 
@@ -2544,7 +2766,7 @@
 
                         <div class="flex items-center space-x-2">
 
-                            <span class="px-2 py-0.5 rounded text-[10px] font-extrabold uppercase tracking-widest bg-[#00e5ff]/20 text-[#00e5ff] border border-[#00e5ff]/40">v1.0</span>
+                            <span id="header-version-badge" class="px-2 py-0.5 rounded text-[10px] font-extrabold uppercase tracking-widest bg-[#00e5ff]/20 text-[#00e5ff] border border-[#00e5ff]/40">v1.1</span>
 
                             <button onclick="checkForUpdates(true)" id="header-update-btn" title="Check for software updates" class="px-2.5 py-0.5 rounded text-[10px] font-bold text-[#8da2c0] hover:text-[#00e5ff] hover:bg-[#00e5ff]/15 border border-[#1b2742] hover:border-[#00e5ff]/50 transition-all flex items-center space-x-1 cursor-pointer">
 
@@ -2617,11 +2839,21 @@
 
             </button>
 
-            <button id="tab-gallery-btn" onclick="switchTab('gallery')" class="tab-btn px-8 py-3 rounded-xl font-rajdhani text-lg font-bold uppercase tracking-wider flex items-center space-x-2">
+            <button id="tab-gallery-btn" onclick="switchTab('gallery')" class="tab-btn px-6 py-2.5 rounded-xl font-rajdhani text-base font-bold uppercase tracking-wider flex items-center space-x-2">
 
                 <span>📁</span>
 
                 <span>Output Highlights Gallery</span>
+
+            </button>
+
+            <button id="tab-autoupload-btn" onclick="openAutoUploadComingSoon()" class="tab-btn px-5 py-2.5 rounded-xl font-rajdhani text-base font-bold uppercase tracking-wider flex items-center space-x-2 whitespace-nowrap">
+
+                <span>🚀</span>
+
+                <span>Auto Upload</span>
+
+                <span class="text-[9px] px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/40 font-mono font-bold tracking-normal ml-1">COMING SOON</span>
 
             </button>
 
@@ -2771,13 +3003,13 @@
 
                             </label>
 
-                            <span id="format-tier-hint" class="text-[11px] font-semibold text-[#8da2c0]">9:16 Shorts unlocked with PRO</span>
+                            <span id="format-tier-hint" class="text-[11px] font-semibold text-[#8da2c0]">9:16 Shorts for PRO • Both at Once for PRO+</span>
 
                         </div>
 
                         <div class="grid grid-cols-3 gap-2 bg-[#080d19] p-1.5 rounded-xl border border-[#1a253c]">
 
-                            <button id="fmt-btn-landscape" onclick="setExportFormat('landscape', this)" class="fmt-btn py-2 px-3 rounded-lg text-xs font-semibold flex items-center justify-center space-x-1.5">
+                            <button id="fmt-btn-landscape" onclick="setExportFormat('landscape', this)" class="fmt-btn py-1.5 px-2 rounded-lg text-xs font-semibold flex items-center justify-center space-x-1 whitespace-nowrap">
 
                                 <span>📺</span>
 
@@ -2785,23 +3017,23 @@
 
                             </button>
 
-                            <button id="fmt-btn-vertical" onclick="setExportFormat('vertical', this)" class="fmt-btn py-2 px-3 rounded-lg text-xs font-semibold flex items-center justify-center space-x-1.5">
+                            <button id="fmt-btn-vertical" onclick="setExportFormat('vertical', this)" class="fmt-btn py-1.5 px-2 rounded-lg text-xs font-semibold flex items-center justify-center space-x-1 whitespace-nowrap">
 
                                 <span>📱</span>
 
                                 <span>9:16 Shorts</span>
 
-                                <span class="text-[9px] px-1.5 py-0.2 rounded bg-[#00e5ff]/20 text-[#00e5ff] font-bold border border-[#00e5ff]/40">👑 PRO</span>
+                                <span class="fmt-badge">👑 PRO</span>
 
                             </button>
 
-                            <button id="fmt-btn-both" onclick="setExportFormat('both', this)" class="fmt-btn active py-2 px-3 rounded-lg text-xs font-semibold flex items-center justify-center space-x-1.5">
+                            <button id="fmt-btn-both" onclick="setExportFormat('both', this)" class="fmt-btn active py-1.5 px-2 rounded-lg text-xs font-semibold flex items-center justify-center space-x-1 whitespace-nowrap">
 
                                 <span>⚡</span>
 
                                 <span>Both at Once</span>
 
-                                <span class="text-[9px] px-1.5 py-0.2 rounded bg-[#00e5ff]/20 text-[#00e5ff] font-bold border border-[#00e5ff]/40">👑 PRO</span>
+                                <span class="fmt-badge">👑 PRO+</span>
 
                             </button>
 
@@ -2877,7 +3109,25 @@
 
                         </div>
 
-                        <button onclick="clearConsole()" class="text-xs text-[#738ba8] hover:text-[#00e5ff] transition-colors">Clear Log</button>
+                        <!-- QUICK 3-MODE CPU ACCELERATION STEPPER (DYNAMIC HARDWARE DETECTION) -->
+                        <div class="flex items-center space-x-3">
+                            <div class="flex items-center space-x-2 bg-[#080d19] px-2.5 py-1.5 rounded-xl border border-[#1b2b48] hover:border-[#00e5ff]/50 transition-all select-none shadow-sm">
+                                <button onclick="stepCpuMode(-1)" title="Previous CPU Mode" class="w-6 h-6 rounded-lg bg-[#111c32] hover:bg-[#00e5ff] hover:text-black text-[#00e5ff] text-[11px] font-bold border border-[#00e5ff]/30 flex items-center justify-center transition-all cursor-pointer shadow-sm active:scale-95">
+                                    ◀
+                                </button>
+                                <div class="flex flex-col text-center px-1.5 min-w-[125px] cursor-pointer" onclick="showTurboInfoModal()" title="Click to view CPU Acceleration Mode details">
+                                    <span id="quick-turbo-label" class="text-[10px] font-orbitron font-extrabold text-[#00e5ff] tracking-wider uppercase">🛡️ NORMAL (25%)</span>
+                                    <span id="quick-turbo-cores" class="text-[9px] font-mono text-cyan-300">4 / 16 Cores (25% Safe)</span>
+                                </div>
+                                <button onclick="stepCpuMode(1)" title="Next CPU Mode" class="w-6 h-6 rounded-lg bg-[#111c32] hover:bg-[#00e5ff] hover:text-black text-[#00e5ff] text-[11px] font-bold border border-[#00e5ff]/30 flex items-center justify-center transition-all cursor-pointer shadow-sm active:scale-95">
+                                    ▶
+                                </button>
+                                <button onclick="showTurboInfoModal()" title="Click to view CPU Acceleration Mode details" class="w-5 h-5 rounded-full bg-[#111c32] hover:bg-[#00e5ff] hover:text-black text-[#00e5ff] text-[11px] font-bold font-mono border border-[#00e5ff]/40 flex items-center justify-center transition-all cursor-pointer shadow-sm ml-0.5">
+                                    !
+                                </button>
+                            </div>
+                            <button onclick="clearConsole()" class="text-xs text-[#738ba8] hover:text-[#00e5ff] transition-colors">Clear Log</button>
+                        </div>
 
                     </div>
 
@@ -3102,7 +3352,7 @@
 
                                 <span class="font-bold text-white text-sm">Installed Version:</span>
 
-                                <span class="font-mono text-sm font-extrabold text-[#00e5ff]">THUNDER v1.0.0</span>
+                                <span class="font-mono text-sm font-extrabold text-[#00e5ff]">THUNDER v1.1</span>
 
                                 <span class="text-[10px] px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 font-bold border border-emerald-500/30">Official Build</span>
 
@@ -3142,6 +3392,80 @@
 
                     </div>
 
+                </div>
+
+                <!-- Section: CPU Performance Mode (Normal vs Turbo) -->
+                <div class="mt-6 pt-5 border-t border-[#1a253c] space-y-4">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h3 class="font-orbitron font-bold text-base text-white flex items-center space-x-2">
+                                <span>⚡</span>
+                                <span>Turbo Processing Mode</span>
+                            </h3>
+                            <p class="text-xs text-[#7187a5]">Normal Mode (Default) auto-balances resources so other apps, Discord &amp; PUBG run with 0 lag.</p>
+                        </div>
+                        <span id="settings-turbo-badge" class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-[#00e5ff]/15 text-[#00e5ff] border border-[#00e5ff]/30 uppercase tracking-wider">
+                            🛡️ Normal Mode Active (Safe &amp; Smooth)
+                        </span>
+                    </div>
+
+                    <div class="p-4 rounded-xl bg-[#070b16] border border-[#1a263f] flex items-center justify-between gap-4">
+                        <div class="space-y-1">
+                            <div class="font-bold text-white text-sm">Hardware Acceleration Profile:</div>
+                            <div class="text-xs text-[#8da2c0]">
+                                <span class="text-[#00e5ff]">🛡️ <b>Normal (25%)</b>: 4 Cores cap for 0-lag PUBG &amp; Discord.</span><br>
+                                <span class="text-[#f59e0b]">⚡ <b>Balanced (50%)</b>: 8 Cores for 100% smooth browsing &amp; multitasking.</span><br>
+                                <span class="text-[#a855f7]">🚀 <b>Turbo (75%)</b>: 12 Cores maximum safe speed (Never freezes PC).</span>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center space-x-2 flex-shrink-0 bg-[#080d19] px-3 py-1.5 rounded-xl border border-[#1b2b48]">
+                            <button onclick="stepCpuMode(-1)" title="Previous CPU Mode" class="w-7 h-7 rounded-lg bg-[#111c32] hover:bg-[#00e5ff] hover:text-black text-[#00e5ff] text-[13px] font-bold border border-[#00e5ff]/30 flex items-center justify-center transition-all cursor-pointer shadow-sm active:scale-95">
+                                ◀
+                            </button>
+                            <div class="flex flex-col text-center px-2 min-w-[130px] cursor-pointer" onclick="showTurboInfoModal()" title="View CPU Mode Specs">
+                                <span id="settings-turbo-label" class="text-[11px] font-orbitron font-extrabold text-[#00e5ff] tracking-wider uppercase">🛡️ NORMAL (25%)</span>
+                                <span id="settings-turbo-cores" class="text-[9px] font-mono text-cyan-300">4 / 16 Cores (25% Safe)</span>
+                            </div>
+                            <button onclick="stepCpuMode(1)" title="Next CPU Mode" class="w-7 h-7 rounded-lg bg-[#111c32] hover:bg-[#00e5ff] hover:text-black text-[#00e5ff] text-[13px] font-bold border border-[#00e5ff]/30 flex items-center justify-center transition-all cursor-pointer shadow-sm active:scale-95">
+                                ▶
+                            </button>
+                            <button onclick="showTurboInfoModal()" title="View CPU Mode Specs" class="w-6 h-6 rounded-full bg-[#111c32] hover:bg-[#00e5ff] hover:text-black text-[#00e5ff] text-[11px] font-bold font-mono border border-[#00e5ff]/40 flex items-center justify-center transition-all cursor-pointer shadow-sm ml-1">
+                                !
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section: Community Support & Error Reporting -->
+                <div class="mt-6 pt-5 border-t border-[#1a253c] space-y-4">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h3 class="font-orbitron font-bold text-base text-white flex items-center space-x-2">
+                                <span>💬</span>
+                                <span>Community Support &amp; Error Reporting</span>
+                            </h3>
+                            <p class="text-xs text-[#7187a5]">Export clean diagnostic log to report bugs or join our Discord community</p>
+                        </div>
+                    </div>
+
+                    <div class="p-4 rounded-xl bg-[#070b16] border border-[#1a263f] flex flex-col md:flex-row md:items-center justify-between gap-4">
+                        <div class="space-y-1">
+                            <div class="font-bold text-white text-sm">Need Help or Found an Issue?</div>
+                            <div class="text-xs text-[#8da2c0]">Export a clean diagnostic report (hardware specs &amp; error stack trace only — zero private keys or video data) and share it on Discord.</div>
+                        </div>
+
+                        <div class="flex items-center space-x-2.5 flex-shrink-0">
+                            <button type="button" onclick="exportDiagnosticReport()" class="btn-3d-navy px-4 py-2.5 rounded-xl text-xs font-bold text-[#00e5ff] hover:text-white border border-[#00e5ff]/40 flex items-center space-x-2">
+                                <span>📋</span>
+                                <span>Export Error Report</span>
+                            </button>
+                            <button type="button" onclick="openDiscordSupport()" class="btn-3d-cyan px-5 py-2.5 rounded-xl text-xs font-bold text-black flex items-center space-x-2 shadow-[0_0_20px_rgba(0,229,255,0.25)]">
+                                <span>🎮</span>
+                                <span>Join Discord Support</span>
+                            </button>
+                        </div>
+                    </div>
                 </div>
 
 
@@ -3234,7 +3558,13 @@
 
         </div>
 
-
+        <!-- TAB 4: AUTO UPLOAD (COMING SOON) -->
+        <div id="view-autoupload" class="hidden glass-card rounded-2xl p-8 max-w-3xl mx-auto w-full text-center space-y-4">
+            <span class="text-4xl">🚀</span>
+            <h2 class="font-orbitron font-bold text-xl text-white">CLOUD AUTO-UPLOAD &amp; YOUTUBE SCHEDULER</h2>
+            <p class="text-xs text-[#8da2c0] max-w-md mx-auto">Direct 1-click cloud publishing to YouTube Shorts and TikTok is currently in private beta for Pro+ creators and will launch in v1.2!</p>
+            <span class="inline-block px-3 py-1 rounded-full text-xs font-mono font-bold bg-amber-500/20 text-amber-300 border border-amber-500/40">COMING SOON IN V1.2</span>
+        </div>
 
     </main>
 
@@ -3244,6 +3574,8 @@
 
     <script>
         var currentLicense = null;
+        var forceFreshScan = false;
+        var isTrimmingActive = false;
         var currentReviewClips = [];
         var selectedClipIndex = 0;
         var studioDurationMode = 'match_aware';
@@ -3251,7 +3583,7 @@
         var isFullSequencePlaying = false;
         var fullSequenceIndex = 0;
 
-        let currentExportFormat = 'landscape';
+        let currentExportFormat = 'both';
 
         let selectedVideoPaths = [];
 
@@ -3409,7 +3741,7 @@
 
                 async function resetAndLockMachine() {
 
-            if (confirm("Are you sure you want to remove and deactivate your active license from this PC?\n\nThis will return the studio to activation mode so you can activate a new key or switch accounts.")) {
+            const doDeact = await window.showEsportsConfirm({ title: "DEACTIVATE LICENSE?", subtitle: "Machine HWID Vault Reset", message: "Are you sure you want to remove and deactivate your active license from this PC?\n\nThis will return the studio to activation mode so you can activate a new key or switch accounts.", confirmText: "DEACTIVATE", cancelText: "CANCEL", type: "danger" }); if (doDeact) {
 
                 if (window.pywebview && window.pywebview.api && window.pywebview.api.deactivate_license) {
 
@@ -3625,6 +3957,16 @@
                         if (cfg.music_offset) document.getElementById('input-music-offset').value = cfg.music_offset;
 
                         if (cfg.plan) selectPlan(cfg.plan, false);
+                        if (cfg) {
+                            if (cfg.total_cores) {
+                                systemCpuSpecs.total_cores = cfg.total_cores;
+                                systemCpuSpecs.cores_25 = cfg.cores_25 || Math.max(2, Math.round(cfg.total_cores * 0.25));
+                                systemCpuSpecs.cores_50 = cfg.cores_50 || Math.max(2, Math.round(cfg.total_cores * 0.50));
+                                systemCpuSpecs.cores_75 = cfg.cores_75 || Math.max(3, Math.round(cfg.total_cores * 0.75));
+                            }
+                            currentCpuMode = cfg.cpu_mode || 'normal';
+                            updateCpuModeUI(currentCpuMode);
+                        }
 
                         await updateLicenseUI();
 
@@ -4312,6 +4654,11 @@
 
                 if (activeEditLevel === 'Basic') activeEditLevel = 'Pro';
 
+                // Automatically activate Both at Once for Pro+ tier
+                if (!currentExportFormat || currentExportFormat === 'landscape') {
+                    setExportFormat('both', null, true);
+                }
+
             }
 
             enforceTierUIConstraints();
@@ -4333,6 +4680,11 @@
 
 
         // Tab Switching
+
+        
+        function openAutoUploadComingSoon() {
+            showEsportsAlert("🚀 Cloud Auto-Upload to YouTube & TikTok is currently in private beta and coming in the next release!\n\nAll your 1080p 60fps montages, thumbnails, and SEO social kits are automatically generated and saved to your local destination folder.", "COMING SOON", "🚀");
+        }
 
         function switchTab(tab) {
 
@@ -4724,7 +5076,7 @@
 
 
 
-        function handleGenerateClick() {
+        async function handleGenerateClick() {
 
             if (!selectedVideoPaths || selectedVideoPaths.length === 0) {
 
@@ -4737,6 +5089,26 @@
             let files = [...selectedVideoPaths];
 
             currentQueueFiles = [...files];
+
+            // Smart Scan Cache Check: Ask user whether to use instant cached results or perform a fresh scan
+            if (window.pywebview && window.pywebview.api && window.pywebview.api.check_scan_cache) {
+                try {
+                    const cacheRes = await window.pywebview.api.check_scan_cache(files);
+                    if (cacheRes && cacheRes.cached_count > 0) {
+                        const choice = await window.showScanCacheChoice(cacheRes.cached_count, cacheRes.total_files);
+                        if (choice === 'cancel') {
+                            return; // User cancelled
+                        }
+                        forceFreshScan = (choice === 'fresh');
+                    } else {
+                        forceFreshScan = false;
+                    }
+                } catch (e) {
+                    forceFreshScan = false;
+                }
+            } else {
+                forceFreshScan = false;
+            }
 
             openOrderModal();
 
@@ -4794,7 +5166,9 @@
 
             const payload = {
 
-                files: selectedVideoPaths,
+                files: targetFiles || selectedVideoPaths,
+
+                forceFreshScan: !!forceFreshScan,
 
                 exportFolder: document.getElementById('input-export-folder').value,
 
@@ -5222,35 +5596,213 @@
 
 
 
-        async function cancelActiveScan() {
+        
+        // =========================================================================
+        // UNIVERSAL ESPORTS DIALOG SYSTEM (Centered, Themed Modals - No Web Popups)
+        // =========================================================================
+        window.showEsportsConfirm = function(opts) {
+            return new Promise((resolve) => {
+                const modal = document.getElementById('modal-esports-dialog');
+                if (!modal) return resolve(true);
 
-            if (confirm("Are you sure you want to stop and cancel the active process?")) {
+                const titleEl = document.getElementById('esports-dialog-title');
+                const subEl = document.getElementById('esports-dialog-subtitle');
+                const msgEl = document.getElementById('esports-dialog-message');
+                const iconEl = document.getElementById('esports-dialog-icon');
+                const iconBox = document.getElementById('esports-dialog-icon-box');
+                const btnContainer = document.getElementById('esports-dialog-buttons');
 
-                const cancelBtn = document.getElementById('btn-cancel-scan');
+                const title = (opts && opts.title) || 'CONFIRMATION';
+                const subtitle = (opts && opts.subtitle) || 'Please confirm your action';
+                const message = (opts && opts.message) || 'Are you sure you want to proceed?';
+                const confirmText = (opts && opts.confirmText) || 'YES, PROCEED';
+                const cancelText = (opts && opts.cancelText) || 'CANCEL';
+                const type = (opts && opts.type) || 'cyan';
+                const icon = (opts && opts.icon) || (type === 'danger' ? '🛑' : '⚡');
 
-                if (cancelBtn) cancelBtn.classList.add('hidden');
+                if (titleEl) titleEl.textContent = title;
+                if (subEl) subEl.textContent = subtitle;
+                if (msgEl) msgEl.textContent = message;
+                if (iconEl) iconEl.textContent = icon;
 
-                addLog("⚠️ Stopping process...");
-
-                setProgress(0, "Process cancelled by user.");
-
-                onProcessComplete();
-
-                if (window.pywebview && window.pywebview.api && window.pywebview.api.cancel_process) {
-
-                    try {
-
-                        await window.pywebview.api.cancel_process();
-
-                    } catch(e) {}
-
+                if (iconBox) {
+                    if (type === 'danger') {
+                        iconBox.className = 'w-10 h-10 rounded-xl bg-red-950/80 border border-red-500/50 flex items-center justify-center text-xl shadow-[0_0_15px_rgba(239,68,68,0.4)] shrink-0';
+                    } else {
+                        iconBox.className = 'w-10 h-10 rounded-xl bg-cyan-950/80 border border-cyan-500/50 flex items-center justify-center text-xl shadow-[0_0_15px_rgba(0,229,255,0.4)] shrink-0';
+                    }
                 }
 
+                const confirmBtnClass = (type === 'danger')
+                    ? 'px-5 py-2.5 rounded-xl text-xs font-orbitron font-extrabold text-white bg-red-600 hover:bg-red-500 border border-red-400 shadow-[0_0_20px_rgba(239,68,68,0.5)] transition-all cursor-pointer'
+                    : 'btn-3d-cyan px-5 py-2.5 rounded-xl text-xs font-orbitron font-extrabold text-black transition-all cursor-pointer';
+
+                btnContainer.innerHTML = `
+                    <button id="esports-dialog-cancel-btn" class="btn-3d-navy px-4 py-2.5 rounded-xl text-xs font-semibold text-gray-300 hover:text-white transition-all cursor-pointer">
+                        ${cancelText}
+                    </button>
+                    <button id="esports-dialog-confirm-btn" class="${confirmBtnClass}">
+                        ${confirmText}
+                    </button>
+                `;
+
+                function cleanup(val) {
+                    modal.classList.add('hidden');
+                    document.removeEventListener('keydown', keyHandler);
+                    resolve(val);
+                }
+
+                function keyHandler(e) {
+                    if (e.key === 'Escape') cleanup(false);
+                    if (e.key === 'Enter') cleanup(true);
+                }
+
+                document.getElementById('esports-dialog-cancel-btn').onclick = () => cleanup(false);
+                document.getElementById('esports-dialog-confirm-btn').onclick = () => cleanup(true);
+                document.addEventListener('keydown', keyHandler);
+
+                modal.classList.remove('hidden');
+            });
+        };
+
+        window.showEsportsAlert = function(message, title, icon) {
+            return new Promise((resolve) => {
+                const modal = document.getElementById('modal-esports-dialog');
+                if (!modal) return resolve();
+
+                const titleEl = document.getElementById('esports-dialog-title');
+                const subEl = document.getElementById('esports-dialog-subtitle');
+                const msgEl = document.getElementById('esports-dialog-message');
+                const iconEl = document.getElementById('esports-dialog-icon');
+                const iconBox = document.getElementById('esports-dialog-icon-box');
+                const btnContainer = document.getElementById('esports-dialog-buttons');
+
+                if (titleEl) titleEl.textContent = title || 'THUNDER STUDIO';
+                if (subEl) subEl.textContent = 'System Notification';
+                if (msgEl) msgEl.textContent = message || '';
+                if (iconEl) iconEl.textContent = icon || '⚡';
+
+                if (iconBox) {
+                    iconBox.className = 'w-10 h-10 rounded-xl bg-cyan-950/80 border border-cyan-500/50 flex items-center justify-center text-xl shadow-[0_0_15px_rgba(0,229,255,0.4)] shrink-0';
+                }
+
+                btnContainer.innerHTML = `
+                    <button id="esports-dialog-ok-btn" class="btn-3d-cyan px-6 py-2.5 rounded-xl text-xs font-orbitron font-extrabold text-black transition-all cursor-pointer">
+                        OK
+                    </button>
+                `;
+
+                function cleanup() {
+                    modal.classList.add('hidden');
+                    document.removeEventListener('keydown', keyHandler);
+                    resolve();
+                }
+
+                function keyHandler(e) {
+                    if (e.key === 'Escape' || e.key === 'Enter') cleanup();
+                }
+
+                document.getElementById('esports-dialog-ok-btn').onclick = () => cleanup();
+                document.addEventListener('keydown', keyHandler);
+
+                modal.classList.remove('hidden');
+            });
+        };
+
+        window.showScanCacheChoice = function(cachedCount, totalFiles) {
+            return new Promise((resolve) => {
+                const modal = document.getElementById('modal-esports-dialog');
+                if (!modal) return resolve('cached');
+
+                const titleEl = document.getElementById('esports-dialog-title');
+                const subEl = document.getElementById('esports-dialog-subtitle');
+                const msgEl = document.getElementById('esports-dialog-message');
+                const iconEl = document.getElementById('esports-dialog-icon');
+                const iconBox = document.getElementById('esports-dialog-icon-box');
+                const btnContainer = document.getElementById('esports-dialog-buttons');
+
+                if (titleEl) titleEl.textContent = 'PREVIOUS SCAN DETECTED';
+                if (subEl) subEl.textContent = 'Saved AI Combat Analysis Found';
+                if (msgEl) msgEl.textContent = `Found saved combat analysis for ${cachedCount} of ${totalFiles} selected video(s).\n\nWould you like to use the cached results for instant (0.01s) loading, or perform a fresh AI re-scan on all matches from scratch?`;
+                if (iconEl) iconEl.textContent = '⚡';
+
+                if (iconBox) {
+                    iconBox.className = 'w-10 h-10 rounded-xl bg-cyan-950/80 border border-cyan-500/50 flex items-center justify-center text-xl shadow-[0_0_15px_rgba(0,229,255,0.4)] shrink-0';
+                }
+
+                btnContainer.innerHTML = `
+                    <button id="btn-cache-cancel" class="btn-3d-navy px-3.5 py-2.5 rounded-xl text-xs font-semibold text-gray-300 hover:text-white transition-all cursor-pointer">
+                        ✕ CANCEL
+                    </button>
+                    <button id="btn-cache-fresh" class="px-4 py-2.5 rounded-xl text-xs font-orbitron font-extrabold text-[#f59e0b] bg-amber-950/60 hover:bg-amber-900/80 border border-amber-500/50 shadow-[0_0_15px_rgba(245,158,11,0.3)] transition-all cursor-pointer">
+                        🔄 FRESH RE-SCAN
+                    </button>
+                    <button id="btn-cache-use" class="btn-3d-cyan px-4 py-2.5 rounded-xl text-xs font-orbitron font-extrabold text-black transition-all cursor-pointer">
+                        ⚡ USE CACHED SCAN
+                    </button>
+                `;
+
+                function cleanup(val) {
+                    modal.classList.add('hidden');
+                    resolve(val);
+                }
+
+                const btnUse = document.getElementById('btn-cache-use');
+                const btnFresh = document.getElementById('btn-cache-fresh');
+                const btnCancel = document.getElementById('btn-cache-cancel');
+
+                if (btnUse) btnUse.onclick = () => cleanup('cached');
+                if (btnFresh) btnFresh.onclick = () => cleanup('fresh');
+                if (btnCancel) btnCancel.onclick = () => cleanup('cancel');
+
+                modal.classList.remove('hidden');
+            });
+        };
+
+        // Global override to redirect any browser alert to esports dialog
+        window.alert = function(msg) {
+            window.showEsportsAlert(msg, "THUNDER STUDIO", "⚡");
+        };
+
+        async function cancelActiveScan() {
+            const btnMain = document.getElementById('btn-generate-main');
+            const isRendering = btnMain && btnMain.innerText && btnMain.innerText.includes('RENDERING');
+
+            const confirmed = await window.showEsportsConfirm({
+                title: isRendering ? "STOP VIDEO RENDERING?" : "STOP COMBAT SCAN?",
+                subtitle: isRendering ? "Active video encoding & compilation will be halted immediately" : "Active match analysis will be halted immediately",
+                message: isRendering 
+                    ? "Are you sure you want to stop video rendering?\n\nAll active background FFmpeg encoding processes will be terminated immediately." 
+                    : "Are you sure you want to stop and cancel the active combat scan?\n\nDetection radar will halt and background threads will release immediately.",
+                confirmText: isRendering ? "YES, CANCEL RENDER" : "YES, CANCEL SCAN",
+                cancelText: "KEEP GOING",
+                type: "danger",
+                icon: "🛑"
+            });
+
+            if (!confirmed) return;
+
+            const cancelBtn = document.getElementById('btn-cancel-scan');
+            if (cancelBtn) cancelBtn.classList.add('hidden');
+
+            addLog(isRendering ? "🛑 Terminating active video rendering processes..." : "🛑 Stopping active combat scan...");
+            setProgress(0, "Process cancelled by user.");
+            onProcessComplete();
+
+            // Trigger cancel cleanly (prefer native pywebview api first, fallback to HTTP only if api is absent)
+            let cancelledViaApi = false;
+            if (window.pywebview && window.pywebview.api && window.pywebview.api.cancel_process) {
+                try {
+                    await window.pywebview.api.cancel_process();
+                    cancelledViaApi = true;
+                } catch(e) {}
             }
-
+            if (!cancelledViaApi) {
+                try {
+                    fetch('http://127.0.0.1:54321/api/cancel').catch(() => {});
+                } catch(e) {}
+            }
         }
-
-
 
         function onProcessComplete() {
 
@@ -5559,6 +6111,7 @@
                 window.removeEventListener('mousemove', onMouseMove);
 
                 window.removeEventListener('mouseup', onMouseUp);
+                isTrimmingActive = false;
 
             }
 
@@ -5569,6 +6122,99 @@
             window.addEventListener('mouseup', onMouseUp);
 
         }
+
+        function startPlayheadDrag(e, idx) {
+
+            e.stopPropagation();
+
+            e.preventDefault();
+
+            const clip = currentReviewClips[idx];
+
+            if (!clip) return;
+
+
+
+            if (selectedClipIndex !== idx) {
+
+                loadClipToPlayer(idx, false, 0);
+
+            }
+
+
+
+            const clipCard = document.querySelector(`.timeline-clip-card[data-index="${idx}"]`);
+
+            const videoEl = document.getElementById('studio-preview-video');
+
+            if (!clipCard || !videoEl) return;
+
+
+
+            videoEl.pause();
+
+            isTimelinePlaying = false;
+
+            const btnPlay = document.getElementById('btn-play-pause-toggle');
+
+            if (btnPlay) btnPlay.innerHTML = '<span>⏯️</span><span>Play</span>';
+
+
+
+            function updateScrub(clientX) {
+
+                const rect = clipCard.getBoundingClientRect();
+
+                const innerX = clientX - rect.left;
+
+                const pct = Math.max(0, Math.min(1, innerX / rect.width));
+
+                const seekTime = clip.start + pct * clip.dur;
+
+                videoEl.currentTime = seekTime;
+
+
+
+                const playhead = document.getElementById(`clip-playhead-${idx}`);
+
+                if (playhead) {
+
+                    playhead.style.left = (pct * 100) + '%';
+
+                }
+
+            }
+
+
+
+            updateScrub(e.clientX);
+
+
+
+            function onMouseMove(moveEvent) {
+
+                updateScrub(moveEvent.clientX);
+
+            }
+
+
+
+            function onMouseUp() {
+
+                window.removeEventListener('mousemove', onMouseMove);
+
+                window.removeEventListener('mouseup', onMouseUp);
+
+            }
+
+
+
+            window.addEventListener('mousemove', onMouseMove);
+
+            window.addEventListener('mouseup', onMouseUp);
+
+        }
+
 
 
 
@@ -5710,13 +6356,29 @@
 
 
 
+            const videoEl = document.getElementById('studio-preview-video');
+
+            if (videoEl) {
+
+                videoEl.pause();
+
+            }
+
+            isTimelinePlaying = false;
+
+            isTrimmingActive = true;
+
+            const btnPlay = document.getElementById('btn-play-pause-toggle');
+
+            if (btnPlay) btnPlay.innerHTML = '<span>⏯️</span><span>Play</span>';
+
+
+
             const initialX = e.clientX;
 
             const origStart = clip.start;
 
             const origDur = clip.dur;
-
-            const videoEl = document.getElementById('studio-preview-video');
 
 
 
@@ -5796,13 +6458,15 @@
 
                 window.removeEventListener('mouseup', onMouseUp);
 
+                isTrimmingActive = false;
+
                 renderReviewClips();
 
                 if (videoEl) {
 
                     videoEl.currentTime = clip.start;
 
-                    if (isTimelinePlaying) videoEl.play().catch(() => {});
+                    videoEl.pause();
 
                 }
 
@@ -6000,6 +6664,8 @@
 
             videoEl.ontimeupdate = () => {
 
+                if (isTrimmingActive) return;
+
                 const curRelTime = Math.max(0, videoEl.currentTime - clip.start);
 
                 const curDur = clip.dur || 1.0;
@@ -6070,7 +6736,7 @@
 
                     playhead.style.left = pct + '%';
 
-                    playhead.style.display = 'block';
+                    playhead.style.display = 'flex';
 
                 }
 
@@ -6281,17 +6947,7 @@
             if (summaryText) summaryText.textContent = `${currentReviewClips.length} Highlights Approved • ${durStr}`;
 
             if (btnText) {
-
-                if (studioWorkflowMode === 'ai') {
-
-                    btnText.textContent = `EXPORT DIRECT AI PRO+ VIDEO (${currentReviewClips.length} CLIPS)`;
-
-                } else {
-
-                    btnText.textContent = `EXPORT CUSTOM HIGHLIGHT VIDEO (${currentReviewClips.length} CLIPS)`;
-
-                }
-
+                btnText.textContent = `CONTINUE ➔`;
             }
 
 
@@ -6436,17 +7092,33 @@
 
 
 
-                // Playhead indicator
+                // Draggable White Playhead Scrubbing Line
 
                 const playhead = document.createElement('div');
 
                 playhead.id = `clip-playhead-${idx}`;
 
-                playhead.className = 'absolute top-0 bottom-0 w-0.5 bg-white shadow-[0_0_8px_white] z-20 pointer-events-none transition-all duration-75';
+                playhead.className = 'absolute top-0 bottom-0 z-20 cursor-ew-resize flex items-center justify-center -translate-x-1/2';
+
+                playhead.style.width = '14px';
 
                 playhead.style.left = '0%';
 
-                playhead.style.display = isSelected ? 'block' : 'none';
+                playhead.style.display = isSelected ? 'flex' : 'none';
+
+                playhead.title = 'Drag left/right to scrub clip frame';
+
+
+
+                const playheadBar = document.createElement('div');
+
+                playheadBar.className = 'w-1 h-full bg-white shadow-[0_0_8px_white] rounded-full hover:bg-[#00e5ff] hover:w-1.5 transition-all';
+
+                playhead.appendChild(playheadBar);
+
+
+
+                playhead.onmousedown = (e) => startPlayheadDrag(e, idx);
 
                 clipBlock.appendChild(playhead);
 
@@ -6996,7 +7668,693 @@
 
 
 
-        async function confirmAndExecuteRender() {
+        var manualPartsList = [];
+
+        function handleContinueClick() {
+            if (currentReviewClips.length === 0) {
+                showEsportsAlert('No clips selected. Please keep at least 1 highlight to export.', 'No Highlights', '⚠️');
+                return;
+            }
+
+            // Case 1: Single Full Video or Individual Clips -> proceed directly, no extra popup or page
+            if (studioDurationMode === 'full' || studioDurationMode === 'individual') {
+                confirmAndExecuteRender();
+                return;
+            }
+
+            // Case 2: Match-Aware / 60-90s (Multi-Part) -> ask Auto Part vs Manual
+            openMultiPartChoiceModal();
+        }
+
+        function openMultiPartChoiceModal() {
+            const modal = document.getElementById('modal-multipart-choice');
+            if (modal) modal.classList.remove('hidden');
+        }
+
+        function closeMultiPartChoiceModal() {
+            const modal = document.getElementById('modal-multipart-choice');
+            if (modal) modal.classList.add('hidden');
+        }
+
+        function chooseAutoPartsExport() {
+            closeMultiPartChoiceModal();
+            confirmAndExecuteRender();
+        }
+
+        function getClipEpisodeBoundaries() {
+            if (!currentReviewClips || currentReviewClips.length === 0) return [0];
+            const boundaries = [0];
+            let currentDur = 0;
+            const minSec = 60;
+            const maxSec = 120;
+
+            for (let i = 0; i < currentReviewClips.length; i++) {
+                const c = currentReviewClips[i];
+                const cDur = parseFloat(c.dur) || 10.0;
+                if (boundaries.length > 0 && currentDur >= minSec && (currentDur + cDur > maxSec)) {
+                    boundaries.push(i);
+                    currentDur = 0;
+                }
+                currentDur += cDur;
+            }
+            return boundaries;
+        }
+
+        function openManualPartOrganizer() {
+            closeMultiPartChoiceModal();
+            
+            // Auto-populate initial manualPartsList from AI match boundaries
+            const boundaries = getClipEpisodeBoundaries();
+            manualPartsList = [];
+            boundaries.forEach((startIdx, pIdx) => {
+                const nextIdx = boundaries[pIdx + 1] || currentReviewClips.length;
+                const slice = currentReviewClips.slice(startIdx, nextIdx);
+                if (slice.length > 0) {
+                    manualPartsList.push(slice);
+                }
+            });
+            if (manualPartsList.length === 0 && currentReviewClips.length > 0) {
+                manualPartsList.push([...currentReviewClips]);
+            }
+
+            renderManualPartsUI();
+            const modal = document.getElementById('modal-manual-part-organizer');
+            if (modal) modal.classList.remove('hidden');
+        }
+
+        var activeOrganizerPartIdx = -1;
+        var activeOrganizerClipIdxInPart = -1;
+        var isOrganizerPlaying = false;
+        var isSingleClipPreview = false;
+
+        function closeManualPartOrganizer() {
+            stopOrganizerPlayback();
+            const modal = document.getElementById('modal-manual-part-organizer');
+            if (modal) modal.classList.add('hidden');
+        }
+
+        function addManualPart() {
+            manualPartsList.push([]);
+            renderManualPartsUI();
+        }
+
+        function deleteManualPart(partIdx) {
+            if (manualPartsList.length <= 1) {
+                showEsportsAlert('You must keep at least 1 part.', 'Cannot Delete', '⚠️');
+                return;
+            }
+            if (activeOrganizerPartIdx === partIdx) {
+                stopOrganizerPlayback();
+            }
+            const orphanClips = manualPartsList[partIdx] || [];
+            manualPartsList.splice(partIdx, 1);
+            if (orphanClips.length > 0) {
+                manualPartsList[0].push(...orphanClips);
+            }
+            renderManualPartsUI();
+        }
+
+        var orgDraggedClipData = null;
+        var isDraggingOrgClip = false;
+
+        function onOrgClipDragStart(e, partIdx, clipIdx) {
+            isDraggingOrgClip = true;
+            orgDraggedClipData = { partIdx, clipIdx };
+            e.dataTransfer.effectAllowed = 'move';
+            e.dataTransfer.setData('text/plain', JSON.stringify(orgDraggedClipData));
+            const target = e.currentTarget;
+            setTimeout(() => {
+                if (target) target.classList.add('opacity-40', 'border-purple-500');
+            }, 0);
+        }
+
+        function onOrgClipDragEnd(e) {
+            setTimeout(() => {
+                isDraggingOrgClip = false;
+            }, 100);
+            orgDraggedClipData = null;
+            document.querySelectorAll('.org-clip-chip').forEach(el => {
+                el.classList.remove('opacity-40', 'border-purple-500', 'border-l-2', 'border-l-[#00e5ff]');
+            });
+            document.querySelectorAll('.org-part-dropzone').forEach(el => {
+                el.classList.remove('border-[#00e5ff]', 'bg-[#00e5ff]/10');
+            });
+        }
+
+        function onOrgClipDragOver(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            e.dataTransfer.dropEffect = 'move';
+            const target = e.currentTarget;
+            if (target) {
+                target.classList.add('border-l-2', 'border-l-[#00e5ff]');
+            }
+        }
+
+        function onOrgClipDragLeave(e) {
+            const target = e.currentTarget;
+            if (target) {
+                target.classList.remove('border-l-2', 'border-l-[#00e5ff]');
+            }
+        }
+
+        function onOrgClipDrop(e, targetPartIdx, targetClipIdx) {
+            e.preventDefault();
+            e.stopPropagation();
+            if (!orgDraggedClipData) return;
+            const fromPart = orgDraggedClipData.partIdx;
+            const fromClip = orgDraggedClipData.clipIdx;
+
+            if (fromPart === targetPartIdx && fromClip === targetClipIdx) return;
+
+            const [clip] = manualPartsList[fromPart].splice(fromClip, 1);
+            if (!clip) return;
+
+            manualPartsList[targetPartIdx].splice(targetClipIdx, 0, clip);
+            renderManualPartsUI();
+        }
+
+        function onOrgPartDropZoneOver(e) {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+            const target = e.currentTarget;
+            if (target) target.classList.add('border-[#00e5ff]', 'bg-[#00e5ff]/10');
+        }
+
+        function onOrgPartDropZoneLeave(e) {
+            const target = e.currentTarget;
+            if (target) target.classList.remove('border-[#00e5ff]', 'bg-[#00e5ff]/10');
+        }
+
+        function onOrgPartDropZoneDrop(e, targetPartIdx) {
+            e.preventDefault();
+            if (!orgDraggedClipData) return;
+            const fromPart = orgDraggedClipData.partIdx;
+            const fromClip = orgDraggedClipData.clipIdx;
+
+            const [clip] = manualPartsList[fromPart].splice(fromClip, 1);
+            if (!clip) return;
+
+            // Dropped onto empty part or end of part
+            manualPartsList[targetPartIdx].push(clip);
+            renderManualPartsUI();
+        }
+
+        function moveClipToPart(clipIdxInPart, fromPartIdx, toPartIdx) {
+            if (toPartIdx < 0 || toPartIdx >= manualPartsList.length) return;
+            const clip = manualPartsList[fromPartIdx].splice(clipIdxInPart, 1)[0];
+            if (clip) {
+                if (fromPartIdx < toPartIdx) {
+                    // Moving forward to next part (e.g. Part 2 -> Part 3) -> put at START of next part!
+                    manualPartsList[toPartIdx].unshift(clip);
+                } else {
+                    // Moving backward to previous part (e.g. Part 3 -> Part 2) -> put at END of previous part!
+                    manualPartsList[toPartIdx].push(clip);
+                }
+            }
+            renderManualPartsUI();
+        }
+
+        function playManualPart(partIdx) {
+            const pClips = manualPartsList[partIdx] || [];
+            if (pClips.length === 0) {
+                showEsportsAlert('This part has no clips to preview.', 'Empty Part', 'ℹ️');
+                return;
+            }
+            activeOrganizerPartIdx = partIdx;
+            activeOrganizerClipIdxInPart = 0;
+            isSingleClipPreview = false;
+            loadAndPlayOrganizerClip();
+        }
+
+        function playSingleOrganizerClip(partIdx, clipIdx) {
+            const pClips = manualPartsList[partIdx] || [];
+            const clip = pClips[clipIdx];
+            if (!clip) return;
+            activeOrganizerPartIdx = partIdx;
+            activeOrganizerClipIdxInPart = clipIdx;
+            isSingleClipPreview = true;
+            loadAndPlayOrganizerClip();
+        }
+
+        function loadAndPlayOrganizerClip() {
+            const pClips = manualPartsList[activeOrganizerPartIdx] || [];
+            const clip = pClips[activeOrganizerClipIdxInPart];
+            if (!clip) {
+                stopOrganizerPlayback();
+                return;
+            }
+
+            const vid = document.getElementById('organizer-preview-video');
+            const overlay = document.getElementById('org-video-overlay');
+            const title = document.getElementById('org-player-title');
+            const sub = document.getElementById('org-player-sub');
+            const badge = document.getElementById('org-player-badge');
+            const counter = document.getElementById('org-clip-counter');
+            const indicator = document.getElementById('org-player-indicator');
+            const btnPlay = document.getElementById('btn-org-play-pause');
+
+            if (overlay) overlay.classList.add('hidden');
+            if (btnPlay) btnPlay.innerHTML = '<span>⏸</span><span>PAUSE</span>';
+            if (indicator) indicator.className = 'w-2.5 h-2.5 rounded-full bg-[#00e5ff] shadow-[0_0_8px_#00e5ff] animate-pulse';
+
+            const partNum = activeOrganizerPartIdx + 1;
+            const clipNum = activeOrganizerClipIdxInPart + 1;
+            const totalInPart = pClips.length;
+
+            if (title) {
+                title.textContent = isSingleClipPreview
+                    ? `CLIP #${clipNum} (${clip.type.toUpperCase()} vs ${clip.victim || 'Enemy'})`
+                    : `PART ${partNum} • CLIP #${clipNum} of ${totalInPart} (${clip.type.toUpperCase()})`;
+            }
+            if (sub) {
+                sub.textContent = isSingleClipPreview
+                    ? `Solo Clip Mode • Duration: ${Math.round(clip.dur || 10)}s`
+                    : `Sequential Part Mode • Auto-stops after Clip #${totalInPart}`;
+            }
+            if (badge) {
+                badge.textContent = isSingleClipPreview ? `CLIP ${clipNum} SOLO` : `PART ${partNum} PLAYING`;
+                badge.className = 'px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-[#00e5ff]/20 text-[#00e5ff] border border-[#00e5ff]/40 animate-pulse';
+            }
+            if (counter) {
+                counter.textContent = `Clip ${clipNum}/${totalInPart}`;
+            }
+
+            updateOrganizerActiveHighlight();
+
+            const fileUrl = 'http://127.0.0.1:54321/video?file=' + encodeURIComponent(clip.source);
+            isOrganizerPlaying = true;
+
+            const seekTarget = clip.start;
+            if (vid.src !== fileUrl) {
+                vid.src = fileUrl;
+                vid.onloadedmetadata = () => {
+                    vid.currentTime = seekTarget;
+                    vid.play().catch(() => {});
+                };
+            } else {
+                vid.currentTime = seekTarget;
+                vid.play().catch(() => {});
+            }
+
+            vid.ontimeupdate = () => {
+                if (!isOrganizerPlaying) return;
+                const curRel = Math.max(0, vid.currentTime - clip.start);
+                const curDur = clip.dur || 10.0;
+                const pct = Math.min(100, Math.max(0, (curRel / curDur) * 100));
+
+                const prog = document.getElementById('org-progress-bar');
+                if (prog) prog.style.width = pct + '%';
+
+                const curM = Math.floor(curRel / 60);
+                const curS = Math.floor(curRel % 60);
+                const totM = Math.floor(curDur / 60);
+                const totS = Math.floor(curDur % 60);
+                const tc = document.getElementById('org-timecode');
+                if (tc) tc.textContent = `${curM.toString().padStart(2, '0')}:${curS.toString().padStart(2, '0')} / ${totM.toString().padStart(2, '0')}:${totS.toString().padStart(2, '0')}`;
+
+                // Clip finish detection (0.15s before end)
+                if (vid.currentTime >= clip.start + curDur - 0.15) {
+                    if (isSingleClipPreview) {
+                        // Single clip completed -> STOP
+                        stopOrganizerPlayback();
+                        if (title) title.textContent = `CLIP #${clipNum} FINISHED`;
+                        if (badge) {
+                            badge.textContent = `CLIP DONE`;
+                            badge.className = 'px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-green-500/20 text-green-400 border border-green-500/40';
+                        }
+                    } else {
+                        // Part playback -> check if more clips in this part
+                        if (activeOrganizerClipIdxInPart < pClips.length - 1) {
+                            activeOrganizerClipIdxInPart++;
+                            loadAndPlayOrganizerClip();
+                        } else {
+                            // Part has reached its final clip -> STOP IMMEDIATELY (Do NOT jump to next part!)
+                            stopOrganizerPlayback();
+                            if (title) title.textContent = `PART ${partNum} COMPLETED (${totalInPart} Clips)`;
+                            if (badge) {
+                                badge.textContent = `PART ${partNum} DONE`;
+                                badge.className = 'px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-green-500/20 text-green-400 border border-green-500/40';
+                            }
+                        }
+                    }
+                }
+            };
+        }
+
+        function toggleOrganizerPlayback() {
+            const vid = document.getElementById('organizer-preview-video');
+            const btnPlay = document.getElementById('btn-org-play-pause');
+            if (!vid) return;
+
+            if (vid.paused) {
+                if (activeOrganizerPartIdx < 0 && manualPartsList.length > 0) {
+                    playManualPart(0);
+                    return;
+                }
+                vid.play().catch(() => {});
+                isOrganizerPlaying = true;
+                if (btnPlay) btnPlay.innerHTML = '<span>⏸</span><span>PAUSE</span>';
+            } else {
+                vid.pause();
+                isOrganizerPlaying = false;
+                if (btnPlay) btnPlay.innerHTML = '<span>▶</span><span>PLAY</span>';
+            }
+        }
+
+        function stopOrganizerPlayback() {
+            isOrganizerPlaying = false;
+            const vid = document.getElementById('organizer-preview-video');
+            const btnPlay = document.getElementById('btn-org-play-pause');
+            const prog = document.getElementById('org-progress-bar');
+            const indicator = document.getElementById('org-player-indicator');
+            if (vid) {
+                vid.pause();
+            }
+            if (btnPlay) btnPlay.innerHTML = '<span>▶</span><span>PLAY</span>';
+            if (prog) prog.style.width = '0%';
+            if (indicator) indicator.className = 'w-2.5 h-2.5 rounded-full bg-gray-500';
+            updateOrganizerActiveHighlight();
+        }
+
+        function toggleOrganizerMute() {
+            const vid = document.getElementById('organizer-preview-video');
+            const btnMute = document.getElementById('btn-org-mute');
+            if (!vid) return;
+            vid.muted = !vid.muted;
+            if (btnMute) btnMute.textContent = vid.muted ? '🔇' : '🔊';
+        }
+
+        function scrubOrganizerVideo(e) {
+            const bar = e.currentTarget;
+            const vid = document.getElementById('organizer-preview-video');
+            if (!vid || activeOrganizerPartIdx < 0) return;
+            const pClips = manualPartsList[activeOrganizerPartIdx] || [];
+            const clip = pClips[activeOrganizerClipIdxInPart];
+            if (!clip) return;
+
+            const rect = bar.getBoundingClientRect();
+            const clickX = e.clientX - rect.left;
+            const pct = Math.max(0, Math.min(1, clickX / rect.width));
+            vid.currentTime = clip.start + pct * clip.dur;
+        }
+
+        function updateOrganizerActiveHighlight() {
+            // Update active styling on all rendered clip chips
+            const allChips = document.querySelectorAll('.org-clip-chip');
+            allChips.forEach(chip => {
+                const p = parseInt(chip.dataset.partIdx);
+                const c = parseInt(chip.dataset.clipIdx);
+                if (isOrganizerPlaying && p === activeOrganizerPartIdx && c === activeOrganizerClipIdxInPart) {
+                    chip.classList.add('border-[#00e5ff]', 'bg-[#00e5ff]/20', 'shadow-[0_0_12px_rgba(0,229,255,0.4)]');
+                    chip.classList.remove('border-[#1b2b48]', 'bg-[#070c14]');
+                } else {
+                    chip.classList.remove('border-[#00e5ff]', 'bg-[#00e5ff]/20', 'shadow-[0_0_12px_rgba(0,229,255,0.4)]');
+                    chip.classList.add('border-[#1b2b48]', 'bg-[#070c14]');
+                }
+            });
+
+            // Update Play Part buttons
+            const allPlayBtns = document.querySelectorAll('.btn-org-play-part');
+            allPlayBtns.forEach(btn => {
+                const p = parseInt(btn.dataset.partIdx);
+                if (isOrganizerPlaying && !isSingleClipPreview && p === activeOrganizerPartIdx) {
+                    btn.innerHTML = '<span>⏸</span><span>Playing...</span>';
+                    btn.className = 'btn-org-play-part px-3 py-1 rounded-lg text-xs font-bold bg-[#00e5ff] text-black shadow-[0_0_10px_#00e5ff] flex items-center space-x-1';
+                } else {
+                    btn.innerHTML = '<span>▶</span><span>Play Part</span>';
+                    btn.className = 'btn-org-play-part px-3 py-1 rounded-lg text-xs font-bold bg-[#14233c] hover:bg-[#1f375f] text-gray-300 hover:text-white border border-[#233b63] transition-colors flex items-center space-x-1';
+                }
+            });
+        }
+
+        function renderManualPartsUI() {
+            const container = document.getElementById('manual-parts-container');
+            const summary = document.getElementById('manual-parts-summary');
+            if (!container) return;
+
+            container.innerHTML = '';
+            let totalAssignedClips = 0;
+
+            manualPartsList.forEach((partClips, pIdx) => {
+                totalAssignedClips += partClips.length;
+                const partDur = partClips.reduce((acc, c) => acc + (c.dur || 11.0), 0);
+                const pM = Math.floor(partDur / 60);
+                const pS = Math.floor(partDur % 60);
+                const pDurStr = pM > 0 ? `${pM}m ${pS.toString().padStart(2, '0')}s` : `${pS}s`;
+
+                const card = document.createElement('div');
+                card.className = 'p-3.5 rounded-xl bg-gradient-to-r from-[#0d1726] to-[#09101c] border-2 border-[#1c2d50] hover:border-[#00e5ff]/40 space-y-2.5 transition-colors shadow-sm';
+                
+                let clipsHtml = '';
+                if (partClips.length === 0) {
+                    clipsHtml = `
+                        <div class="org-part-dropzone rounded-lg p-2.5 border-2 border-dashed border-[#1c2d50] text-center text-xs text-gray-500 italic transition-all hover:border-[#00e5ff]/50"
+                             ondragover="onOrgPartDropZoneOver(event)"
+                             ondragleave="onOrgPartDropZoneLeave(event)"
+                             ondrop="onOrgPartDropZoneDrop(event, ${pIdx})">
+                             Drag clips here to add them to Part ${pIdx + 1}
+                        </div>
+                    `;
+                } else {
+                    clipsHtml = `
+                        <div class="org-part-dropzone rounded-lg p-1 border border-dashed border-transparent transition-all min-h-[46px] flex flex-wrap gap-1.5 items-center"
+                             ondragover="onOrgPartDropZoneOver(event)"
+                             ondragleave="onOrgPartDropZoneLeave(event)"
+                             ondrop="onOrgPartDropZoneDrop(event, ${pIdx})">
+                    `;
+                    partClips.forEach((clip, cIdx) => {
+                        const origIdx = currentReviewClips.indexOf(clip) + 1;
+                        const victim = clip.victim || 'Enemy';
+                        const dur = Math.round(clip.dur || 11);
+                        const isKill = clip.type === 'kill';
+                        const tagColor = isKill ? 'bg-red-950/80 text-red-300 border-red-500/40' : 'bg-cyan-950/80 text-cyan-300 border-cyan-500/40';
+
+                        clipsHtml += `
+                            <div draggable="true"
+                                 ondragstart="onOrgClipDragStart(event, ${pIdx}, ${cIdx})"
+                                 ondragend="onOrgClipDragEnd(event)"
+                                 ondragover="onOrgClipDragOver(event)"
+                                 ondragleave="onOrgClipDragLeave(event)"
+                                 ondrop="onOrgClipDrop(event, ${pIdx}, ${cIdx})"
+                                 onclick="if (isDraggingOrgClip) return; playSingleOrganizerClip(${pIdx}, ${cIdx})"
+                                 data-part-idx="${pIdx}" 
+                                 data-clip-idx="${cIdx}" 
+                                 class="org-clip-chip group/chip cursor-grab active:cursor-grabbing flex items-center space-x-1.5 px-2.5 py-1.5 rounded-lg bg-[#070c14] hover:bg-[#0f1f38] border border-[#1b2b48] text-xs transition-all select-none shadow-sm" 
+                                 title="Drag to reorder anywhere (within or across parts), or click to play">
+                                <span class="text-gray-500 hover:text-white font-mono text-[10px] tracking-tighter select-none cursor-grab">⋮⋮</span>
+                                <span class="text-[9px] text-[#00e5ff] opacity-70 group-hover/chip:opacity-100">▶</span>
+                                <span class="font-mono text-[#00e5ff] font-bold">#${origIdx > 0 ? origIdx : (cIdx+1)}</span>
+                                <span class="px-1.5 py-0.5 rounded text-[9px] font-bold ${tagColor} border">${clip.type === 'kill' ? 'Kill' : 'Knock'}</span>
+                                <span class="text-gray-200 font-bold max-w-[85px] truncate">${victim}</span>
+                                <span class="text-[9px] text-gray-400 font-mono">${dur}s</span>
+                                <div class="flex items-center space-x-0.5 pl-1 border-l border-[#1b2b48]" onclick="event.stopPropagation()">
+                                    ${pIdx > 0 ? `<button onclick="moveClipToPart(${cIdx}, ${pIdx}, ${pIdx - 1})" title="Send backward to Part ${pIdx}" class="px-1.5 py-0.5 rounded bg-[#132238] hover:bg-[#00e5ff] hover:text-black text-gray-300 text-[9px] font-bold transition-colors">⬅</button>` : ''}
+                                    ${pIdx < manualPartsList.length - 1 ? `<button onclick="moveClipToPart(${cIdx}, ${pIdx}, ${pIdx + 1})" title="Send forward to Part ${pIdx + 2}" class="px-1.5 py-0.5 rounded bg-[#132238] hover:bg-[#00e5ff] hover:text-black text-gray-300 text-[9px] font-bold transition-colors">➡</button>` : ''}
+                                </div>
+                            </div>
+                        `;
+                    });
+                    clipsHtml += '</div>';
+                }
+
+                card.innerHTML = `
+                    <div class="flex items-center justify-between pb-1.5 border-b border-[#18263f]">
+                        <div class="flex items-center space-x-2">
+                            <span class="text-sm">🎬</span>
+                            <span class="font-orbitron font-extrabold text-xs text-[#00e5ff]">PART ${pIdx + 1}</span>
+                            <span class="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-[#00e5ff]/15 text-[#00e5ff] border border-[#00e5ff]/30">${pDurStr} • ${partClips.length} Clips</span>
+                        </div>
+                        <div class="flex items-center space-x-1.5">
+                            <button data-part-idx="${pIdx}" onclick="playManualPart(${pIdx})" class="btn-org-play-part px-2.5 py-1 rounded-lg text-xs font-bold bg-[#14233c] hover:bg-[#1f375f] text-gray-300 hover:text-white border border-[#233b63] transition-colors flex items-center space-x-1">
+                                <span>▶</span><span>Play Part</span>
+                            </button>
+                            ${manualPartsList.length > 1 ? `
+                                <button onclick="deleteManualPart(${pIdx})" class="px-2 py-1 rounded-lg text-xs font-bold bg-red-950/40 hover:bg-red-900/80 text-red-400 border border-red-800/40 transition-colors" title="Delete Part">
+                                    ✕
+                                </button>
+                            ` : ''}
+                        </div>
+                    </div>
+                    ${clipsHtml}
+                `;
+                container.appendChild(card);
+            });
+
+            if (summary) {
+                summary.textContent = `${manualPartsList.length} Part(s) Configured • ${totalAssignedClips} Clips Total`;
+            }
+
+            updateOrganizerActiveHighlight();
+        }
+
+        function executeManualPartsExport() {
+            const nonEmptyParts = manualPartsList.filter(p => p.length > 0);
+            if (nonEmptyParts.length === 0) {
+                showEsportsAlert('All parts are empty! Please ensure at least 1 part has clips.', 'Empty Export', '⚠️');
+                return;
+            }
+            closeManualPartOrganizer();
+            confirmAndExecuteRender({ manualParts: nonEmptyParts });
+        }
+
+        var currentCpuMode = 'normal';
+        var systemCpuSpecs = {
+            total_cores: 16,
+            cores_25: 4,
+            cores_50: 8,
+            cores_75: 12
+        };
+
+        function getCpuModeConfig(mode) {
+            const total = systemCpuSpecs.total_cores || 16;
+            const c25 = systemCpuSpecs.cores_25 || Math.max(2, Math.round(total * 0.25));
+            const c50 = systemCpuSpecs.cores_50 || Math.max(2, Math.round(total * 0.50));
+            const c75 = systemCpuSpecs.cores_75 || Math.max(3, Math.round(total * 0.75));
+
+            const m = String(mode).toLowerCase();
+            if (m === 'turbo' || m === '75' || m === 'max') {
+                return {
+                    mode: 'turbo',
+                    label: '🚀 TURBO (75%)',
+                    coresText: `${c75} / ${total} Cores (Fast)`,
+                    titleColor: 'text-[#a855f7]',
+                    subColor: 'text-purple-300',
+                    badgeText: `🚀 Turbo Active (${c75} Cores • 75% Safe Max)`,
+                    badgeClass: 'px-2.5 py-1 rounded-full text-[10px] font-bold bg-purple-500/15 text-purple-400 border border-purple-500/30 uppercase tracking-wider'
+                };
+            } else if (m === 'balanced' || m === '50' || m === 'medium') {
+                return {
+                    mode: 'balanced',
+                    label: '⚡ BALANCED (50%)',
+                    coresText: `${c50} / ${total} Cores (Smooth)`,
+                    titleColor: 'text-[#f59e0b]',
+                    subColor: 'text-amber-300',
+                    badgeText: `⚡ Balanced Active (${c50} Cores • 50% Smooth)`,
+                    badgeClass: 'px-2.5 py-1 rounded-full text-[10px] font-bold bg-amber-500/15 text-amber-400 border border-amber-500/30 uppercase tracking-wider'
+                };
+            } else {
+                return {
+                    mode: 'normal',
+                    label: '🛡️ NORMAL (25%)',
+                    coresText: `${c25} / ${total} Cores (Safe)`,
+                    titleColor: 'text-[#00e5ff]',
+                    subColor: 'text-cyan-300',
+                    badgeText: `🛡️ Normal Active (${c25} Cores • 25% Safe)`,
+                    badgeClass: 'px-2.5 py-1 rounded-full text-[10px] font-bold bg-[#00e5ff]/15 text-[#00e5ff] border border-[#00e5ff]/30 uppercase tracking-wider'
+                };
+            }
+        }
+
+        function updateCpuModeUI(mode) {
+            currentCpuMode = mode;
+            const cfg = getCpuModeConfig(mode);
+
+            // 1. Console Header Stepper
+            const quickLabel = document.getElementById('quick-turbo-label');
+            const quickCores = document.getElementById('quick-turbo-cores');
+            if (quickLabel) {
+                quickLabel.textContent = cfg.label;
+                quickLabel.className = `text-[10px] font-orbitron font-extrabold ${cfg.titleColor} tracking-wider uppercase`;
+            }
+            if (quickCores) {
+                quickCores.textContent = cfg.coresText;
+                quickCores.className = `text-[9px] font-mono ${cfg.subColor}`;
+            }
+
+            // 2. Settings Tab Stepper
+            const settingsLabel = document.getElementById('settings-turbo-label');
+            const settingsCores = document.getElementById('settings-turbo-cores');
+            const badge = document.getElementById('settings-turbo-badge');
+
+            if (settingsLabel) {
+                settingsLabel.textContent = cfg.label;
+                settingsLabel.className = `text-[11px] font-orbitron font-extrabold ${cfg.titleColor} tracking-wider uppercase`;
+            }
+            if (settingsCores) {
+                settingsCores.textContent = cfg.coresText;
+                settingsCores.className = `text-[9px] font-mono ${cfg.subColor}`;
+            }
+            if (badge) {
+                badge.textContent = cfg.badgeText;
+                badge.className = cfg.badgeClass;
+            }
+        }
+
+        async function stepCpuMode(direction) {
+            const modes = ['normal', 'balanced', 'turbo'];
+            let idx = modes.indexOf(currentCpuMode);
+            if (idx === -1) idx = 0;
+            let nextIdx = (idx + direction + modes.length) % modes.length;
+            const newMode = modes[nextIdx];
+            await setCpuMode(newMode);
+        }
+
+        async function setCpuMode(mode) {
+            updateCpuModeUI(mode);
+            if (window.pywebview && window.pywebview.api && window.pywebview.api.set_cpu_mode) {
+                try {
+                    const res = await window.pywebview.api.set_cpu_mode(mode);
+                    if (res && res.total_cores) {
+                        systemCpuSpecs.total_cores = res.total_cores;
+                        systemCpuSpecs.cores_25 = res.cores_25;
+                        systemCpuSpecs.cores_50 = res.cores_50;
+                        systemCpuSpecs.cores_75 = res.cores_75;
+                        updateCpuModeUI(res.mode || mode);
+                    }
+                } catch (e) {
+                    console.error("Failed to set cpu mode:", e);
+                }
+            }
+        }
+
+        function showTurboInfoModal() {
+            const total = systemCpuSpecs.total_cores || 16;
+            const c25 = systemCpuSpecs.cores_25 || Math.max(2, Math.round(total * 0.25));
+            const c50 = systemCpuSpecs.cores_50 || Math.max(2, Math.round(total * 0.50));
+            const c75 = systemCpuSpecs.cores_75 || Math.max(3, Math.round(total * 0.75));
+
+            const infoMsg = `⚡ THUNDER HARDWARE ACCELERATION TIERS:
+
+🛡️ 1. NORMAL MODE (${c25} / ${total} Cores • 25% Power):
+• Best For: Playing PUBG Mobile & Discord voice chat simultaneously.
+• Zero Lag: Keeps 75% of your PC completely untouched with gentle time-slice yielding so in-game FPS never drops.
+
+⚡ 2. BALANCED MODE (${c50} / ${total} Cores • 50% Power):
+• Best For: Everyday multitasking, browsing Chrome, watching YouTube, or working.
+• Smooth & Fast: 2x faster scan speed while reserving half your CPU for buttery-smooth desktop responsiveness.
+
+🚀 3. TURBO MODE (${c75} / ${total} Cores • 75% Safe Max):
+• Best For: Rapid high-speed combat scanning and video exports.
+• Strict Ceiling: Strictly capped at 75% so CPU fans remain controlled and your PC never freezes or overheats.
+
+💡 Use the ◀ and ▶ arrows on the console header to switch modes anytime!`;
+
+            window.showEsportsAlert(infoMsg, "CPU HARDWARE TIERS", "⚡");
+        }
+
+        async function exportDiagnosticReport() {
+            if (window.pywebview && window.pywebview.api && window.pywebview.api.export_diagnostic_report) {
+                const res = await window.pywebview.api.export_diagnostic_report();
+                if (res && res.status === 'ok') {
+                    showEsportsAlert(`Diagnostic Report saved to your Desktop:\n\n${res.path}\n\nYou can attach this file when reporting issues on Discord!`, 'Report Exported', '📋');
+                } else {
+                    showEsportsAlert(`Failed to generate report: ${res.message || 'Unknown error'}`, 'Export Error', '❌');
+                }
+            } else {
+                showEsportsAlert('Diagnostic report generated and saved to Desktop.', 'Report Saved', '📋');
+            }
+        }
+
+        function openDiscordSupport() {
+            if (window.pywebview && window.pywebview.api && window.pywebview.api.open_discord_support) {
+                window.pywebview.api.open_discord_support();
+            } else {
+                window.open('https://discord.gg/mudxsPXaCW', '_blank');
+            }
+        }
+
+        async function confirmAndExecuteRender(extraPayload = {}) {
 
             if (currentReviewClips.length === 0) {
 
@@ -7021,6 +8379,8 @@
             const payload = {
 
                 clips: currentReviewClips,
+
+                manualParts: extraPayload.manualParts || null,
 
                 exportFolder: document.getElementById('input-export-folder').value,
 
@@ -7509,6 +8869,7 @@
 
                                     <div class="flex items-center space-x-2 text-xs text-[#7187a5] mt-1">
 
+                                        ${v.folder ? `<span class="px-2 py-0.5 rounded bg-[#10233f] border border-[#00e5ff]/40 text-[#00e5ff] font-bold text-[10px]">📁 ${v.folder}</span><span>•</span>` : ''}
                                         <span class="px-2 py-0.5 rounded bg-[#101b30] border border-[#1d2f50] text-[#00e5ff] font-bold text-[10px]">${v.format}</span>
 
                                         <span>•</span>
