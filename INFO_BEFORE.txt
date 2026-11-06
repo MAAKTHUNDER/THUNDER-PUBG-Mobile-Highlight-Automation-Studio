@@ -2,9 +2,17 @@
 THUNDER Studio — System Requirements & Quick Setup Guide
 ================================================================================
 
-WELCOME TO THUNDER STUDIO V1.0!
+WELCOME TO THUNDER STUDIO V1.1!
 The industry's first autonomous AI highlight automation studio tailored for
 competitive PUBG Mobile creators, esports athletes, and content producers.
+
+WHAT'S NEW IN V1.1:
+--------------------
+* Turbo vs Normal Background CPU Mode (Zero FPS Drop during Gameloop matches)
+* Frame-Accurate Scrubbing: Draggable Playhead on Timeline Clips
+* Seamless Trimming: Auto-pause during trim with anti-skip clip guard
+* Multi-Part Highlight Export & Organizer
+* Official Discord Community & Instant Error Reporting
 
 SYSTEM REQUIREMENTS:
 --------------------
@@ -24,5 +32,6 @@ QUICK START IN 3 EASY STEPS:
    "GENERATE AI HIGHLIGHTS" — THUNDER will automatically isolate knocks, eliminations,
    and squad wipes into ready-to-publish esports montages and vertical shorts!
 
-Support & Portal: https://maakthunder-studio.web.app
+Support & Discord: https://discord.gg/mudxsPXaCW
+Official Portal:   https://maakthunder-studio.web.app
 ================================================================================

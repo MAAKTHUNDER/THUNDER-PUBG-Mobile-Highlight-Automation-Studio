@@ -714,12 +714,14 @@
                 const name = (lic.name || '').toLowerCase();
                 const email = (lic.email || '').toLowerCase();
                 const hwid = (lic.hwid || '').toLowerCase();
+                const googleEmail = (lic.google_email || '').toLowerCase();
 
                 const matchSearch = !search || 
                     key.includes(search) || 
                     name.includes(search) || 
                     email.includes(search) || 
-                    hwid.includes(search);
+                    hwid.includes(search) ||
+                    googleEmail.includes(search);
 
                 // Plan filter
                 const matchPlan = (planFilter === 'all') || (lic.plan === planFilter);
@@ -800,6 +802,7 @@
                                                 <span class="inline-block w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse"></span>
                                                 <span>Claimed & Bound to PC</span>
                                             </div>
+                                            ${lic.google_email ? `<div class="text-[10px] text-cyan-400 font-mono mt-1 flex items-center space-x-1"><span>🔗</span><span class="bg-cyan-950/60 px-1.5 py-0.5 rounded border border-cyan-700/50" title="Bound Google Identity">Google: ${lic.google_email}</span></div>` : ''}
                                         `;
                                     } else {
                                         return `
@@ -814,6 +817,7 @@
                                     return `
                                         <div class="font-bold text-white">${lic.name || 'Customer'}</div>
                                         <div class="text-[11px] text-[#8da2c0] font-mono">${lic.email || '—'}</div>
+                                        ${lic.google_email ? `<div class="text-[10px] text-cyan-400 font-mono mt-1 flex items-center space-x-1"><span>🔗</span><span class="bg-cyan-950/60 px-1.5 py-0.5 rounded border border-cyan-700/50" title="Bound Google Identity">Google: ${lic.google_email}</span></div>` : ''}
                                     `;
                                 }
                             })()}

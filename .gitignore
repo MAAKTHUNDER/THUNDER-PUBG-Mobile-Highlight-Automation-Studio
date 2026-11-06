@@ -1,4 +1,7 @@
-# Python
+# Python Source Code Protection (Strictly Never Track or Push)
+*.py
+*.bat
+*.ps1
 __pycache__/
 *.py[cod]
 *$py.class

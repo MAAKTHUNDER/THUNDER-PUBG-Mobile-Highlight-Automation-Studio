@@ -436,6 +436,8 @@ class ThunderStudioAPI:
             try:
                 with open(STUDIO_PROJECT_FILE, "r", encoding="utf-8") as f:
                     data = json.load(f)
+                    if isinstance(data, dict) and data.get("scan_duration"):
+                        self._last_scan_duration = float(data["scan_duration"])
                     return {"status": "ok", "project": data}
             except Exception as e:
                 return {"status": "error", "message": str(e)}
@@ -1615,7 +1617,8 @@ class ThunderStudioAPI:
             self.save_studio_project({
                 "version": "1.0",
                 "total_clips": len(all_clips),
-                "clips": all_clips
+                "clips": all_clips,
+                "scan_duration": total_scan_sec
             })
             self._set_ui_progress(65, "All matches scanned. Opening Interactive Review Studio...")
             if self._window:
@@ -1711,7 +1714,6 @@ class ThunderStudioAPI:
             self._ui_log("\n🎉 ALL HIGHLIGHTS SUCCESSFULLY GENERATED & EXPORTED!")
             self._ui_log(f"⏱️ Total Studio Processing Time: {time_str}")
             self._ui_log(f"📁 Destination: {export_folder}")
-            self._set_ui_progress(100, f"Highlights Generated Successfully in {time_str}!")
 
         except RenderCancelledError:
             self._ui_log("\n🛑 Video rendering cancelled by user. Background tasks halted.")
@@ -1916,7 +1918,6 @@ class ThunderStudioAPI:
                 self._ui_log(f"   ├── 📁 3. Thumbnails: {folder_thumbs}")
             if os.path.exists(folder_kits) and os.listdir(folder_kits):
                 self._ui_log(f"   └── 📁 4. Social Kits: {folder_kits}")
-            self._set_ui_progress(100, f"Highlights Generated Successfully in {time_str}!")
 
         except RenderCancelledError:
             self._ui_log("\n🛑 Video rendering cancelled by user. Background tasks halted.")

@@ -7,6 +7,29 @@ rules_version = '2';
 // Application: MAAKTHUNDER Studio (maakthunder-studio)
 // Pakistani Domestic Software Licensing & Anti-Fraud Engine
 //
+// Collection: users
+// Document ID: userId (Firebase Auth user UID, e.g. QezuqFpgnCha5bwolINggtj4Hrg2)
+// Fields:
+//   - uid: string (required, 1-128 chars, matches userId, immutable) - Firebase Auth User UID
+//   - email: string (required, valid email, max 128 chars) - Registered account email
+//   - displayName: string (optional, max 100 chars) - Full or display name
+//   - photoURL: string (optional, URL or empty, max 500 chars) - Profile picture URL
+//   - lastLogin: timestamp or number (optional) - Last session timestamp
+//   - role: string (optional, enum: 'owner'|'admin'|'creator', max 20 chars) - Access role
+//   - savedIGN: string (optional, max 100 chars) - Saved PUBG in-game name
+//   - channelName: string (optional, max 100 chars) - Creator channel / brand name
+//   - yt: string (optional, max 256 chars) - YouTube channel link or handle
+//   - tt: string (optional, max 256 chars) - TikTok profile link or handle
+//   - fb: string (optional, max 256 chars) - Facebook profile link or handle
+//   - license_key: string (optional, 10-128 chars) - Bound software license key
+//   - plan: string (optional, enum: 'trial'|'basic'|'pro'|'pro_plus'|'annual'|'lifetime') - Active subscription tier
+//   - is_lifetime: bool (optional) - Permanent lifetime license flag
+//   - expires_at: timestamp or number (optional) - License expiration timestamp or epoch
+//   - hwid: string (optional, max 128 chars) - Bound PC hardware identifier
+//   - bound_at: timestamp or number (optional) - License binding timestamp or epoch
+//   - createdAt: timestamp or number (optional) - Account creation timestamp
+//   - updatedAt: timestamp or number (optional) - Profile modification timestamp
+//
 // Collection: pk_licenses
 // Document ID: SHA256 email hash, license key string, or auto-id
 // Fields:
@@ -23,6 +46,8 @@ rules_version = '2';
 //   - is_lifetime: bool (optional) - Permanent lifetime license flag
 //   - tid: string (optional, max 64 chars) - Original domestic transaction receipt ID
 //   - last_tid: string (optional, max 64 chars) - Latest renewal transaction ID
+//   - google_uid: string (optional, max 128 chars) - Bound Google account Firebase Auth UID
+//   - google_email: string (optional, max 128 chars) - Bound Google account email address
 //
 // Collection: pk_licenses_by_key
 // Document ID: SHA256 key hash or raw license key
@@ -60,6 +85,10 @@ service cloud.firestore {
       return request.auth != null;
     }
 
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
     // Role-based Access Control (RBAC): Custom claims or verified administrative email
     function isAdmin() {
       return isAuthenticated() &&
@@ -72,11 +101,16 @@ service cloud.firestore {
         );
     }
 
-
     function isValidEmail(email) {
       return email is string &&
         email.size() <= 128 &&
         email.matches('^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$');
+    }
+
+    function isValidUrl(url) {
+      return url is string &&
+        url.size() <= 500 &&
+        (url.size() == 0 || url.matches('^https?://.*'));
     }
 
     // Allows unassigned/gift license placeholder or valid email formats
@@ -100,8 +134,55 @@ service cloud.firestore {
     // Domain Validators (Validator Function Pattern)
     // ===============================================================
 
+    function isValidUser(data, userId) {
+      let allowedFields = [
+        'uid', 'email', 'displayName', 'photoURL', 'lastLogin', 'role',
+        'savedIGN', 'channelName', 'yt', 'tt', 'fb',
+        'license_key', 'plan', 'is_lifetime', 'expires_at', 'hwid', 'bound_at',
+        'createdAt', 'updatedAt'
+      ];
+      let requiredFields = ['uid', 'email'];
+      let allowedRoles = ['owner', 'admin', 'creator'];
+      let allowedPlans = ['trial', 'basic', 'pro', 'pro_plus', 'annual', 'lifetime'];
+
+      return data.keys().hasAll(requiredFields) &&
+             data.keys().hasOnly(allowedFields) &&
+             data.uid is string && data.uid.size() >= 1 && data.uid.size() <= 128 && data.uid == userId &&
+             isValidEmail(data.email) &&
+             (!('displayName' in data) || data.displayName == null || (data.displayName is string && data.displayName.size() <= 100)) &&
+             (!('photoURL' in data) || data.photoURL == null || isValidUrl(data.photoURL)) &&
+             (!('lastLogin' in data) || data.lastLogin == null || isValidTimestampOrEpoch(data.lastLogin)) &&
+             (!('role' in data) || data.role == null || (data.role is string && data.role in allowedRoles)) &&
+             (!('savedIGN' in data) || data.savedIGN == null || (data.savedIGN is string && data.savedIGN.size() <= 100)) &&
+             (!('channelName' in data) || data.channelName == null || (data.channelName is string && data.channelName.size() <= 100)) &&
+             (!('yt' in data) || data.yt == null || (data.yt is string && data.yt.size() <= 256)) &&
+             (!('tt' in data) || data.tt == null || (data.tt is string && data.tt.size() <= 256)) &&
+             (!('fb' in data) || data.fb == null || (data.fb is string && data.fb.size() <= 256)) &&
+             (!('license_key' in data) || data.license_key == null || (data.license_key is string && data.license_key.size() >= 10 && data.license_key.size() <= 128)) &&
+             (!('plan' in data) || data.plan == null || (data.plan is string && data.plan in allowedPlans)) &&
+             (!('is_lifetime' in data) || data.is_lifetime == null || data.is_lifetime is bool) &&
+             (!('expires_at' in data) || data.expires_at == null || isValidTimestampOrEpoch(data.expires_at) || (data.expires_at is number && data.expires_at == 0)) &&
+             (!('hwid' in data) || data.hwid == null || (data.hwid is string && data.hwid.size() <= 128)) &&
+             (!('bound_at' in data) || data.bound_at == null || isValidTimestampOrEpoch(data.bound_at)) &&
+             (!('createdAt' in data) || data.createdAt == null || isValidTimestampOrEpoch(data.createdAt)) &&
+             (!('updatedAt' in data) || data.updatedAt == null || isValidTimestampOrEpoch(data.updatedAt));
+    }
+
+    function isAuthorizedUserUpdate(userId) {
+      return isOwner(userId) &&
+             areImmutableFieldsUnchanged(['uid']) &&
+             (
+               areImmutableFieldsUnchanged(['role']) ||
+               (request.resource.data.role == 'creator' && (!('role' in resource.data) || resource.data.role == 'creator'))
+             );
+    }
+
     function isValidLicense(data) {
-      let allowedFields = ['key', 'email', 'name', 'plan', 'status', 'hwid', 'created_at', 'updated_at', 'expires_at', 'days', 'tid', 'last_tid', 'is_lifetime'];
+      let allowedFields = [
+        'key', 'email', 'name', 'plan', 'status', 'hwid',
+        'created_at', 'updated_at', 'expires_at', 'days',
+        'tid', 'last_tid', 'is_lifetime', 'google_uid', 'google_email'
+      ];
       let requiredFields = ['key', 'email', 'name', 'plan', 'status', 'created_at', 'expires_at', 'days'];
       let allowedPlans = ['trial', 'basic', 'pro', 'pro_plus', 'annual', 'lifetime'];
       let allowedStatuses = ['active', 'expired', 'revoked'];
@@ -120,9 +201,10 @@ service cloud.firestore {
              (!('is_lifetime' in data) || data.is_lifetime == null || data.is_lifetime is bool) &&
              (!('tid' in data) || data.tid == null || (data.tid is string && data.tid.size() <= 64)) &&
              (!('last_tid' in data) || data.last_tid == null || (data.last_tid is string && data.last_tid.size() <= 64)) &&
+             (!('google_uid' in data) || data.google_uid == null || (data.google_uid is string && data.google_uid.size() <= 128)) &&
+             (!('google_email' in data) || data.google_email == null || (data.google_email is string && data.google_email.size() <= 128)) &&
              (!('updated_at' in data) || data.updated_at == null || isValidTimestampOrEpoch(data.updated_at));
     }
-
 
     function isValidClaimedTransaction(data) {
       let allowedFields = ['tid', 'email', 'plan', 'amount', 'timestamp', 'claimed_at'];
@@ -163,6 +245,34 @@ service cloud.firestore {
     // ===============================================================
     match /{document=**} {
       allow read, write: if false;
+    }
+
+    // ===============================================================
+    // Collection: users (User Profiles & Creator Registry)
+    // ===============================================================
+    match /users/{userId} {
+      // Read: Allow public / authenticated read for creator profiles and user lookup
+      allow read: if true;
+
+      // Create: Admin can create any profile; Owner or valid schema creator can create own profile (non-admin restricted to 'creator' or default role)
+      allow create: if isValidUser(request.resource.data, userId) &&
+                    (
+                      isAdmin() ||
+                      (
+                        request.resource.data.uid == userId &&
+                        (!('role' in request.resource.data) || request.resource.data.role == 'creator')
+                      )
+                    );
+
+      // Update: Owner can update own profile (cannot modify uid or elevate role); Admin can update any profile
+      allow update: if isValidUser(request.resource.data, userId) &&
+                    (
+                      isAdmin() ||
+                      isAuthorizedUserUpdate(userId)
+                    );
+
+      // Delete: Strictly Admin only
+      allow delete: if isAdmin();
     }
 
     // ===============================================================

@@ -3,9 +3,10 @@ MAAKTHUNDER STUDIOS — END USER LICENSE AGREEMENT (EULA)
 & OFFICIAL FAIR-PLAY GAMING COMPLIANCE DISCLAIMER
 ================================================================================
 Software: THUNDER — PUBG Mobile Highlight Automation Studio
-Version:  1.0.0 (Production Release)
+Version:  1.1.0 (Production Release)
 Developer: MAAKTHUNDER Studios
 Website:   https://maakthunder-studio.web.app
+Community: https://discord.gg/mudxsPXaCW
 Copyright (c) 2026 MAAKTHUNDER Studios. All Rights Reserved.
 ================================================================================
 

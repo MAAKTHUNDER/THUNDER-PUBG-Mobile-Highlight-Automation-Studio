@@ -734,11 +734,17 @@
 
                 if (docData) {
                     const now = Math.floor(Date.now() / 1000);
-                    const daysRemaining = Math.max(0, Math.ceil((docData.expires_at - now) / 86400));
+                    const isLifetime = docData.is_lifetime === true || docData.expires_at === 0 || String(docData.days).toLowerCase() === 'lifetime' || (docData.expires_at > 2500000000);
+                    const daysRemaining = isLifetime ? 'Permanent Lifetime Access' : `${Math.max(0, Math.ceil((docData.expires_at - now) / 86400))} Days`;
                     document.getElementById('status-key').innerText = docData.key;
                     document.getElementById('status-name').innerText = docData.name || '-';
                     document.getElementById('status-plan').innerText = (docData.plan || 'TRIAL (PRO+)').toUpperCase();
-                    document.getElementById('status-days').innerText = `${daysRemaining} Days`;
+                    document.getElementById('status-days').innerText = daysRemaining;
+                    if (isLifetime) {
+                        document.getElementById('status-days').className = 'font-bold text-amber-400 drop-shadow-[0_0_8px_rgba(251,191,36,0.5)]';
+                    } else {
+                        document.getElementById('status-days').className = 'font-bold text-emerald-400';
+                    }
                     document.getElementById('upgrade-status-box').classList.remove('hidden');
                     document.getElementById('upgrade-status-box').scrollIntoView({ behavior: 'smooth' });
                 } else {
