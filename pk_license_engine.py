@@ -63,7 +63,7 @@ def generate_pk_license_key(plan: str) -> str:
     return f"{raw_token}-{sig}"
 
 
-def _firestore_post(collection: str, doc_id: str, fields_dict: dict):
+def _firestore_post(collection: str, doc_id: str, fields_dict: dict, auth_token: str = None):
     """Writes a document to Firestore using the authenticated REST API."""
     mask_params = "&".join([f"updateMask.fieldPaths={k}" for k in fields_dict.keys()])
     url = f"{FIRESTORE_REST_BASE}/{collection}/{doc_id}?{mask_params}&key={FIREBASE_API_KEY}"
@@ -79,7 +79,10 @@ def _firestore_post(collection: str, doc_id: str, fields_dict: dict):
             firestore_fields[k] = {"nullValue": None}
 
     payload = json.dumps({"fields": firestore_fields}).encode("utf-8")
-    req = urllib.request.Request(url, data=payload, headers={"Content-Type": "application/json"}, method="PATCH")
+    headers = {"Content-Type": "application/json"}
+    if auth_token:
+        headers["Authorization"] = f"Bearer {auth_token}"
+    req = urllib.request.Request(url, data=payload, headers=headers, method="PATCH")
     try:
         with urllib.request.urlopen(req) as resp:
             return True, json.loads(resp.read().decode())
@@ -353,6 +356,46 @@ def validate_and_bind_pk_key(key_str: str, system_hwid: str):
     days_left = "Lifetime" if is_lifetime else max(1, int((expires_at - now_ts) / 86400))
     msg_dur = "Permanent Lifetime Access" if is_lifetime else f"{days_left} days remaining"
     return True, data, f"Valid {data.get('plan', 'Pro+').upper()} Pass ({msg_dur})"
+
+
+def get_user_cloud_profile(uid: str):
+    """Fetches user profile from Firestore users/{uid}."""
+    if not uid:
+        return None
+    success, data = _firestore_get("users", uid)
+    if success and data:
+        return data
+    return None
+
+
+def bind_license_to_google_user(uid: str, email: str, license_key: str, plan: str = "Pro+", is_lifetime: bool = False, expires_at: int = 0, hwid: str = None, auth_token: str = None):
+    """Binds a license pass bidirectionally to a Google User account in Firestore."""
+    if not uid or not license_key:
+        return False, "Missing uid or license_key"
+    
+    clean_key = license_key.strip().upper()
+    user_fields = {
+        "license_key": clean_key,
+        "plan": str(plan).lower().replace("+", "_plus"),
+        "is_lifetime": bool(is_lifetime),
+        "expires_at": int(expires_at),
+        "bound_at": int(time.time())
+    }
+    if hwid:
+        user_fields["hwid"] = hwid
+
+    # 1. Update users/{uid} (using user ID token or admin bearer)
+    ok1, res1 = _firestore_post("users", uid, user_fields, auth_token=auth_token)
+    
+    # 2. Update pk_licenses_by_key/{clean_key}
+    key_fields = {
+        "google_uid": uid,
+        "google_email": email
+    }
+    ok2, res2 = _firestore_post("pk_licenses_by_key", clean_key, key_fields)
+    
+    return ok1 or ok2, "Linked successfully"
+
 
 
 if __name__ == "__main__":

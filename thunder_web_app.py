@@ -8,6 +8,7 @@ import time
 import json
 import datetime
 import threading
+import requests
 import subprocess
 # Suppress any popup CMD / console windows for all spawned child processes (FFmpeg, FFprobe, etc.)
 if os.name == "nt":
@@ -1290,6 +1291,253 @@ class ThunderStudioAPI:
             "status": "success",
             "message": f"Auto-Upload queued successfully for {os.path.basename(video_path)} to connected channel: {channel} ({yt})"
         }
+
+    def get_auto_upload_data(self):
+        """Scans the export folder for generated vertical shorts and landscape videos, paired with their social kits."""
+        ch = load_youtube_channel()
+        export_folder = self.config.get("export_folder", r"D:\Data\Capture\Edited")
+        vert_folder = os.path.join(export_folder, "Vertical Shorts")
+        land_folder = os.path.join(export_folder, "Landscape")
+        kits_folder = os.path.join(export_folder, "Social Kits")
+
+        videos = []
+
+        def _parse_social_kit(kit_path):
+            title = ""
+            desc = ""
+            tags = ""
+            if os.path.exists(kit_path):
+                try:
+                    with open(kit_path, "r", encoding="utf-8") as f:
+                        content = f.read()
+                    
+                    if "=== YOUTUBE VIDEO TITLE ===" in content:
+                        parts = content.split("=== YOUTUBE VIDEO TITLE ===")[1]
+                        title = parts.split("===")[0].strip()
+                    if "=== YOUTUBE DESCRIPTION ===" in content:
+                        parts = content.split("=== YOUTUBE DESCRIPTION ===")[1]
+                        desc = parts.split("===")[0].strip()
+                    if "=== SEO TAGS (COPY & PASTE INTO YOUTUBE TAGS BOX) ===" in content:
+                        tags = content.split("=== SEO TAGS (COPY & PASTE INTO YOUTUBE TAGS BOX) ===")[1].strip()
+                except Exception:
+                    pass
+            return title, desc, tags
+
+        # 1. Check Vertical Shorts
+        if os.path.exists(vert_folder):
+            for fname in sorted(os.listdir(vert_folder)):
+                if fname.lower().endswith(".mp4"):
+                    full_p = os.path.join(vert_folder, fname)
+                    sz_mb = round(os.path.getsize(full_p) / (1024 * 1024), 1)
+                    base_no_ext = os.path.splitext(fname)[0]
+                    kit_name = base_no_ext.replace("THUNDER_Highlights_", "THUNDER_SocialKit_") + ".txt"
+                    kit_p = os.path.join(kits_folder, kit_name)
+                    title, desc, tags = _parse_social_kit(kit_p)
+                    if not title:
+                        title = f"{self.config.get('channel_name', 'MAAKTHUNDER')} | UNSTOPPABLE 9:16 CLUTCH #Shorts"
+                    videos.append({
+                        "path": full_p,
+                        "filename": fname,
+                        "category": "Vertical Short (9:16)",
+                        "size_mb": sz_mb,
+                        "title": title,
+                        "description": desc,
+                        "tags": tags,
+                        "is_short": True
+                    })
+
+        # 2. Check Landscape Videos
+        if os.path.exists(land_folder):
+            for fname in sorted(os.listdir(land_folder)):
+                if fname.lower().endswith(".mp4"):
+                    full_p = os.path.join(land_folder, fname)
+                    sz_mb = round(os.path.getsize(full_p) / (1024 * 1024), 1)
+                    base_no_ext = os.path.splitext(fname)[0]
+                    kit_name = base_no_ext.replace("THUNDER_Highlights_", "THUNDER_SocialKit_") + ".txt"
+                    kit_p = os.path.join(kits_folder, kit_name)
+                    title, desc, tags = _parse_social_kit(kit_p)
+                    if not title:
+                        title = f"{self.config.get('channel_name', 'MAAKTHUNDER')} | 1080p 60fps ESPORTS HIGHLIGHTS"
+                    videos.append({
+                        "path": full_p,
+                        "filename": fname,
+                        "category": "Landscape Montage (16:9)",
+                        "size_mb": sz_mb,
+                        "title": title,
+                        "description": desc,
+                        "tags": tags,
+                        "is_short": False
+                    })
+
+        return {
+            "channel": ch,
+            "videos": videos,
+            "export_folder": export_folder
+        }
+
+    def start_youtube_upload(self, payload):
+        """Starts asynchronous YouTube upload in a background daemon thread."""
+        ch = load_youtube_channel()
+        if not ch or not ch.get("channel_id"):
+            return {"status": "error", "message": "No YouTube channel linked. Please connect your channel first."}
+        
+        token = ch.get("token")
+        if not token:
+            return {"status": "auth_required", "message": "YouTube access token missing. Please click 'Reconnect / Switch Channel' to authenticate with Google."}
+        
+        video_path = payload.get("video_path")
+        if not video_path or not os.path.exists(video_path):
+            return {"status": "error", "message": f"Selected video file does not exist: {video_path}"}
+        
+        title = payload.get("title") or "PUBG Mobile Esports Highlights #Shorts"
+        description = payload.get("description") or ""
+        tags = payload.get("tags") or "PUBG Mobile, MAAKTHUNDER, Gaming"
+        privacy = payload.get("privacy") or "unlisted"
+        playlist_id = payload.get("playlist_id") or None
+        
+        self._upload_cancelled = False
+        
+        def _worker():
+            try:
+                def _prog(pct, msg):
+                    if self._window and not getattr(self, "_upload_cancelled", False):
+                        safe_msg = json.dumps(msg)
+                        self._window.evaluate_js(f"if (window.onUploadProgress) window.onUploadProgress({int(pct)}, {safe_msg});")
+                
+                res = self._execute_resumable_upload(token, video_path, title, description, tags, privacy, playlist_id, _prog)
+                if self._window:
+                    safe_res = json.dumps(res)
+                    self._window.evaluate_js(f"if (window.onUploadComplete) window.onUploadComplete({safe_res});")
+            except Exception as e:
+                err_res = {"status": "error", "message": str(e)}
+                if self._window:
+                    safe_err = json.dumps(err_res)
+                    self._window.evaluate_js(f"if (window.onUploadComplete) window.onUploadComplete({safe_err});")
+        
+        t = threading.Thread(target=_worker, daemon=True)
+        t.start()
+        return {"status": "started", "message": f"Uploading {os.path.basename(video_path)} to YouTube..."}
+
+    def cancel_youtube_upload(self):
+        """Cancels an in-progress YouTube upload."""
+        self._upload_cancelled = True
+        return {"status": "ok"}
+
+    def _execute_resumable_upload(self, token, video_path, title, description, tags, privacy="unlisted", playlist_id=None, progress_cb=None):
+        """Performs resumable chunked upload to YouTube Data API v3."""
+        import requests
+        if getattr(self, "_upload_cancelled", False):
+            return {"status": "cancelled", "message": "Upload cancelled by user."}
+        
+        file_size = os.path.getsize(video_path)
+        if isinstance(tags, str):
+            tag_list = [t.strip() for t in tags.split(",") if t.strip()]
+        else:
+            tag_list = tags or []
+        
+        if progress_cb:
+            progress_cb(5, "Connecting to YouTube API & initiating upload...")
+        
+        # 1. Initialize Resumable Upload
+        init_url = "https://www.googleapis.com/upload/youtube/v3/videos?uploadType=resumable&part=snippet,status"
+        headers = {
+            "Authorization": f"Bearer {token}",
+            "Content-Type": "application/json; charset=UTF-8",
+            "X-Upload-Content-Type": "video/mp4",
+            "X-Upload-Content-Length": str(file_size)
+        }
+        body = {
+            "snippet": {
+                "title": title[:100],
+                "description": description[:5000],
+                "tags": tag_list[:500],
+                "categoryId": "20"
+            },
+            "status": {
+                "privacyStatus": privacy.lower() if privacy in ["unlisted", "public", "private"] else "unlisted",
+                "selfDeclaredMadeForKids": False
+            }
+        }
+        
+        try:
+            resp = requests.post(init_url, headers=headers, json=body, timeout=20)
+        except Exception as e_req:
+            return {"status": "error", "message": f"Connection to YouTube failed: {e_req}"}
+
+        if resp.status_code == 401:
+            return {"status": "auth_required", "message": "YouTube access token has expired. Please click 'Reconnect / Switch Channel' to refresh your Google session."}
+        if resp.status_code not in (200, 201):
+            err_msg = resp.text
+            try:
+                err_msg = resp.json().get("error", {}).get("message", err_msg)
+            except Exception:
+                pass
+            return {"status": "error", "message": f"YouTube API Error ({resp.status_code}): {err_msg}"}
+        
+        upload_url = resp.headers.get("Location")
+        if not upload_url:
+            return {"status": "error", "message": "YouTube failed to return a valid upload location."}
+        
+        # 2. Upload in 8MB chunks
+        chunk_size = 8 * 1024 * 1024
+        with open(video_path, "rb") as f:
+            offset = 0
+            while offset < file_size:
+                if getattr(self, "_upload_cancelled", False):
+                    return {"status": "cancelled", "message": "Upload cancelled by user."}
+                
+                chunk = f.read(chunk_size)
+                chunk_len = len(chunk)
+                chunk_end = offset + chunk_len - 1
+                chunk_headers = {
+                    "Content-Type": "video/mp4",
+                    "Content-Length": str(chunk_len),
+                    "Content-Range": f"bytes {offset}-{chunk_end}/{file_size}"
+                }
+                
+                try:
+                    chunk_resp = requests.put(upload_url, headers=chunk_headers, data=chunk, timeout=120)
+                except Exception as e_ch:
+                    return {"status": "error", "message": f"Upload network error during chunk transmission: {e_ch}"}
+
+                if chunk_resp.status_code in (200, 201):
+                    # Done!
+                    v_data = chunk_resp.json()
+                    vid_id = v_data.get("id")
+                    
+                    if playlist_id and vid_id:
+                        try:
+                            pl_url = "https://www.googleapis.com/youtube/v3/playlistItems?part=snippet"
+                            pl_headers = {"Authorization": f"Bearer {token}", "Content-Type": "application/json"}
+                            pl_body = {
+                                "snippet": {
+                                    "playlistId": playlist_id,
+                                    "resourceId": {"kind": "youtube#video", "videoId": vid_id}
+                                }
+                            }
+                            requests.post(pl_url, headers=pl_headers, json=pl_body, timeout=10)
+                        except Exception as e_pl:
+                            print("Playlist add note:", e_pl)
+                    
+                    if progress_cb:
+                        progress_cb(100, "🎉 Upload complete! Video is live on YouTube.")
+                    
+                    return {
+                        "status": "success",
+                        "video_id": vid_id,
+                        "video_url": f"https://youtu.be/{vid_id}",
+                        "shorts_url": f"https://youtube.com/shorts/{vid_id}",
+                        "title": title
+                    }
+                elif chunk_resp.status_code == 308:
+                    offset += chunk_len
+                    pct = max(10, min(98, int((offset / file_size) * 100)))
+                    mb_up = offset / (1024 * 1024)
+                    mb_tot = file_size / (1024 * 1024)
+                    if progress_cb:
+                        progress_cb(pct, f"Uploading to YouTube: {mb_up:.1f} MB / {mb_tot:.1f} MB ({pct}%)...")
+                else:
+                    return {"status": "error", "message": f"Upload chunk error ({chunk_resp.status_code}): {chunk_resp.text}"}
 
     def check_for_updates(self):
         """Checks the remote manifest or local fallback for latest version and changelog."""
