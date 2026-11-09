@@ -3956,7 +3956,7 @@
                         <div class="flex items-center justify-between border-b border-[#1b2b48] pb-3">
                             <div class="flex items-center space-x-2 text-xs font-bold text-cyan-400 uppercase tracking-wide">
                                 <span>🎵</span>
-                                <span>TikTok Global Upload Defaults</span>
+                                <span>TikTok Full Studio Defaults &amp; Audience Permissions</span>
                             </div>
                             <label class="flex items-center space-x-2 text-xs text-white cursor-pointer">
                                 <input type="checkbox" id="def-check-tt" checked class="rounded text-cyan-400">
@@ -3965,22 +3965,54 @@
                         </div>
 
                         <div class="space-y-1">
-                            <label class="text-[11px] text-[#8da2c0] font-semibold">Default Caption &amp; Hashtags:</label>
+                            <label class="text-[11px] text-[#8da2c0] font-semibold">Default Caption &amp; Hashtags (Supports {title} and {ign}):</label>
                             <textarea id="def-tt-caption" rows="2" class="w-full py-2 px-3 rounded-lg bg-[#0e172a] border border-[#1e2f52] text-xs text-[#cbd5e1] focus:border-cyan-400 focus:outline-none font-mono">Rate this squad wipe 1-10! 🔥 {ign} in action #pubgmobile #pubg #foryou #fyp #gaming #esports #pubglover</textarea>
                         </div>
 
-                        <div class="flex flex-wrap items-center gap-4 text-xs text-[#cbd5e1]">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 p-3 rounded-xl bg-[#060a14] border border-[#1b2b48]">
+                            <div class="space-y-1">
+                                <label class="text-[11px] text-[#8da2c0] font-semibold">Who Can Watch This Video (Visibility):</label>
+                                <select id="def-tt-privacy" class="w-full py-1.5 px-2 rounded-lg bg-[#0e172a] border border-[#1e2f52] text-xs text-white focus:outline-none">
+                                    <option value="public" selected>Public (Everyone)</option>
+                                    <option value="friends">Friends (Followers you follow back)</option>
+                                    <option value="private">Only you (Private)</option>
+                                </select>
+                            </div>
+                            <div class="space-y-1">
+                                <label class="text-[11px] text-[#8da2c0] font-semibold">High-Quality Video (HD 1080p 60fps):</label>
+                                <select id="def-tt-hd" class="w-full py-1.5 px-2 rounded-lg bg-[#0e172a] border border-[#1e2f52] text-xs text-white focus:outline-none">
+                                    <option value="true" selected>Enabled (Preserve 60FPS High Definition)</option>
+                                    <option value="false">Standard Quality</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="p-3 rounded-xl bg-[#060a14] border border-[#1b2b48] space-y-2">
+                            <span class="text-[11px] font-bold text-cyan-400 uppercase tracking-wider">Interaction &amp; Sharing Permissions:</span>
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs text-[#cbd5e1]">
+                                <label class="flex items-center space-x-2 cursor-pointer">
+                                    <input type="checkbox" id="def-tt-comments" checked class="rounded text-cyan-400">
+                                    <span>Allow Comments</span>
+                                </label>
+                                <label class="flex items-center space-x-2 cursor-pointer">
+                                    <input type="checkbox" id="def-tt-duet" checked class="rounded text-cyan-400">
+                                    <span>Allow Duet</span>
+                                </label>
+                                <label class="flex items-center space-x-2 cursor-pointer">
+                                    <input type="checkbox" id="def-tt-stitch" checked class="rounded text-cyan-400">
+                                    <span>Allow Stitch</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="flex flex-wrap items-center gap-4 text-xs text-[#cbd5e1] pt-1">
                             <label class="flex items-center space-x-2 cursor-pointer">
-                                <input type="checkbox" id="def-tt-duet" checked class="rounded text-cyan-400">
-                                <span>Allow Duet</span>
+                                <input type="checkbox" id="def-tt-copyright" checked class="rounded text-cyan-400">
+                                <span>Run automated Copyright &amp; Music Check before posting</span>
                             </label>
                             <label class="flex items-center space-x-2 cursor-pointer">
-                                <input type="checkbox" id="def-tt-stitch" checked class="rounded text-cyan-400">
-                                <span>Allow Stitch</span>
-                            </label>
-                            <label class="flex items-center space-x-2 cursor-pointer">
-                                <input type="checkbox" id="def-tt-comments" checked class="rounded text-cyan-400">
-                                <span>Allow Comments</span>
+                                <input type="checkbox" id="def-tt-commercial" class="rounded text-cyan-400">
+                                <span>Commercial Content Disclosure (Promote own brand / sponsor)</span>
                             </label>
                         </div>
                     </div>
@@ -3998,14 +4030,56 @@
                             </label>
                         </div>
 
-                        <div class="space-y-1">
-                            <label class="text-[11px] text-[#8da2c0] font-semibold">Default Reels Caption:</label>
-                            <textarea id="def-fb-caption" rows="2" class="w-full py-2 px-3 rounded-lg bg-[#0e172a] border border-[#1e2f52] text-xs text-[#cbd5e1] focus:border-blue-400 focus:outline-none font-mono">INSANE clutch moment by {ign}! 🎯 Follow for daily PUBG Mobile highlights #PUBGMobile #PUBG #Gaming #Reels #Esports</textarea>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            <div class="space-y-1">
+                                <label class="text-[11px] text-[#8da2c0] font-semibold">Default Video Title (For Feed &amp; Watch):</label>
+                                <input id="def-fb-title" type="text" value="🔥 {title} | {ign} #PUBGMOBILE" class="w-full py-2 px-3 rounded-lg bg-[#0e172a] border border-[#1e2f52] text-xs text-white font-mono">
+                            </div>
+                            <div class="space-y-1">
+                                <label class="text-[11px] text-[#8da2c0] font-semibold">Gaming Tag (Category Identifier):</label>
+                                <input id="def-fb-gaming-tag" type="text" value="PUBG Mobile" class="w-full py-2 px-3 rounded-lg bg-[#0e172a] border border-[#1e2f52] text-xs text-white font-mono">
+                            </div>
                         </div>
 
                         <div class="space-y-1">
-                            <label class="text-[11px] text-[#8da2c0] font-semibold">Gaming Tag:</label>
-                            <input id="def-fb-gaming-tag" type="text" value="PUBG Mobile" class="w-full py-1.5 px-3 rounded-lg bg-[#0e172a] border border-[#1e2f52] text-xs text-white font-mono">
+                            <label class="text-[11px] text-[#8da2c0] font-semibold">Default Reels Caption &amp; Hashtags:</label>
+                            <textarea id="def-fb-caption" rows="2" class="w-full py-2 px-3 rounded-lg bg-[#0e172a] border border-[#1e2f52] text-xs text-[#cbd5e1] focus:border-blue-400 focus:outline-none font-mono">INSANE clutch moment by {ign}! 🎯 Follow for daily PUBG Mobile highlights #PUBGMobile #PUBG #Gaming #Reels #Esports</textarea>
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 p-3 rounded-xl bg-[#060a14] border border-[#1b2b48]">
+                            <div class="space-y-1">
+                                <label class="text-[11px] text-[#8da2c0] font-semibold">Audience / Visibility:</label>
+                                <select id="def-fb-privacy" class="w-full py-1.5 px-2 rounded-lg bg-[#0e172a] border border-[#1e2f52] text-xs text-white focus:outline-none">
+                                    <option value="public" selected>Public (Recommended for Discovery &amp; Reels)</option>
+                                    <option value="restricted">Restricted (Age 18+ or Country)</option>
+                                    <option value="draft">Save as Page Draft</option>
+                                </select>
+                            </div>
+                            <div class="space-y-1">
+                                <label class="text-[11px] text-[#8da2c0] font-semibold">Monetization &amp; Stars:</label>
+                                <select id="def-fb-stars" class="w-full py-1.5 px-2 rounded-lg bg-[#0e172a] border border-[#1e2f52] text-xs text-white focus:outline-none">
+                                    <option value="true" selected>Enabled (Allow viewers to send Stars)</option>
+                                    <option value="false">Disabled</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="p-3 rounded-xl bg-[#060a14] border border-[#1b2b48] space-y-2">
+                            <span class="text-[11px] font-bold text-blue-400 uppercase tracking-wider">Distribution &amp; Remixing Permissions:</span>
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs text-[#cbd5e1]">
+                                <label class="flex items-center space-x-2 cursor-pointer">
+                                    <input type="checkbox" id="def-fb-remix" checked class="rounded text-blue-400">
+                                    <span>Allow Reels Remixing</span>
+                                </label>
+                                <label class="flex items-center space-x-2 cursor-pointer">
+                                    <input type="checkbox" id="def-fb-crosspost" checked class="rounded text-blue-400">
+                                    <span>Allow Crossposting</span>
+                                </label>
+                                <label class="flex items-center space-x-2 cursor-pointer">
+                                    <input type="checkbox" id="def-fb-embed" checked class="rounded text-blue-400">
+                                    <span>Allow Embedding</span>
+                                </label>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -4103,6 +4177,32 @@
                                     <span class="text-blue-400 font-bold">👥 Facebook/Reels</span>
                                 </label>
                             </div>
+                        </div>
+
+                                                <!-- Master Visibility & Global Sync Toolbar -->
+                        <div class="flex flex-wrap items-center justify-between bg-[#060a14] px-3 py-2 rounded-xl border border-[#1b2b48] gap-2 flex-shrink-0">
+                            <div class="flex items-center space-x-2">
+                                <span class="text-xs font-bold text-white flex items-center space-x-1.5">
+                                    <span>🌐</span>
+                                    <span>Master Visibility:</span>
+                                </span>
+                                <div class="flex items-center space-x-1 bg-[#0c1424] p-1 rounded-lg border border-[#1e2f52]">
+                                    <button onclick="applyMasterVisibility('public')" class="px-2.5 py-1 rounded text-[11px] font-bold text-emerald-300 hover:bg-emerald-500/20 transition-all cursor-pointer border border-emerald-500/30">
+                                        🌐 Public (All)
+                                    </button>
+                                    <button onclick="applyMasterVisibility('unlisted')" class="px-2.5 py-1 rounded text-[11px] font-bold text-blue-300 hover:bg-blue-500/20 transition-all cursor-pointer border border-blue-500/30">
+                                        🔒 Unlisted / Friends
+                                    </button>
+                                    <button onclick="applyMasterVisibility('private')" class="px-2.5 py-1 rounded text-[11px] font-bold text-rose-300 hover:bg-rose-500/20 transition-all cursor-pointer border border-rose-500/30">
+                                        🙈 Private / Draft
+                                    </button>
+                                </div>
+                            </div>
+
+                            <button onclick="copySettingsToAllVideos()" class="px-3 py-1.5 rounded-lg bg-[#142038] hover:bg-[#1d2e50] text-xs font-bold text-cyan-300 border border-cyan-500/40 cursor-pointer transition-all flex items-center space-x-1.5 shadow-sm">
+                                <span>📋</span>
+                                <span>Copy This Video's Settings to All</span>
+                            </button>
                         </div>
 
                         <!-- 3 Platform Sub-Tabs for this Video -->
@@ -4226,52 +4326,151 @@
                                 </details>
                             </div>
 
-                            <!-- TikTok Form -->
+                            <!-- TikTok Form with Full Web Studio Options -->
                             <div id="studio-form-tt" class="hidden space-y-3">
                                 <div class="space-y-1">
                                     <label class="text-[11px] text-[#8da2c0] font-semibold">TikTok Caption &amp; Hashtags:</label>
                                     <textarea id="studio-tt-caption" rows="3" oninput="updateStudioActiveField('ttCaption', this.value)" class="w-full py-2 px-3 rounded-lg bg-[#0e172a] border border-[#1e2f52] text-xs text-[#cbd5e1] focus:border-cyan-400 focus:outline-none font-mono"></textarea>
                                 </div>
-                                <div class="flex items-center space-x-4 text-xs text-[#cbd5e1]">
+
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                    <div class="space-y-1">
+                                        <label class="text-[11px] text-[#8da2c0] font-semibold">Who Can Watch (Visibility):</label>
+                                        <select id="studio-tt-privacy" onchange="updateStudioActiveField('ttPrivacy', this.value)" class="w-full py-1.5 px-2.5 rounded-lg bg-[#0e172a] border border-[#1e2f52] text-xs text-white focus:outline-none font-mono">
+                                            <option value="public">Public (Everyone)</option>
+                                            <option value="friends">Friends (Followers you follow back)</option>
+                                            <option value="private">Only you (Private)</option>
+                                        </select>
+                                    </div>
+                                    <div class="space-y-1">
+                                        <label class="text-[11px] text-[#8da2c0] font-semibold">High-Quality Video (HD 60FPS):</label>
+                                        <select id="studio-tt-hd" onchange="updateStudioActiveField('ttHd', this.value)" class="w-full py-1.5 px-2.5 rounded-lg bg-[#0e172a] border border-[#1e2f52] text-xs text-white focus:outline-none font-mono">
+                                            <option value="true">Enabled (Preserve 1080p 60FPS)</option>
+                                            <option value="false">Standard Quality</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div class="p-3 rounded-xl bg-[#060a14] border border-[#1b2b48] space-y-2">
+                                    <span class="text-[10px] font-bold text-cyan-400 uppercase tracking-wider">Interaction &amp; Sharing:</span>
+                                    <div class="flex items-center space-x-4 text-xs text-[#cbd5e1]">
+                                        <label class="flex items-center space-x-2 cursor-pointer">
+                                            <input type="checkbox" id="studio-tt-comments" onchange="updateStudioActiveField('ttComments', this.checked)" class="rounded text-cyan-400">
+                                            <span>Allow Comments</span>
+                                        </label>
+                                        <label class="flex items-center space-x-2 cursor-pointer">
+                                            <input type="checkbox" id="studio-tt-duet" onchange="updateStudioActiveField('ttDuet', this.checked)" class="rounded text-cyan-400">
+                                            <span>Allow Duet</span>
+                                        </label>
+                                        <label class="flex items-center space-x-2 cursor-pointer">
+                                            <input type="checkbox" id="studio-tt-stitch" onchange="updateStudioActiveField('ttStitch', this.checked)" class="rounded text-cyan-400">
+                                            <span>Allow Stitch</span>
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <div class="flex items-center space-x-4 text-xs text-[#cbd5e1] pt-1">
                                     <label class="flex items-center space-x-2 cursor-pointer">
-                                        <input type="checkbox" id="studio-tt-duet" onchange="updateStudioActiveField('ttDuet', this.checked)" class="rounded text-cyan-400">
-                                        <span>Allow Duet</span>
+                                        <input type="checkbox" id="studio-tt-copyright" onchange="updateStudioActiveField('ttCopyright', this.checked)" class="rounded text-cyan-400">
+                                        <span>Run automated audio copyright check</span>
                                     </label>
                                     <label class="flex items-center space-x-2 cursor-pointer">
-                                        <input type="checkbox" id="studio-tt-stitch" onchange="updateStudioActiveField('ttStitch', this.checked)" class="rounded text-cyan-400">
-                                        <span>Allow Stitch</span>
+                                        <input type="checkbox" id="studio-tt-commercial" onchange="updateStudioActiveField('ttCommercial', this.checked)" class="rounded text-cyan-400">
+                                        <span>Commercial Content Disclosure</span>
                                     </label>
                                 </div>
                             </div>
 
-                            <!-- Facebook Form -->
+                            <!-- Facebook Form with Full Meta Creator Options -->
                             <div id="studio-form-fb" class="hidden space-y-3">
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                    <div class="space-y-1">
+                                        <label class="text-[11px] text-[#8da2c0] font-semibold">Video Title (For Feed/Watch):</label>
+                                        <input id="studio-fb-title" type="text" oninput="updateStudioActiveField('fbTitle', this.value)" class="w-full py-1.5 px-3 rounded-lg bg-[#0e172a] border border-[#1e2f52] text-xs text-white font-mono">
+                                    </div>
+                                    <div class="space-y-1">
+                                        <label class="text-[11px] text-[#8da2c0] font-semibold">Gaming Tag:</label>
+                                        <input id="studio-fb-tag" type="text" value="PUBG Mobile" oninput="updateStudioActiveField('fbTag', this.value)" class="w-full py-1.5 px-3 rounded-lg bg-[#0e172a] border border-[#1e2f52] text-xs text-white font-mono">
+                                    </div>
+                                </div>
+
                                 <div class="space-y-1">
-                                    <label class="text-[11px] text-[#8da2c0] font-semibold">Facebook Reel Caption:</label>
+                                    <label class="text-[11px] text-[#8da2c0] font-semibold">Facebook Reel Caption &amp; Hashtags:</label>
                                     <textarea id="studio-fb-caption" rows="3" oninput="updateStudioActiveField('fbCaption', this.value)" class="w-full py-2 px-3 rounded-lg bg-[#0e172a] border border-[#1e2f52] text-xs text-[#cbd5e1] focus:border-blue-400 focus:outline-none font-mono"></textarea>
                                 </div>
-                                <div class="space-y-1">
-                                    <label class="text-[11px] text-[#8da2c0] font-semibold">Gaming Tag:</label>
-                                    <input id="studio-fb-tag" type="text" value="PUBG Mobile" oninput="updateStudioActiveField('fbTag', this.value)" class="w-full py-1.5 px-3 rounded-lg bg-[#0e172a] border border-[#1e2f52] text-xs text-white font-mono">
+
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                    <div class="space-y-1">
+                                        <label class="text-[11px] text-[#8da2c0] font-semibold">Audience / Visibility:</label>
+                                        <select id="studio-fb-privacy" onchange="updateStudioActiveField('fbPrivacy', this.value)" class="w-full py-1.5 px-2.5 rounded-lg bg-[#0e172a] border border-[#1e2f52] text-xs text-white focus:outline-none font-mono">
+                                            <option value="public">Public (Everyone)</option>
+                                            <option value="restricted">Restricted (18+)</option>
+                                            <option value="draft">Save as Page Draft</option>
+                                        </select>
+                                    </div>
+                                    <div class="space-y-1">
+                                        <label class="text-[11px] text-[#8da2c0] font-semibold">Monetization &amp; Stars:</label>
+                                        <select id="studio-fb-stars" onchange="updateStudioActiveField('fbStars', this.value)" class="w-full py-1.5 px-2.5 rounded-lg bg-[#0e172a] border border-[#1e2f52] text-xs text-white focus:outline-none font-mono">
+                                            <option value="true">Enabled (Allow Stars)</option>
+                                            <option value="false">Disabled</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div class="p-3 rounded-xl bg-[#060a14] border border-[#1b2b48] space-y-2">
+                                    <span class="text-[10px] font-bold text-blue-400 uppercase tracking-wider">Distribution &amp; Remixing:</span>
+                                    <div class="flex items-center space-x-4 text-xs text-[#cbd5e1]">
+                                        <label class="flex items-center space-x-2 cursor-pointer">
+                                            <input type="checkbox" id="studio-fb-remix" onchange="updateStudioActiveField('fbRemix', this.checked)" class="rounded text-blue-400">
+                                            <span>Allow Reels Remixing</span>
+                                        </label>
+                                        <label class="flex items-center space-x-2 cursor-pointer">
+                                            <input type="checkbox" id="studio-fb-crosspost" onchange="updateStudioActiveField('fbCrosspost', this.checked)" class="rounded text-blue-400">
+                                            <span>Allow Crossposting</span>
+                                        </label>
+                                        <label class="flex items-center space-x-2 cursor-pointer">
+                                            <input type="checkbox" id="studio-fb-embed" onchange="updateStudioActiveField('fbEmbed', this.checked)" class="rounded text-blue-400">
+                                            <span>Allow Embedding</span>
+                                        </label>
+                                    </div>
                                 </div>
                             </div>
                         </div>
 
                         <!-- Schedule & Footer Sync -->
-                        <div class="flex items-center justify-between pt-2 border-t border-[#1b2b48] bg-[#070c18] p-2.5 rounded-xl flex-shrink-0">
-                            <div class="flex items-center space-x-2">
-                                <label class="text-xs font-semibold text-[#8da2c0]">Schedule:</label>
-                                <select id="studio-schedule-select" onchange="updateStudioActiveField('schedule', this.value)" class="py-1 px-2.5 rounded bg-[#0e172a] border border-[#1e2f52] text-xs text-white focus:outline-none font-mono">
-                                    <option value="now">⚡ Publish Immediately</option>
-                                    <option value="1h">⏳ In 1 Hour</option>
-                                    <option value="3h">⏳ In 3 Hours</option>
-                                    <option value="tomorrow">📅 Tomorrow at 18:00 (Prime Time)</option>
-                                </select>
+                        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2.5 pt-2 border-t border-[#1b2b48] bg-[#070c18] p-2.5 rounded-xl flex-shrink-0">
+                            <div class="flex flex-wrap items-center gap-2">
+                                <label class="text-xs font-semibold text-[#8da2c0] flex items-center space-x-1">
+                                    <span>⏰</span>
+                                    <span>Publish Timing:</span>
+                                </label>
+                                <div class="flex items-center space-x-1 bg-[#0c1424] p-0.5 rounded-lg border border-[#1e2f52]">
+                                    <button id="btn-timing-now" onclick="setPublishTimingMode('now')" class="px-3 py-1 rounded text-xs font-bold bg-cyan-500 text-black shadow cursor-pointer transition-all">
+                                        ⚡ Upload Now
+                                    </button>
+                                    <button id="btn-timing-schedule" onclick="setPublishTimingMode('schedule')" class="px-3 py-1 rounded text-xs font-bold text-[#8da2c0] hover:text-white cursor-pointer transition-all">
+                                        📅 Schedule for Later
+                                    </button>
+                                </div>
+
+                                <!-- Custom DateTime Picker & Quick Timing Buttons -->
+                                <div id="studio-custom-date-container" class="hidden flex items-center space-x-2">
+                                    <input type="datetime-local" id="studio-custom-datetime" onchange="updateStudioActiveField('scheduleDate', this.value)" class="py-1 px-2.5 rounded-lg bg-[#0e172a] border border-cyan-500/50 text-xs text-white focus:outline-none font-mono">
+                                    <button onclick="setQuickScheduleDate(1)" class="px-2 py-1 rounded text-[10px] font-bold bg-[#142038] text-cyan-300 border border-[#1e2f52] hover:bg-[#1d2e50] cursor-pointer">
+                                        +1h
+                                    </button>
+                                    <button onclick="setQuickScheduleDate(3)" class="px-2 py-1 rounded text-[10px] font-bold bg-[#142038] text-cyan-300 border border-[#1e2f52] hover:bg-[#1d2e50] cursor-pointer">
+                                        +3h
+                                    </button>
+                                    <button onclick="setQuickScheduleDate(24)" class="px-2 py-1 rounded text-[10px] font-bold bg-[#142038] text-cyan-300 border border-[#1e2f52] hover:bg-[#1d2e50] cursor-pointer">
+                                        Tomorrow Peak
+                                    </button>
+                                </div>
                             </div>
-                            <button onclick="copySettingsToAllVideos()" class="px-3 py-1.5 rounded-lg bg-[#142038] hover:bg-[#1d2e50] text-xs font-bold text-cyan-300 border border-cyan-500/40 cursor-pointer transition-all flex items-center space-x-1.5">
-                                <span>📋</span>
-                                <span>Copy This Video's Settings to All Videos</span>
-                            </button>
+
+                            <div class="text-[11px] font-mono text-[#8da2c0]" id="studio-timing-status-text">
+                                Will publish immediately upon upload
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -9964,11 +10163,22 @@
                 ytPlaylist: '',
                 checkTt: true,
                 ttCaption: 'Rate this squad wipe 1-10! 🔥 {ign} in action #pubgmobile #pubg #foryou #fyp #gaming #esports #pubglover',
+                ttPrivacy: 'public',
+                ttHd: 'true',
+                ttComments: true,
                 ttDuet: true,
                 ttStitch: true,
+                ttCopyright: true,
+                ttCommercial: false,
                 checkFb: true,
+                fbTitle: '🔥 {title} | {ign} #PUBGMOBILE',
+                fbTag: 'PUBG Mobile',
                 fbCaption: 'INSANE clutch moment by {ign}! 🎯 Follow for daily PUBG Mobile highlights #PUBGMobile #PUBG #Gaming #Reels #Esports',
-                fbTag: 'PUBG Mobile'
+                fbPrivacy: 'public',
+                fbStars: 'true',
+                fbRemix: true,
+                fbCrosspost: true,
+                fbEmbed: true
             };
         }
 
@@ -9998,12 +10208,23 @@
 
             setChk('def-check-tt', p.checkTt);
             setVal('def-tt-caption', p.ttCaption);
-            setChk('def-tt-duet', p.ttDuet);
-            setChk('def-tt-stitch', p.ttStitch);
+            setVal('def-tt-privacy', p.ttPrivacy || 'public');
+            setVal('def-tt-hd', p.ttHd || 'true');
+            setChk('def-tt-comments', p.ttComments !== false);
+            setChk('def-tt-duet', p.ttDuet !== false);
+            setChk('def-tt-stitch', p.ttStitch !== false);
+            setChk('def-tt-copyright', p.ttCopyright !== false);
+            setChk('def-tt-commercial', !!p.ttCommercial);
 
             setChk('def-check-fb', p.checkFb);
+            setVal('def-fb-title', p.fbTitle || '🔥 {title} | {ign} #PUBGMOBILE');
+            setVal('def-fb-gaming-tag', p.fbTag || 'PUBG Mobile');
             setVal('def-fb-caption', p.fbCaption);
-            setVal('def-fb-gaming-tag', p.fbTag);
+            setVal('def-fb-privacy', p.fbPrivacy || 'public');
+            setVal('def-fb-stars', p.fbStars || 'true');
+            setChk('def-fb-remix', p.fbRemix !== false);
+            setChk('def-fb-crosspost', p.fbCrosspost !== false);
+            setChk('def-fb-embed', p.fbEmbed !== false);
         }
 
         function saveGlobalPlatformPresets() {
@@ -10031,15 +10252,26 @@
                 ytPlaylist: getVal('def-yt-playlist', ''),
                 checkTt: getChk('def-check-tt', true),
                 ttCaption: getVal('def-tt-caption', ''),
+                ttPrivacy: getVal('def-tt-privacy', 'public'),
+                ttHd: getVal('def-tt-hd', 'true'),
+                ttComments: getChk('def-tt-comments', true),
                 ttDuet: getChk('def-tt-duet', true),
                 ttStitch: getChk('def-tt-stitch', true),
+                ttCopyright: getChk('def-tt-copyright', true),
+                ttCommercial: getChk('def-tt-commercial', false),
                 checkFb: getChk('def-check-fb', true),
+                fbTitle: getVal('def-fb-title', '🔥 {title} | {ign} #PUBGMOBILE'),
+                fbTag: getVal('def-fb-gaming-tag', 'PUBG Mobile'),
                 fbCaption: getVal('def-fb-caption', ''),
-                fbTag: getVal('def-fb-gaming-tag', 'PUBG Mobile')
+                fbPrivacy: getVal('def-fb-privacy', 'public'),
+                fbStars: getVal('def-fb-stars', 'true'),
+                fbRemix: getChk('def-fb-remix', true),
+                fbCrosspost: getChk('def-fb-crosspost', true),
+                fbEmbed: getChk('def-fb-embed', true)
             };
 
             localStorage.setItem(STORAGE_KEY_PRESETS_V3, JSON.stringify(data));
-            showEsportsAlert('All YouTube Studio, TikTok & Facebook presets successfully saved!', 'PRESETS SAVED', '✓');
+            showEsportsAlert('All YouTube, TikTok, and Facebook platform presets saved successfully!', 'PRESETS SAVED', '✓');
         }
 
         // 4. Initialize Auto Upload View
@@ -10219,13 +10451,25 @@
                     embeddable: (presets.ytEmbed !== undefined) ? presets.ytEmbed : true,
                     // TikTok Config
                     ttCaption: presets.ttCaption.replace('{title}', cleanName).replace('{ign}', ign),
-                    ttDuet: presets.ttDuet,
-                    ttStitch: presets.ttStitch,
+                    ttPrivacy: presets.ttPrivacy || 'public',
+                    ttHd: presets.ttHd || 'true',
+                    ttComments: presets.ttComments !== false,
+                    ttDuet: presets.ttDuet !== false,
+                    ttStitch: presets.ttStitch !== false,
+                    ttCopyright: presets.ttCopyright !== false,
+                    ttCommercial: !!presets.ttCommercial,
                     // Facebook Config
+                    fbTitle: (presets.fbTitle || '🔥 {title} | {ign} #PUBGMOBILE').replace('{title}', cleanName).replace('{ign}', ign),
                     fbCaption: presets.fbCaption.replace('{title}', cleanName).replace('{ign}', ign),
-                    fbTag: presets.fbTag,
-                    // Scheduling
-                    schedule: 'now',
+                    fbTag: presets.fbTag || 'PUBG Mobile',
+                    fbPrivacy: presets.fbPrivacy || 'public',
+                    fbStars: presets.fbStars || 'true',
+                    fbRemix: presets.fbRemix !== false,
+                    fbCrosspost: presets.fbCrosspost !== false,
+                    fbEmbed: presets.fbEmbed !== false,
+                    // Scheduling & Timing
+                    timingMode: 'now',
+                    scheduleDate: '',
                     status: 'ready' // 'ready', 'uploading', 'published', 'failed'
                 };
             });
@@ -10510,20 +10754,28 @@
                 ytPlaylist.value = item.playlistId || '';
             }
 
-            const ttCaption = document.getElementById('studio-tt-caption');
-            const ttDuet = document.getElementById('studio-tt-duet');
-            const ttStitch = document.getElementById('studio-tt-stitch');
-            if (ttCaption) ttCaption.value = item.ttCaption || '';
-            if (ttDuet) ttDuet.checked = !!item.ttDuet;
-            if (ttStitch) ttStitch.checked = !!item.ttStitch;
+            // TikTok Fields
+            setVal('studio-tt-caption', item.ttCaption || '');
+            setVal('studio-tt-privacy', item.ttPrivacy || 'public');
+            setVal('studio-tt-hd', item.ttHd || 'true');
+            setChk('studio-tt-comments', item.ttComments !== false);
+            setChk('studio-tt-duet', item.ttDuet !== false);
+            setChk('studio-tt-stitch', item.ttStitch !== false);
+            setChk('studio-tt-copyright', item.ttCopyright !== false);
+            setChk('studio-tt-commercial', !!item.ttCommercial);
 
-            const fbCaption = document.getElementById('studio-fb-caption');
-            const fbTag = document.getElementById('studio-fb-tag');
-            if (fbCaption) fbCaption.value = item.fbCaption || '';
-            if (fbTag) fbTag.value = item.fbTag || 'PUBG Mobile';
+            // Facebook Fields
+            setVal('studio-fb-title', item.fbTitle || '');
+            setVal('studio-fb-tag', item.fbTag || 'PUBG Mobile');
+            setVal('studio-fb-caption', item.fbCaption || '');
+            setVal('studio-fb-privacy', item.fbPrivacy || 'public');
+            setVal('studio-fb-stars', item.fbStars || 'true');
+            setChk('studio-fb-remix', item.fbRemix !== false);
+            setChk('studio-fb-crosspost', item.fbCrosspost !== false);
+            setChk('studio-fb-embed', item.fbEmbed !== false);
 
-            const sched = document.getElementById('studio-schedule-select');
-            if (sched) sched.value = item.schedule || 'now';
+            // Timing & Schedule
+            updateTimingDisplay();
         }
 
         function updateStudioActiveTarget(platform, checked) {
@@ -10538,6 +10790,101 @@
             const item = studioQueuedVideos[studioActiveIndex];
             if (item) {
                 item[field] = value;
+            }
+        }
+
+        
+        // =================================================================
+        // MASTER VISIBILITY & CUSTOM SCHEDULING CONTROLLER
+        // =================================================================
+        function applyMasterVisibility(vis) {
+            const item = studioQueuedVideos[studioActiveIndex];
+            if (!item) return;
+
+            if (vis === 'public') {
+                item.privacy = 'public';       // YouTube
+                item.ttPrivacy = 'public';     // TikTok
+                item.fbPrivacy = 'public';     // Facebook
+            } else if (vis === 'unlisted') {
+                item.privacy = 'unlisted';     // YouTube
+                item.ttPrivacy = 'friends';    // TikTok
+                item.fbPrivacy = 'restricted'; // Facebook
+            } else if (vis === 'private') {
+                item.privacy = 'private';      // YouTube
+                item.ttPrivacy = 'private';    // TikTok
+                item.fbPrivacy = 'draft';      // Facebook
+            }
+
+            renderStudioActiveVideo();
+            showEsportsAlert(`Master Visibility set to "${vis.toUpperCase()}" across YouTube, TikTok, and Facebook for this video!`, 'VISIBILITY UPDATED', '🌐');
+        }
+
+        function setPublishTimingMode(mode) {
+            const item = studioQueuedVideos[studioActiveIndex];
+            if (item) {
+                item.timingMode = mode;
+                if (mode === 'schedule' && !item.scheduleDate) {
+                    setQuickScheduleDate(1);
+                } else {
+                    updateTimingDisplay();
+                }
+            }
+        }
+
+        function setQuickScheduleDate(hoursAhead) {
+            const item = studioQueuedVideos[studioActiveIndex];
+            const now = new Date();
+            now.setHours(now.getHours() + hoursAhead);
+            now.setMinutes(Math.round(now.getMinutes() / 5) * 5); // Round to nearest 5 min
+            
+            // Format to YYYY-MM-DDTHH:mm for datetime-local
+            const pad = n => String(n).padStart(2, '0');
+            const dtStr = `${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())}T${pad(now.getHours())}:${pad(now.getMinutes())}`;
+            
+            if (item) {
+                item.timingMode = 'schedule';
+                item.scheduleDate = dtStr;
+            }
+            updateTimingDisplay();
+        }
+
+        function updateTimingDisplay() {
+            const item = studioQueuedVideos[studioActiveIndex];
+            if (!item) return;
+
+            const isSched = (item.timingMode === 'schedule');
+            const btnNow = document.getElementById('btn-timing-now');
+            const btnSched = document.getElementById('btn-timing-schedule');
+            const dateBox = document.getElementById('studio-custom-date-container');
+            const dtInput = document.getElementById('studio-custom-datetime');
+            const statusTxt = document.getElementById('studio-timing-status-text');
+
+            if (btnNow) {
+                btnNow.className = !isSched 
+                    ? "px-3 py-1 rounded text-xs font-bold bg-cyan-500 text-black shadow cursor-pointer transition-all"
+                    : "px-3 py-1 rounded text-xs font-bold text-[#8da2c0] hover:text-white cursor-pointer transition-all";
+            }
+            if (btnSched) {
+                btnSched.className = isSched 
+                    ? "px-3 py-1 rounded text-xs font-bold bg-cyan-500 text-black shadow cursor-pointer transition-all"
+                    : "px-3 py-1 rounded text-xs font-bold text-[#8da2c0] hover:text-white cursor-pointer transition-all";
+            }
+            if (dateBox) {
+                if (isSched) dateBox.classList.remove('hidden');
+                else dateBox.classList.add('hidden');
+            }
+            if (dtInput && item.scheduleDate) {
+                dtInput.value = item.scheduleDate;
+            }
+            if (statusTxt) {
+                if (!isSched) {
+                    statusTxt.textContent = "⚡ Will publish immediately upon upload";
+                    statusTxt.className = "text-[11px] font-mono text-cyan-400";
+                } else {
+                    const formatted = item.scheduleDate ? new Date(item.scheduleDate).toLocaleString() : 'Custom time';
+                    statusTxt.textContent = `📅 Scheduled for: ${formatted}`;
+                    statusTxt.className = "text-[11px] font-mono text-amber-300";
+                }
             }
         }
 
@@ -10583,6 +10930,7 @@
 
             studioQueuedVideos.forEach((v, idx) => {
                 if (idx !== studioActiveIndex) {
+                    // YouTube
                     v.description = current.description;
                     v.tags = current.tags;
                     v.playlistId = current.playlistId;
@@ -10598,12 +10946,28 @@
                     v.comments = current.comments;
                     v.notifySubs = current.notifySubs;
                     v.embeddable = current.embeddable;
+                    // TikTok
                     v.ttCaption = current.ttCaption;
+                    v.ttPrivacy = current.ttPrivacy;
+                    v.ttHd = current.ttHd;
+                    v.ttComments = current.ttComments;
                     v.ttDuet = current.ttDuet;
                     v.ttStitch = current.ttStitch;
-                    v.fbCaption = current.fbCaption;
+                    v.ttCopyright = current.ttCopyright;
+                    v.ttCommercial = current.ttCommercial;
+                    // Facebook
+                    v.fbTitle = current.fbTitle;
                     v.fbTag = current.fbTag;
-                    v.schedule = current.schedule;
+                    v.fbCaption = current.fbCaption;
+                    v.fbPrivacy = current.fbPrivacy;
+                    v.fbStars = current.fbStars;
+                    v.fbRemix = current.fbRemix;
+                    v.fbCrosspost = current.fbCrosspost;
+                    v.fbEmbed = current.fbEmbed;
+                    // Timing & Schedule
+                    v.timingMode = current.timingMode;
+                    v.scheduleDate = current.scheduleDate;
+                    // Platform targets
                     v.targetYoutube = current.targetYoutube;
                     v.targetTiktok = current.targetTiktok;
                     v.targetFacebook = current.targetFacebook;
