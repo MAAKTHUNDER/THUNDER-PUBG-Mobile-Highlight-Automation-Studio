@@ -9712,18 +9712,12 @@
 
                             <!-- Middle: Platform Targets Selection (100% User Freedom) -->
                             <div class="flex items-center space-x-2 bg-[#080d19] px-3 py-1.5 rounded-xl border border-[#1a2948] flex-wrap gap-1">
-                                <!-- YouTube Target -->
+                                <!-- YouTube Target (Auto-routed: Vertical = Shorts, Landscape = Normal Video) -->
                                 <label class="flex items-center space-x-1.5 text-xs text-white cursor-pointer px-2 py-1 rounded hover:bg-[#142038]">
                                     <input type="checkbox" ${item.targetYoutube ? 'checked' : ''} onchange="updateQueueItemField('${item.id}', 'targetYoutube', this.checked)" class="rounded text-red-500">
                                     <span class="text-red-400 font-bold">▶ YouTube</span>
+                                    ${item.targetYoutube ? `<span class="text-[9px] px-1.5 py-0.5 rounded font-mono font-bold ${item.isVertical ? 'bg-red-500/20 text-red-300 border border-red-500/40' : 'bg-blue-500/20 text-blue-300 border border-blue-500/40'}">${item.isVertical ? '⚡ Shorts' : '📹 Video'}</span>` : ''}
                                 </label>
-                                <!-- YouTube Mode Dropdown (Shorts vs Normal Post) -->
-                                ${item.targetYoutube ? `
-                                    <select onchange="updateQueueItemField('${item.id}', 'youtubeMode', this.value)" class="text-[10px] py-0.5 px-1.5 rounded bg-[#0e172a] text-cyan-300 border border-[#1e2f52] font-semibold focus:outline-none">
-                                        <option value="shorts" ${item.youtubeMode === 'shorts' ? 'selected' : ''}>⚡ Shorts</option>
-                                        <option value="video" ${item.youtubeMode === 'video' ? 'selected' : ''}>📹 Normal Post Video</option>
-                                    </select>
-                                ` : ''}
 
                                 <div class="w-[1px] h-4 bg-gray-700 mx-1"></div>
 
