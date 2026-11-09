@@ -9712,11 +9712,10 @@
 
                             <!-- Middle: Platform Targets Selection (100% User Freedom) -->
                             <div class="flex items-center space-x-2 bg-[#080d19] px-3 py-1.5 rounded-xl border border-[#1a2948] flex-wrap gap-1">
-                                <!-- YouTube Target (Auto-routed: Vertical = Shorts, Landscape = Normal Video) -->
+                                <!-- YouTube Target -->
                                 <label class="flex items-center space-x-1.5 text-xs text-white cursor-pointer px-2 py-1 rounded hover:bg-[#142038]">
                                     <input type="checkbox" ${item.targetYoutube ? 'checked' : ''} onchange="updateQueueItemField('${item.id}', 'targetYoutube', this.checked)" class="rounded text-red-500">
                                     <span class="text-red-400 font-bold">▶ YouTube</span>
-                                    ${item.targetYoutube ? `<span class="text-[9px] px-1.5 py-0.5 rounded font-mono font-bold ${item.isVertical ? 'bg-red-500/20 text-red-300 border border-red-500/40' : 'bg-blue-500/20 text-blue-300 border border-blue-500/40'}">${item.isVertical ? '⚡ Shorts' : '📹 Video'}</span>` : ''}
                                 </label>
 
                                 <div class="w-[1px] h-4 bg-gray-700 mx-1"></div>
@@ -9804,7 +9803,7 @@
 
             summaryText.textContent = `Queue: ${total} Video${total === 1 ? '' : 's'} Selected`;
             if (breakdown) {
-                breakdown.textContent = `• Total Deliveries: ${ytCount} YouTube (${uploadBatchQueue.filter(i=>i.targetYoutube && i.youtubeMode==='shorts').length} Shorts), ${ttCount} TikTok, ${fbCount} Facebook Reels`;
+                breakdown.textContent = `• Total Deliveries: ${ytCount} YouTube  ${ttCount} TikTok, ${fbCount} Facebook Reels`;
             }
         }
 
@@ -9816,7 +9815,7 @@
             let text = '=== THUNDER STUDIO BATCH UPLOAD KITS ===\n\n';
             uploadBatchQueue.forEach((item, idx) => {
                 text += `[VIDEO ${idx + 1}: ${item.name}]\n`;
-                text += `TARGETS: ${[item.targetYoutube ? 'YouTube ('+item.youtubeMode+')' : null, item.targetTiktok ? 'TikTok' : null, item.targetFacebook ? 'Facebook Reels' : null].filter(Boolean).join(', ')}\n`;
+                text += `TARGETS: ${[item.targetYoutube ? 'YouTube' : null, item.targetTiktok ? 'TikTok' : null, item.targetFacebook ? 'Facebook Reels' : null].filter(Boolean).join(', ')}\n`;
                 text += `SCHEDULE: ${item.schedule}\n`;
                 text += `TITLE: ${item.title}\n`;
                 text += `DESCRIPTION/TAGS: ${item.description}\n`;
@@ -9895,7 +9894,7 @@
                 renderUploadQueue();
 
                 const platforms = [
-                    item.targetYoutube ? (item.youtubeMode === 'shorts' ? 'YouTube Shorts' : 'YouTube Video') : null,
+                    item.targetYoutube ? 'YouTube' : null,
                     item.targetTiktok ? 'TikTok' : null,
                     item.targetFacebook ? 'Facebook Reels' : null
                 ].filter(Boolean).join(', ');
