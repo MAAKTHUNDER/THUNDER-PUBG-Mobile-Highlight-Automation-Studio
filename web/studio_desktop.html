@@ -3815,7 +3815,10 @@
                             </div>
 
                             <div class="space-y-1">
-                                <label class="text-[11px] text-[#8da2c0] font-semibold">Default Description Template:</label>
+                                <div class="flex items-center justify-between">
+                                    <label class="text-[11px] text-[#8da2c0] font-semibold">Default Description Template:</label>
+                                    <span class="text-[10px] text-cyan-400 font-mono">ℹ️ Auto-appends below Social Kit description with divider</span>
+                                </div>
                                 <textarea id="def-yt-desc" rows="3" class="w-full py-2 px-3 rounded-lg bg-[#0e172a] border border-[#1e2f52] text-xs text-[#cbd5e1] focus:border-red-500 focus:outline-none font-mono">🎮 Player: {ign}
 ⚡ Powered by THUNDER Studio — Automated PUBG Mobile Esports Montage Engine
 🔥 Daily pro squad wipes, clutches, and 60FPS highlights!
@@ -4129,7 +4132,12 @@
                     <!-- LEFT COLUMN: SELECTED VIDEOS LIST (35% WIDTH) -->
                     <div class="w-full lg:w-[38%] glass-card rounded-xl p-3 border border-[#1b2b48] flex flex-col justify-between space-y-2 overflow-hidden">
                         <div class="flex items-center justify-between border-b border-[#1b2b48] pb-2 flex-shrink-0">
-                            <span class="text-xs font-bold uppercase tracking-wider text-[#00e5ff]">Queued Videos (<span id="studio-queue-count">0</span>)</span>
+                            <div class="flex items-center space-x-2">
+                                <span class="text-xs font-bold uppercase tracking-wider text-[#00e5ff]">Queued Videos (<span id="studio-queue-count">0</span>)</span>
+                                <button onclick="staggerAllVideosSchedule()" class="px-2 py-0.5 rounded text-[10px] font-bold bg-[#142038] hover:bg-[#1f3156] text-cyan-300 border border-cyan-500/30 cursor-pointer transition-all shadow-sm" title="Schedule each video 1 day apart (+1d, +2d, +3d...) at peak hours">
+                                    ⚡ Stagger (+1d each)
+                                </button>
+                            </div>
                             <div class="flex items-center space-x-1.5 text-[10px]">
                                 <span class="text-[#8da2c0]">Platforms:</span>
                                 <button onclick="toggleAllStudioPlatform('targetYoutube')" class="px-1.5 py-0.5 rounded bg-red-950/80 text-red-400 border border-red-800/60 font-bold hover:bg-red-900/60">YT</button>
@@ -10276,8 +10284,11 @@
 
         // 4. Initialize Auto Upload View
         async function initAutoUploadView() {
-            loadPresetFormValues();
+            // Check connected channel FIRST so playlists are populated in the DOM
             await checkConnectedChannelStatus();
+            // Then load preset form values so def-yt-playlist selection applies cleanly
+            loadPresetFormValues();
+            // Then scan highlights so items inherit the default playlist
             await syncOutputFolderHighlights();
         }
 
@@ -10327,6 +10338,11 @@
                         opt.textContent = `📁 ${pl.title} (${pl.itemCount || 0} videos)`;
                         defPlSel.appendChild(opt);
                     });
+                    // Restore saved preset playlist if available
+                    const presets = getGlobalPresets();
+                    if (presets && presets.ytPlaylist) {
+                        defPlSel.value = presets.ytPlaylist;
+                    }
                 }
             } else {
                 if (avatar) avatar.src = 'https://via.placeholder.com/64';
@@ -10432,11 +10448,25 @@
                     targetYoutube: presets.checkYt,
                     targetTiktok: presets.checkTt,
                     targetFacebook: presets.checkFb,
-                    // YouTube Config
+                    // YouTube Config (Merge Social Kit Description + Default Description)
                     title: (v.title && v.title.length > 3) ? v.title : presets.ytTitle.replace('{title}', cleanName).replace('{ign}', ign),
-                    description: (v.description && v.description.length > 5) ? v.description : presets.ytDesc.replace('{ign}', ign),
-                    tags: v.tags || presets.ytTags || 'pubg mobile, montage, clutches, 60fps, esports',
-                    playlistId: presets.ytPlaylist || '',
+                    description: (() => {
+                        const kitDesc = (v.description || '').trim();
+                        const defDesc = (presets.ytDesc || '').replace('{ign}', ign).trim();
+                        if (kitDesc && defDesc) {
+                            return `${kitDesc}\n\n-------------------------------------------\n${defDesc}`;
+                        }
+                        return kitDesc || defDesc;
+                    })(),
+                    tags: (() => {
+                        const kitTags = (v.tags || '').trim();
+                        const defTags = (presets.ytTags || 'pubg mobile, montage, clutches, 60fps, esports').trim();
+                        if (kitTags && defTags && !kitTags.toLowerCase().includes(defTags.toLowerCase())) {
+                            return `${kitTags}, ${defTags}`;
+                        }
+                        return kitTags || defTags;
+                    })(),
+                    playlistId: presets.ytPlaylist || (document.getElementById('def-yt-playlist') ? document.getElementById('def-yt-playlist').value : ''),
                     privacy: presets.ytPrivacy || 'unlisted',
                     category: presets.ytCategory || '20',
                     gameTitle: presets.ytGameTitle || 'PUBG MOBILE',
@@ -10618,7 +10648,16 @@
                 return;
             }
 
+            const presets = getGlobalPresets();
+            const defPlSel = document.getElementById('def-yt-playlist');
+            const defaultPlId = (presets && presets.ytPlaylist) || (defPlSel ? defPlSel.value : '');
+
             studioQueuedVideos = JSON.parse(JSON.stringify(selected));
+            studioQueuedVideos.forEach(item => {
+                if (!item.playlistId && defaultPlId) {
+                    item.playlistId = defaultPlId;
+                }
+            });
             studioActiveIndex = 0;
 
             const modal = document.getElementById('batch-upload-studio-modal');
@@ -10655,6 +10694,13 @@
                     statusBadge = '<span class="text-[9px] px-1.5 py-0.2 rounded font-mono font-bold bg-rose-950/80 text-rose-300 border border-rose-800">FAILED</span>';
                 }
 
+                const visSummary = getVideoVisibilitySummary(item);
+                const timingSummary = getVideoTimingSummary(item);
+
+                const isCustomVis = (visSummary === 'custom');
+                const visColor = visSummary === 'public' ? 'text-emerald-400' : (visSummary === 'unlisted' ? 'text-blue-400' : (visSummary === 'private' ? 'text-rose-400' : 'text-amber-400'));
+                const timingColor = item.timingMode === 'now' ? 'text-cyan-400' : 'text-amber-300';
+
                 return `
                     <div onclick="selectStudioActiveVideo(${idx})" class="p-2.5 rounded-xl cursor-pointer transition-all space-y-2 ${borderClass}">
                         <div class="flex items-center justify-between gap-2">
@@ -10665,7 +10711,34 @@
                             ${statusBadge}
                         </div>
 
-                        <!-- Per-Video Target Checkboxes -->
+                        <!-- THE USER'S RED BOX: VISIBILITY & SCHEDULE DIRECTLY ON EACH CARD -->
+                        <div class="grid grid-cols-2 gap-2 p-1.5 rounded-lg bg-[#060a14] border border-[#17253f] text-[10px]">
+                            <!-- Inline Visibility Selector -->
+                            <div class="flex items-center space-x-1 min-w-0" title="Click to change visibility for this video">
+                                <span class="text-[#7187a5] font-semibold flex-shrink-0">Vis:</span>
+                                <select onclick="event.stopPropagation()" onchange="setVideoCardVisibility(${idx}, this.value)" class="w-full py-0.5 px-1 rounded bg-[#0a1122] border border-[#1e2f52] text-[10px] font-mono font-bold ${visColor} focus:outline-none cursor-pointer">
+                                    <option value="public" ${visSummary === 'public' ? 'selected' : ''}>🌐 Public</option>
+                                    <option value="unlisted" ${visSummary === 'unlisted' ? 'selected' : ''}>🔒 Unlisted</option>
+                                    <option value="private" ${visSummary === 'private' ? 'selected' : ''}>🙈 Private</option>
+                                    ${isCustomVis ? '<option value="custom" selected>⚙️ Custom</option>' : ''}
+                                </select>
+                            </div>
+
+                            <!-- Inline Schedule / Date Selector -->
+                            <div class="flex items-center space-x-1 min-w-0" title="Click to change publish date for this video">
+                                <span class="text-[#7187a5] font-semibold flex-shrink-0">Date:</span>
+                                <select onclick="event.stopPropagation()" onchange="setVideoCardTimingPreset(${idx}, this.value)" class="w-full py-0.5 px-1 rounded bg-[#0a1122] border border-[#1e2f52] text-[10px] font-mono font-bold ${timingColor} focus:outline-none cursor-pointer">
+                                    <option value="now" ${item.timingMode === 'now' ? 'selected' : ''}>⚡ Now</option>
+                                    <option value="today_peak">Tonight 18:00</option>
+                                    <option value="day_1">+1 Day (18:00)</option>
+                                    <option value="day_2">+2 Days (18:00)</option>
+                                    <option value="day_3">+3 Days (18:00)</option>
+                                    ${item.timingMode === 'schedule' && item.scheduleDate ? `<option value="current_sched" selected>📅 ${timingSummary}</option>` : ''}
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Per-Video Target Checkboxes & File Size -->
                         <div class="flex items-center justify-between text-[11px] pt-1 border-t border-[#1a2845]">
                             <div class="flex items-center space-x-2">
                                 <label onclick="event.stopPropagation()" class="flex items-center space-x-1 cursor-pointer">
@@ -10797,6 +10870,121 @@
         // =================================================================
         // MASTER VISIBILITY & CUSTOM SCHEDULING CONTROLLER
         // =================================================================
+        
+        // =================================================================
+        // CARD-LEVEL VISIBILITY & SCHEDULING HELPERS
+        // =================================================================
+        function getVideoVisibilitySummary(item) {
+            if (!item) return 'public';
+            const yt = item.privacy || 'unlisted';
+            const tt = item.ttPrivacy || 'public';
+            const fb = item.fbPrivacy || 'public';
+
+            const targets = [];
+            if (item.targetYoutube) targets.push(yt === 'public' ? 'pub' : (yt === 'unlisted' ? 'unl' : 'priv'));
+            if (item.targetTiktok) targets.push(tt === 'public' ? 'pub' : (tt === 'friends' ? 'unl' : 'priv'));
+            if (item.targetFacebook) targets.push(fb === 'public' ? 'pub' : (fb === 'restricted' ? 'unl' : 'priv'));
+
+            if (targets.length === 0) return 'unlisted';
+            const allSame = targets.every(t => t === targets[0]);
+            if (allSame) {
+                return targets[0] === 'pub' ? 'public' : (targets[0] === 'unl' ? 'unlisted' : 'private');
+            }
+            return 'custom';
+        }
+
+        function getVideoTimingSummary(item) {
+            if (!item || item.timingMode === 'now') return 'Now';
+            if (item.scheduleDate) {
+                const dt = new Date(item.scheduleDate);
+                if (!isNaN(dt.getTime())) {
+                    const pad = n => String(n).padStart(2, '0');
+                    return `${pad(dt.getMonth()+1)}/${pad(dt.getDate())} ${pad(dt.getHours())}:${pad(dt.getMinutes())}`;
+                }
+            }
+            return 'Scheduled';
+        }
+
+        function setVideoCardVisibility(idx, val) {
+            const item = studioQueuedVideos[idx];
+            if (!item) return;
+
+            if (val === 'public') {
+                item.privacy = 'public';
+                item.ttPrivacy = 'public';
+                item.fbPrivacy = 'public';
+            } else if (val === 'unlisted') {
+                item.privacy = 'unlisted';
+                item.ttPrivacy = 'friends';
+                item.fbPrivacy = 'restricted';
+            } else if (val === 'private') {
+                item.privacy = 'private';
+                item.ttPrivacy = 'private';
+                item.fbPrivacy = 'draft';
+            }
+
+            renderStudioVideoList();
+            if (idx === studioActiveIndex) {
+                renderStudioActiveVideo();
+            }
+        }
+
+        function setVideoCardTimingPreset(idx, val) {
+            const item = studioQueuedVideos[idx];
+            if (!item) return;
+
+            if (val === 'now') {
+                item.timingMode = 'now';
+                item.scheduleDate = '';
+            } else {
+                item.timingMode = 'schedule';
+                const now = new Date();
+                let dayOffset = 0;
+                if (val === 'today_peak') {
+                    // Today 18:00 (or tomorrow if already past 18:00)
+                    if (now.getHours() >= 18) dayOffset = 1;
+                } else if (val === 'day_1') {
+                    dayOffset = 1;
+                } else if (val === 'day_2') {
+                    dayOffset = 2;
+                } else if (val === 'day_3') {
+                    dayOffset = 3;
+                }
+                
+                const targetDate = new Date();
+                targetDate.setDate(now.getDate() + dayOffset);
+                targetDate.setHours(18, 0, 0, 0); // Prime gaming streaming time (6:00 PM)
+
+                const pad = n => String(n).padStart(2, '0');
+                item.scheduleDate = `${targetDate.getFullYear()}-${pad(targetDate.getMonth()+1)}-${pad(targetDate.getDate())}T18:00`;
+            }
+
+            renderStudioVideoList();
+            if (idx === studioActiveIndex) {
+                renderStudioActiveVideo();
+            }
+        }
+
+        function staggerAllVideosSchedule() {
+            if (studioQueuedVideos.length === 0) return;
+            const now = new Date();
+            const startHour = (now.getHours() >= 18) ? 1 : 0; // If past 18:00 today, start tomorrow
+
+            studioQueuedVideos.forEach((item, idx) => {
+                item.timingMode = 'schedule';
+                const targetDate = new Date();
+                targetDate.setDate(now.getDate() + startHour + idx);
+                targetDate.setHours(18, 0, 0, 0);
+
+                const pad = n => String(n).padStart(2, '0');
+                item.scheduleDate = `${targetDate.getFullYear()}-${pad(targetDate.getMonth()+1)}-${pad(targetDate.getDate())}T18:00`;
+            });
+
+            renderStudioVideoList();
+            renderStudioActiveVideo();
+            showEsportsAlert(`Staggered ${studioQueuedVideos.length} videos 1 day apart (+1d each at 18:00 peak time)!`, 'SCHEDULE STAGGERED', '📅');
+        }
+
         function applyMasterVisibility(vis) {
             const item = studioQueuedVideos[studioActiveIndex];
             if (!item) return;
