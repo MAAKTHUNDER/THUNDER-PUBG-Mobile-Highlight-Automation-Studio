@@ -3558,283 +3558,560 @@
 
         </div>
 
-                <!-- TAB 4: ADVANCED MULTI-VIDEO AUTO UPLOAD & SOCIAL PUBLISHER -->
-        <div id="view-autoupload" class="hidden glass-card rounded-2xl p-6 sm:p-8 max-w-6xl mx-auto w-full space-y-6 flex flex-col h-full overflow-hidden select-none">
+                        <!-- TAB 4: ADVANCED AUTO UPLOAD & SOCIAL PUBLISHING SUITE -->
+        <div id="view-autoupload" class="hidden flex-1 flex flex-col space-y-4 max-w-6xl mx-auto w-full select-none pb-6 h-full min-h-0 overflow-hidden">
             
-            <!-- Top Header & Global Actions -->
-            <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center pb-4 border-b border-[#1b2742] gap-4 flex-shrink-0">
+            <!-- Top Header & Sub-Navigation Tabs Bar -->
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center pb-3 border-b border-[#1b2b48] gap-3 flex-shrink-0">
                 <div>
-                    <div class="flex items-center space-x-3">
-                        <h2 class="font-orbitron font-bold text-2xl text-[#00e5ff] tracking-wide">ADVANCED MULTI-VIDEO AUTO UPLOAD</h2>
-                        <span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-gradient-to-r from-cyan-500/20 via-purple-500/20 to-emerald-500/20 text-cyan-300 border border-cyan-400/40">PRO+ BATCH PIPELINE</span>
-                    </div>
-                    <p class="text-xs text-[#7187a5] mt-1 font-rajdhani text-sm">Batch queue multiple highlights, customize target platforms per video, auto-fill default presets &amp; schedule publishing.</p>
+                    <h2 class="font-orbitron font-extrabold text-xl text-white tracking-wider flex items-center space-x-2">
+                        <span class="text-[#00e5ff] text-2xl">🚀</span>
+                        <span>AUTO UPLOAD &amp; SOCIAL PUBLISHER</span>
+                        <span class="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-[#00e5ff]/20 text-[#00e5ff] border border-[#00e5ff]/40">PRO+ PIPELINE</span>
+                    </h2>
+                    <p class="text-xs text-[#8da2c0] mt-0.5 font-rajdhani">Select rendered highlights, manage platform channels, configure default presets, and batch publish.</p>
                 </div>
-                <div class="flex flex-wrap items-center gap-2.5">
-                    <button onclick="openUploadDefaultsModal()" class="btn-3d-navy px-4 py-2 rounded-xl text-xs font-semibold text-[#00e5ff] hover:text-white flex items-center space-x-1.5 cursor-pointer border border-cyan-500/40">
-                        <span>⚙️</span>
-                        <span>Platform Default Presets</span>
-                    </button>
-                    <button onclick="syncOutputFolderHighlights()" class="btn-3d-navy px-4 py-2 rounded-xl text-xs font-semibold text-[#8da2c0] hover:text-white flex items-center space-x-1.5 cursor-pointer">
-                        <span>🔄</span>
-                        <span>Scan Output Folder</span>
-                    </button>
-                    <button onclick="switchTab('gallery')" class="btn-3d-navy px-4 py-2 rounded-xl text-xs font-semibold text-white flex items-center space-x-1.5 cursor-pointer">
+
+                <!-- 3 Top Sub-Tabs -->
+                <div class="flex items-center space-x-1.5 bg-[#070b16] p-1 rounded-xl border border-[#1a2948]">
+                    <button id="subtab-btn-select" onclick="switchUploadSubTab('select')" class="px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center space-x-1.5 bg-[#00e5ff] text-black shadow-[0_0_12px_rgba(0,229,255,0.4)] cursor-pointer">
                         <span>📁</span>
-                        <span>Gallery</span>
+                        <span>Select Videos</span>
+                        <span id="subtab-selected-count-badge" class="ml-1 px-1.5 py-0.2 rounded-full bg-black/30 text-black text-[10px] font-mono font-bold">0</span>
+                    </button>
+                    <button id="subtab-btn-connect" onclick="switchUploadSubTab('connect')" class="px-3.5 py-1.5 rounded-lg text-xs font-bold text-[#8da2c0] hover:text-white transition-all flex items-center space-x-1.5 hover:bg-[#101b30] cursor-pointer">
+                        <span>🔗</span>
+                        <span>Connect Platforms</span>
+                    </button>
+                    <button id="subtab-btn-presets" onclick="switchUploadSubTab('presets')" class="px-3.5 py-1.5 rounded-lg text-xs font-bold text-[#8da2c0] hover:text-white transition-all flex items-center space-x-1.5 hover:bg-[#101b30] cursor-pointer">
+                        <span>⚙️</span>
+                        <span>Platform Presets</span>
                     </button>
                 </div>
             </div>
 
-            <!-- Platform Connections & Authorization Cards -->
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-3 flex-shrink-0">
-                <!-- 1. YouTube Connection (Real OAuth Channel Link) -->
-                <div id="yt-conn-card" class="p-4 rounded-xl bg-gradient-to-r from-[#18080a] to-[#0c101d] border border-red-500/40 flex flex-col justify-between space-y-3">
-                    <!-- Disconnected State -->
-                    <div id="yt-disconnected-view" class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-                        <div class="flex items-center space-x-3 min-w-0">
-                            <div class="w-10 h-10 rounded-full bg-red-600/20 border border-red-500/50 flex items-center justify-center text-red-500 text-xl font-bold flex-shrink-0">▶</div>
-                            <div class="min-w-0">
-                                <div class="text-xs font-bold text-white flex items-center space-x-1.5">
-                                    <span>YouTube Channel</span>
-                                    <span class="px-1.5 py-0.2 rounded text-[9px] font-bold bg-red-950/80 text-red-400 border border-red-700">NOT CONNECTED</span>
+            <!-- =================================================================== -->
+            <!-- SUB-VIEW 1: SELECT VIDEOS (CLEAN SELECTION LIST - NO CLUTTERED OPTIONS) -->
+            <!-- =================================================================== -->
+            <div id="subview-upload-select" class="flex-1 flex flex-col min-h-0 space-y-3 overflow-hidden">
+                <!-- Toolbar -->
+                <div class="flex flex-wrap items-center justify-between gap-2.5 bg-[#080d1a] p-2.5 rounded-xl border border-[#1b2b48] flex-shrink-0">
+                    <div class="flex items-center space-x-2">
+                        <button onclick="syncOutputFolderHighlights()" class="btn-3d-navy px-3 py-1.5 rounded-lg text-xs font-semibold text-[#00e5ff] hover:text-white flex items-center space-x-1.5 cursor-pointer">
+                            <span>🔄</span>
+                            <span>Scan Output Folder</span>
+                        </button>
+                        <button onclick="addCustomVideoFile()" class="btn-3d-navy px-3 py-1.5 rounded-lg text-xs font-semibold text-[#8da2c0] hover:text-white flex items-center space-x-1.5 cursor-pointer">
+                            <span>📁</span>
+                            <span>Add Video File</span>
+                        </button>
+                        <button onclick="selectAllUploadVideos(true)" class="px-2.5 py-1 rounded-lg text-xs font-semibold text-[#8da2c0] hover:text-cyan-300 hover:bg-[#101c33] transition-all">
+                            Select All
+                        </button>
+                        <button onclick="selectAllUploadVideos(false)" class="px-2.5 py-1 rounded-lg text-xs font-semibold text-[#8da2c0] hover:text-rose-400 hover:bg-[#101c33] transition-all">
+                            Deselect All
+                        </button>
+                    </div>
+                    <div id="select-toolbar-summary" class="text-xs font-mono text-[#8da2c0]">
+                        <span id="select-count-text" class="text-cyan-400 font-bold">0</span> videos selected for upload
+                    </div>
+                </div>
+
+                <!-- Video Cards Grid/List -->
+                <div id="upload-video-selection-list" class="flex-1 overflow-y-auto space-y-2 pr-1.5 min-h-0">
+                    <!-- Dynamic Video Items Rendered Here -->
+                </div>
+
+                <!-- Bottom Floating Continue Bar -->
+                <div class="flex items-center justify-between bg-gradient-to-r from-[#070b16] via-[#0b1325] to-[#070b16] p-3 rounded-xl border-2 border-cyan-500/40 shadow-[0_0_25px_rgba(0,229,255,0.2)] flex-shrink-0">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-9 h-9 rounded-xl bg-cyan-500/20 text-cyan-400 border border-cyan-500/40 flex items-center justify-center font-bold text-lg">🚀</div>
+                        <div>
+                            <div class="text-xs font-bold text-white flex items-center space-x-2">
+                                <span>READY TO CONFIGURE UPLOAD</span>
+                                <span id="select-bottom-count-pill" class="px-2 py-0.2 rounded-full text-[10px] font-mono font-bold bg-cyan-500/30 text-cyan-300">0 Videos Selected</span>
+                            </div>
+                            <div class="text-[11px] text-[#7187a5]">Click Continue to open the dedicated Batch Publishing Studio and configure per-video settings.</div>
+                        </div>
+                    </div>
+                    <button id="btn-continue-to-studio" onclick="openBatchUploadStudio()" class="glow-btn px-6 py-2.5 rounded-xl bg-gradient-to-r from-[#00e5ff] to-[#00b0ff] text-black font-orbitron font-extrabold text-xs tracking-wider cursor-pointer shadow-[0_0_20px_rgba(0,229,255,0.5)] hover:scale-105 active:scale-95 transition-all flex items-center space-x-2">
+                        <span>CONTINUE TO UPLOAD</span>
+                        <span class="text-base">➔</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- =================================================================== -->
+            <!-- SUB-VIEW 2: CONNECT ACCOUNTS (FOCUSED 3-PLATFORM CONNECTIONS)      -->
+            <!-- =================================================================== -->
+            <div id="subview-upload-connect" class="hidden flex-1 overflow-y-auto space-y-4 pr-1 min-h-0">
+                <div class="p-4 rounded-xl bg-[#080d19] border border-[#1b2b48]">
+                    <h3 class="font-orbitron font-bold text-sm text-[#00e5ff] uppercase tracking-wider mb-1">Social Media Channel Authorizations</h3>
+                    <p class="text-xs text-[#8da2c0]">Connect your verified creator channels. Once connected, THUNDER Studio can directly publish your highlights with 1 click.</p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <!-- 1. YouTube Card -->
+                    <div class="glass-card rounded-2xl p-5 border-2 border-red-500/40 bg-gradient-to-b from-[#18080a] to-[#090d18] flex flex-col justify-between space-y-4 shadow-[0_0_25px_rgba(239,68,68,0.15)]">
+                        <div class="space-y-3">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center space-x-2.5">
+                                    <div class="w-10 h-10 rounded-xl bg-red-600/20 border border-red-500/60 flex items-center justify-center text-red-500 text-xl font-bold">▶</div>
+                                    <div>
+                                        <h4 class="font-bold text-sm text-white">YouTube</h4>
+                                        <div class="text-[11px] text-[#8da2c0]">Official Data API v3</div>
+                                    </div>
                                 </div>
-                                <div class="text-[11px] text-[#8da2c0] truncate">Connect your Google account and select which channel to publish to.</div>
+                                <span id="yt-connect-status-badge" class="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-rose-500/20 text-rose-400 border border-rose-500/40">DISCONNECTED</span>
+                            </div>
+
+                            <!-- Channel Profile Display -->
+                            <div class="p-3 rounded-xl bg-[#060a14] border border-[#1e2f52] flex items-center space-x-3">
+                                <img id="yt-connect-avatar" src="https://via.placeholder.com/64" alt="Channel Avatar" class="w-12 h-12 rounded-full border border-red-500/40 object-cover bg-gray-900 flex-shrink-0">
+                                <div class="min-w-0 flex-1">
+                                    <div id="yt-connect-title" class="font-bold text-xs text-white truncate">No Channel Connected</div>
+                                    <div id="yt-connect-handle" class="text-[11px] text-[#8da2c0] truncate">@channel • 0 Subscribers</div>
+                                    <div id="yt-connect-playlists-text" class="text-[10px] text-red-400 font-mono mt-0.5 truncate">0 Playlists Active</div>
+                                </div>
                             </div>
                         </div>
-                        <button onclick="connectYouTubeChannel()" class="glow-btn px-4 py-2 rounded-xl bg-red-600 hover:bg-red-500 text-white font-orbitron font-bold text-xs tracking-wider cursor-pointer transition-all flex items-center space-x-1.5 flex-shrink-0 shadow-[0_0_15px_rgba(239,68,68,0.4)]">
+
+                        <div class="space-y-2 pt-2 border-t border-[#1e2f52]">
+                            <button id="btn-yt-connect-action" onclick="connectYouTubeChannel()" class="w-full py-2.5 rounded-xl bg-red-600 hover:bg-red-500 text-white font-orbitron font-bold text-xs tracking-wider cursor-pointer transition-all shadow-[0_0_15px_rgba(239,68,68,0.4)] flex items-center justify-center space-x-1.5">
+                                <span>▶</span>
+                                <span id="btn-yt-connect-label">CONNECT YOUTUBE CHANNEL</span>
+                            </button>
+                            <button id="btn-yt-disconnect-action" onclick="disconnectYouTubeChannel()" class="hidden w-full py-1.5 rounded-lg bg-red-950/40 hover:bg-red-900/60 text-red-400 font-semibold text-[11px] cursor-pointer transition-all border border-red-900/60">
+                                Disconnect Channel
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- 2. TikTok Card -->
+                    <div class="glass-card rounded-2xl p-5 border-2 border-cyan-500/40 bg-gradient-to-b from-[#081820] to-[#090d18] flex flex-col justify-between space-y-4 shadow-[0_0_25px_rgba(0,229,255,0.15)]">
+                        <div class="space-y-3">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center space-x-2.5">
+                                    <div class="w-10 h-10 rounded-xl bg-cyan-600/20 border border-cyan-500/60 flex items-center justify-center text-cyan-400 text-xl font-bold">🎵</div>
+                                    <div>
+                                        <h4 class="font-bold text-sm text-white">TikTok</h4>
+                                        <div class="text-[11px] text-[#8da2c0]">Creator Content Post</div>
+                                    </div>
+                                </div>
+                                <span id="tt-connect-status-badge" class="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-cyan-500/20 text-cyan-400 border border-cyan-500/40">READY</span>
+                            </div>
+
+                            <div class="p-3 rounded-xl bg-[#060a14] border border-[#1e2f52] space-y-2">
+                                <label class="text-[11px] text-[#8da2c0] font-semibold">Your TikTok Creator Handle:</label>
+                                <div class="flex items-center space-x-1.5 bg-[#0a1122] px-2.5 py-1.5 rounded-lg border border-[#1b2b48]">
+                                    <span class="text-xs text-cyan-400 font-bold">@</span>
+                                    <input id="tt-creator-handle" type="text" value="maakthunder" class="bg-transparent border-none text-xs text-white focus:outline-none w-full font-mono">
+                                </div>
+                                <div class="text-[10px] text-[#64748b]">Uploads will be tagged and formatted for TikTok mobile feeds.</div>
+                            </div>
+                        </div>
+
+                        <div class="pt-2 border-t border-[#1e2f52]">
+                            <button onclick="saveTikTokHandle()" class="w-full py-2.5 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-black font-orbitron font-bold text-xs tracking-wider cursor-pointer transition-all shadow-[0_0_15px_rgba(0,229,255,0.4)] flex items-center justify-center space-x-1.5">
+                                <span>🎵</span>
+                                <span>UPDATE TIKTOK PROFILE</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- 3. Facebook Gaming Card -->
+                    <div class="glass-card rounded-2xl p-5 border-2 border-blue-500/40 bg-gradient-to-b from-[#081224] to-[#090d18] flex flex-col justify-between space-y-4 shadow-[0_0_25px_rgba(59,130,246,0.15)]">
+                        <div class="space-y-3">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center space-x-2.5">
+                                    <div class="w-10 h-10 rounded-xl bg-blue-600/20 border border-blue-500/60 flex items-center justify-center text-blue-400 text-xl font-bold">👥</div>
+                                    <div>
+                                        <h4 class="font-bold text-sm text-white">Facebook</h4>
+                                        <div class="text-[11px] text-[#8da2c0]">Gaming Video &amp; Reels</div>
+                                    </div>
+                                </div>
+                                <span id="fb-connect-status-badge" class="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-blue-500/20 text-blue-400 border border-blue-500/40">READY</span>
+                            </div>
+
+                            <div class="p-3 rounded-xl bg-[#060a14] border border-[#1e2f52] space-y-2">
+                                <label class="text-[11px] text-[#8da2c0] font-semibold">Your Facebook Gaming Page:</label>
+                                <div class="flex items-center space-x-1.5 bg-[#0a1122] px-2.5 py-1.5 rounded-lg border border-[#1b2b48]">
+                                    <span class="text-xs text-blue-400 font-bold">fb.com/</span>
+                                    <input id="fb-creator-handle" type="text" value="MAAKTHUNDER" class="bg-transparent border-none text-xs text-white focus:outline-none w-full font-mono">
+                                </div>
+                                <div class="text-[10px] text-[#64748b]">Uploads will be routed to your gaming page and reels.</div>
+                            </div>
+                        </div>
+
+                        <div class="pt-2 border-t border-[#1e2f52]">
+                            <button onclick="saveFacebookHandle()" class="w-full py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-orbitron font-bold text-xs tracking-wider cursor-pointer transition-all shadow-[0_0_15px_rgba(59,130,246,0.4)] flex items-center justify-center space-x-1.5">
+                                <span>👥</span>
+                                <span>UPDATE FACEBOOK PAGE</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- =================================================================== -->
+            <!-- SUB-VIEW 3: PLATFORM PRESETS (WITH 3 PLATFORM SUB-TABS)             -->
+            <!-- =================================================================== -->
+            <div id="subview-upload-presets" class="hidden flex-1 flex flex-col min-h-0 space-y-3 overflow-hidden">
+                <!-- Platform Sub-Navigation Bar -->
+                <div class="flex items-center justify-between pb-2 border-b border-[#1b2b48] flex-shrink-0">
+                    <div class="flex items-center space-x-2">
+                        <button id="preset-tab-btn-yt" onclick="switchPresetPlatformTab('yt')" class="px-4 py-1.5 rounded-xl text-xs font-bold transition-all bg-red-600 text-white shadow-[0_0_12px_rgba(239,68,68,0.4)] cursor-pointer flex items-center space-x-1.5">
                             <span>▶</span>
-                            <span>CONNECT CHANNEL</span>
+                            <span>YouTube Presets</span>
+                        </button>
+                        <button id="preset-tab-btn-tt" onclick="switchPresetPlatformTab('tt')" class="px-4 py-1.5 rounded-xl text-xs font-bold text-[#8da2c0] hover:text-white transition-all hover:bg-[#101b30] cursor-pointer flex items-center space-x-1.5">
+                            <span>🎵</span>
+                            <span>TikTok Presets</span>
+                        </button>
+                        <button id="preset-tab-btn-fb" onclick="switchPresetPlatformTab('fb')" class="px-4 py-1.5 rounded-xl text-xs font-bold text-[#8da2c0] hover:text-white transition-all hover:bg-[#101b30] cursor-pointer flex items-center space-x-1.5">
+                            <span>👥</span>
+                            <span>Facebook Presets</span>
                         </button>
                     </div>
 
-                    <!-- Connected State -->
-                    <div id="yt-connected-view" class="hidden space-y-2">
-                        <div class="flex items-center justify-between">
-                            <div class="flex items-center space-x-3 min-w-0">
-                                <img id="yt-card-avatar" src="https://yt3.googleusercontent.com/ytc/AIdro_lm0Hi8rUL8uI76MMhlOlvnE5ofA2MgpSdHwuPtvnVhCuM=s900-c-k-c0x00ffffff-no-rj" class="w-10 h-10 rounded-full border border-red-500/60 object-cover flex-shrink-0 bg-red-950/40 shadow-[0_0_10px_rgba(239,68,68,0.3)]">
-                                <div class="min-w-0">
-                                    <div class="text-xs font-bold text-white flex items-center space-x-1.5">
-                                        <span id="yt-card-title" class="truncate">MAAKTHUNDER</span>
-                                        <span class="px-1.5 py-0.2 rounded text-[9px] font-bold bg-emerald-950/80 text-emerald-400 border border-emerald-700">CONNECTED</span>
-                                    </div>
-                                    <div id="yt-card-sub" class="text-[11px] text-[#8da2c0] font-mono truncate">@maakthunder • 388 Subscribers</div>
-                                </div>
-                            </div>
-                            <button onclick="openExternalStudio('youtube')" class="text-[10px] text-red-400 hover:text-red-300 font-bold px-2 py-1 rounded bg-red-950/40 border border-red-800 flex-shrink-0 cursor-pointer">Studio ↗</button>
-                        </div>
-                        <div class="pt-2 border-t border-red-950/60 flex items-center justify-between">
-                            <span id="yt-card-playlist-label" class="text-[10px] text-slate-400 font-mono">3 Playlists synced</span>
-                            <div class="flex items-center space-x-2">
-                                <button onclick="connectYouTubeChannel()" class="text-[10px] text-cyan-400 hover:text-cyan-300 font-bold px-2 py-0.5 rounded bg-cyan-950/40 border border-cyan-800/80 cursor-pointer flex items-center space-x-1" title="Select a different channel from your Google account">
-                                    <span>🔄</span>
-                                    <span>Change Channel</span>
-                                </button>
-                                <button onclick="disconnectYouTubeChannel()" class="text-[10px] text-red-400 hover:text-red-300 font-bold px-2 py-0.5 rounded bg-red-950/40 border border-red-800 cursor-pointer" title="Disconnect this channel">
-                                    Disconnect
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- 2. TikTok Connection -->
-                <div class="p-3.5 rounded-xl bg-gradient-to-r from-[#04131c] to-[#0c101d] border border-cyan-500/40 flex items-center justify-between">
-                    <div class="flex items-center space-x-3 min-w-0">
-                        <div class="w-9 h-9 rounded-full bg-cyan-600/20 border border-cyan-500/50 flex items-center justify-center text-cyan-400 text-lg font-bold flex-shrink-0">🎵</div>
-                        <div class="min-w-0">
-                            <div class="text-xs font-bold text-white flex items-center space-x-1.5">
-                                <span class="truncate" id="conn-tt-name">TikTok Studio</span>
-                                <span class="px-1.5 py-0.2 rounded text-[9px] font-bold bg-cyan-950/80 text-cyan-300 border border-cyan-700">READY</span>
-                            </div>
-                            <div class="text-[11px] text-[#8da2c0] font-mono truncate" id="conn-tt-handle">@maakthunder</div>
-                        </div>
-                    </div>
-                    <button onclick="managePlatformConnection('tiktok')" class="text-[10px] text-cyan-400 hover:text-cyan-300 font-bold px-2 py-1 rounded bg-cyan-950/40 border border-cyan-800 flex-shrink-0 cursor-pointer">Manage ↗</button>
-                </div>
-
-                <!-- 3. Facebook / Reels Connection -->
-                <div class="p-3.5 rounded-xl bg-gradient-to-r from-[#061225] to-[#0c101d] border border-blue-500/40 flex items-center justify-between">
-                    <div class="flex items-center space-x-3 min-w-0">
-                        <div class="w-9 h-9 rounded-full bg-blue-600/20 border border-blue-500/50 flex items-center justify-center text-blue-400 text-lg font-bold flex-shrink-0">👥</div>
-                        <div class="min-w-0">
-                            <div class="text-xs font-bold text-white flex items-center space-x-1.5">
-                                <span class="truncate" id="conn-fb-name">Facebook Gaming</span>
-                                <span class="px-1.5 py-0.2 rounded text-[9px] font-bold bg-blue-950/80 text-blue-300 border border-blue-700">PAGE LINKED</span>
-                            </div>
-                            <div class="text-[11px] text-[#8da2c0] font-mono truncate" id="conn-fb-page">MAAKTHUNDER Esports</div>
-                        </div>
-                    </div>
-                    <button onclick="managePlatformConnection('facebook')" class="text-[10px] text-blue-400 hover:text-blue-300 font-bold px-2 py-1 rounded bg-blue-950/40 border border-blue-800 flex-shrink-0 cursor-pointer">Manage ↗</button>
-                </div>
-            </div>
-
-            <!-- Queue Toolbar -->
-            <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-3.5 rounded-xl bg-[#090f1d] border border-[#1b2b48] flex-shrink-0">
-                <div class="flex items-center space-x-3">
-                    <span class="text-xs font-bold text-white font-orbitron uppercase tracking-wider flex items-center space-x-1.5">
-                        <span>📦</span>
-                        <span>Video Upload Queue:</span>
-                    </span>
-                    <span id="queue-count-badge" class="px-2 py-0.5 rounded-full text-xs font-mono font-bold bg-[#14233f] text-[#00e5ff] border border-cyan-800/60">0 Videos</span>
-                </div>
-                <div class="flex flex-wrap items-center gap-2">
-                    <button onclick="addAllHighlightsToQueue()" class="btn-3d-navy px-3.5 py-1.5 rounded-lg text-xs font-bold text-emerald-400 hover:text-emerald-300 flex items-center space-x-1 cursor-pointer">
-                        <span>➕</span>
-                        <span>Add All Rendered Videos</span>
-                    </button>
-                    <button onclick="clearUploadQueue()" class="btn-3d-navy px-3 py-1.5 rounded-lg text-xs font-semibold text-gray-400 hover:text-red-400 flex items-center space-x-1 cursor-pointer">
-                        <span>🗑️</span>
-                        <span>Clear</span>
+                    <button onclick="saveGlobalPlatformPresets()" class="glow-btn px-4 py-1.5 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-black font-orbitron font-bold text-xs tracking-wider cursor-pointer shadow-[0_0_15px_rgba(0,229,255,0.4)] flex items-center space-x-1.5">
+                        <span>💾</span>
+                        <span>SAVE ALL PRESETS</span>
                     </button>
                 </div>
-            </div>
 
-            <!-- Queue Items Container (Scrollable) -->
-            <div id="upload-queue-container" class="flex-1 overflow-y-auto space-y-3.5 pr-2 min-h-[240px]">
-                <!-- Dynamically populated cards via renderUploadQueue() -->
-                <div id="queue-empty-state" class="text-center py-12 text-[#64748b] space-y-2 border border-dashed border-[#1e2f52] rounded-2xl bg-[#070b14]/50">
-                    <div class="text-3xl">🎬</div>
-                    <div class="text-sm font-semibold text-[#8da2c0]">No Videos in Upload Queue</div>
-                    <p class="text-xs max-w-md mx-auto">Click <strong>"Add All Rendered Videos"</strong> or <strong>"Scan Output Folder"</strong> above to batch schedule highlights across YouTube, TikTok, and Facebook.</p>
-                </div>
-            </div>
+                <!-- Presets Containers -->
+                <div class="flex-1 overflow-y-auto space-y-4 pr-1 min-h-0">
+                    <!-- YouTube Presets Box -->
+                    <div id="preset-content-yt" class="glass-card rounded-2xl p-5 border border-red-500/30 bg-[#080d19] space-y-4">
+                        <div class="flex items-center justify-between border-b border-[#1b2b48] pb-3">
+                            <div class="flex items-center space-x-2 text-xs font-bold text-red-400 uppercase tracking-wide">
+                                <span>▶</span>
+                                <span>YouTube Global Upload Defaults</span>
+                            </div>
+                            <label class="flex items-center space-x-2 text-xs text-white cursor-pointer">
+                                <input type="checkbox" id="def-check-yt" checked class="rounded text-red-500">
+                                <span>Auto-check YouTube for all new videos</span>
+                            </label>
+                        </div>
 
-            <!-- Bottom Sticky Action & Summary Bar -->
-            <div class="p-4 rounded-xl bg-gradient-to-r from-[#091122] via-[#0b162b] to-[#070d18] border border-cyan-500/40 flex flex-col md:flex-row items-center justify-between gap-4 flex-shrink-0 shadow-[0_0_25px_rgba(0,229,255,0.15)]">
-                <div class="space-y-0.5 text-center md:text-left">
-                    <div class="text-xs font-bold text-white flex items-center space-x-2 justify-center md:justify-start">
-                        <span id="queue-summary-text">Ready: 0 Videos Selected</span>
-                        <span id="queue-target-breakdown" class="text-[11px] text-[#00e5ff] font-mono"></span>
-                    </div>
-                    <p class="text-[11px] text-[#7187a5]">All default platform settings &amp; custom overrides will be applied automatically during upload.</p>
-                </div>
-                <div class="flex items-center space-x-3 w-full md:w-auto justify-center">
-                    <button onclick="copyAllQueueKits()" class="btn-3d-navy px-4 py-2.5 rounded-xl text-xs font-bold text-[#8da2c0] hover:text-white flex items-center space-x-1.5 cursor-pointer">
-                        <span>📋</span>
-                        <span>Copy All Captions</span>
-                    </button>
-                    <button onclick="startBatchUpload()" id="btn-start-batch-upload" class="px-7 py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-black font-orbitron font-extrabold text-xs tracking-wider shadow-[0_0_20px_rgba(0,229,255,0.4)] transition-all flex items-center space-x-2 cursor-pointer">
-                        <span>🚀</span>
-                        <span>START BATCH UPLOAD</span>
-                    </button>
-                </div>
-            </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="space-y-1">
+                                <label class="text-[11px] text-[#8da2c0] font-semibold">Title Template (Supports {title} and {ign}):</label>
+                                <input id="def-yt-title" type="text" value="🔥 {title} | {ign} #PUBGMOBILE" class="w-full py-2 px-3 rounded-lg bg-[#0e172a] border border-[#1e2f52] text-xs text-white focus:border-red-500 focus:outline-none font-mono">
+                            </div>
+                            <div class="space-y-1">
+                                <label class="text-[11px] text-[#8da2c0] font-semibold">Default Playlist:</label>
+                                <select id="def-yt-playlist" class="w-full py-2 px-3 rounded-lg bg-[#0e172a] border border-[#1e2f52] text-xs text-white focus:border-red-500 focus:outline-none">
+                                    <option value="">(No Playlist)</option>
+                                </select>
+                            </div>
+                        </div>
 
-            <!-- Live Batch Upload Progress Overlay -->
-            <div id="batch-upload-progress-box" class="hidden p-4 rounded-xl bg-[#050e1e] border-2 border-cyan-400 space-y-2.5 shadow-[0_0_30px_rgba(0,229,255,0.3)]">
-                <div class="flex justify-between items-center text-xs">
-                    <div class="flex items-center space-x-2">
-                        <span class="inline-block animate-spin text-cyan-400 text-sm">⚡</span>
-                        <span id="batch-current-title" class="font-bold text-white font-mono">Processing Upload Queue...</span>
-                    </div>
-                    <span id="batch-progress-pct" class="font-mono font-bold text-[#00e5ff]">0%</span>
-                </div>
-                <div class="w-full h-2.5 rounded-full bg-[#0a1426] overflow-hidden">
-                    <div id="batch-progress-bar-fill" class="h-full bg-gradient-to-r from-cyan-400 to-emerald-400 transition-all duration-300" style="width: 0%;"></div>
-                </div>
-                <div class="flex justify-between items-center text-[11px] text-[#8da2c0]">
-                    <span id="batch-status-subtext">Preparing payloads and tags...</span>
-                    <button onclick="abortBatchUpload()" class="text-red-400 hover:text-red-300 font-bold underline cursor-pointer">Cancel Queue</button>
-                </div>
-            </div>
-
-        </div>
-
-        
-    <!-- ================================================================= -->
-    <!-- MODAL: PLATFORM DEFAULT PRESETS (AUTO-FILL ENGINE)                -->
-    <!-- ================================================================= -->
-    <div id="modal-autoupload-defaults" class="hidden fixed inset-0 z-[99999] flex items-center justify-center bg-black/85 backdrop-blur-md p-4">
-        <div class="glass-card rounded-2xl max-w-2xl w-full p-6 sm:p-8 space-y-6 border-2 border-cyan-500/50 shadow-[0_0_40px_rgba(0,229,255,0.25)] max-h-[90vh] overflow-y-auto">
-            <div class="flex justify-between items-center pb-3 border-b border-[#1b2b48]">
-                <div>
-                    <h3 class="font-orbitron font-bold text-xl text-[#00e5ff]">GLOBAL PLATFORM PRESETS</h3>
-                    <p class="text-xs text-[#8da2c0]">These defaults will automatically prefill any video added to your upload queue.</p>
-                </div>
-                <button onclick="closeUploadDefaultsModal()" class="text-gray-400 hover:text-white font-bold text-xl cursor-pointer">✕</button>
-            </div>
-
-            <!-- YouTube Defaults -->
-            <div class="p-4 rounded-xl bg-[#090f1d] border border-red-500/30 space-y-3">
-                <div class="flex items-center space-x-2 text-xs font-bold text-red-400 uppercase tracking-wide">
-                    <span>▶</span>
-                    <span>YouTube Default Presets</span>
-                </div>
-                <div class="space-y-1">
-                    <label class="text-[11px] text-[#8da2c0] font-semibold">Title Template (Use {title} and {ign}):</label>
-                    <input id="def-yt-title" type="text" value="🔥 {title} | {ign} #PUBGMOBILE" class="w-full py-2 px-3 rounded-lg bg-[#0e172a] border border-[#1e2f52] text-xs text-white focus:border-red-500 focus:outline-none font-mono">
-                </div>
-                <div class="space-y-1">
-                    <label class="text-[11px] text-[#8da2c0] font-semibold">Default Description &amp; Hashtags:</label>
-                    <textarea id="def-yt-desc" rows="3" class="w-full py-2 px-3 rounded-lg bg-[#0e172a] border border-[#1e2f52] text-xs text-[#cbd5e1] focus:border-red-500 focus:outline-none font-mono">🎮 Player: {ign}
-⚡ Powered by THUNDER Studio — Automated PUBG Esports Montage Engine
-🔥 Daily pro squad wipes, clutches and 60FPS highlights!
+                        <div class="space-y-1">
+                            <label class="text-[11px] text-[#8da2c0] font-semibold">Default Description Template:</label>
+                            <textarea id="def-yt-desc" rows="3" class="w-full py-2 px-3 rounded-lg bg-[#0e172a] border border-[#1e2f52] text-xs text-[#cbd5e1] focus:border-red-500 focus:outline-none font-mono">🎮 Player: {ign}
+⚡ Powered by THUNDER Studio — Automated PUBG Mobile Esports Montage Engine
+🔥 Daily pro squad wipes, clutches, and 60FPS highlights!
 
 #PUBGMobile #PUBG #Shorts #Gaming #Highlights #PUBGEsports #Clutch #M416</textarea>
-                </div>
-                <div class="grid grid-cols-2 gap-3">
-                    <div>
-                        <label class="text-[11px] text-[#8da2c0] font-semibold">Default Visibility:</label>
-                        <select id="def-yt-privacy" class="w-full py-1.5 px-2 rounded-lg bg-[#0e172a] border border-[#1e2f52] text-xs text-white focus:outline-none">
-                            <option value="public">Public</option>
-                            <option value="unlisted" selected>Unlisted (Safe Preview)</option>
-                            <option value="private">Private</option>
-                        </select>
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                            <div class="space-y-1">
+                                <label class="text-[11px] text-[#8da2c0] font-semibold">Default Visibility:</label>
+                                <select id="def-yt-privacy" class="w-full py-1.5 px-2 rounded-lg bg-[#0e172a] border border-[#1e2f52] text-xs text-white focus:outline-none">
+                                    <option value="public">Public</option>
+                                    <option value="unlisted" selected>Unlisted (Safe Preview)</option>
+                                    <option value="private">Private</option>
+                                </select>
+                            </div>
+                            <div class="space-y-1">
+                                <label class="text-[11px] text-[#8da2c0] font-semibold">COPPA (Made for Kids):</label>
+                                <select id="def-yt-coppa" class="w-full py-1.5 px-2 rounded-lg bg-[#0e172a] border border-[#1e2f52] text-xs text-white focus:outline-none">
+                                    <option value="false" selected>No (Not for kids)</option>
+                                    <option value="true">Yes (Made for kids)</option>
+                                </select>
+                            </div>
+                            <div class="space-y-1">
+                                <label class="text-[11px] text-[#8da2c0] font-semibold">Video Category:</label>
+                                <input id="def-yt-category" type="text" value="20 (Gaming)" disabled class="w-full py-1.5 px-2 rounded-lg bg-[#0a101f] border border-[#1e2f52] text-xs text-gray-400 font-mono">
+                            </div>
+                        </div>
                     </div>
-                    <div>
-                        <label class="text-[11px] text-[#8da2c0] font-semibold">Pre-Select by Default:</label>
-                        <label class="flex items-center space-x-2 mt-2 text-xs text-white cursor-pointer">
-                            <input type="checkbox" id="def-check-yt" checked class="rounded text-red-500">
-                            <span>Auto-check YouTube for new videos</span>
-                        </label>
+
+                    <!-- TikTok Presets Box -->
+                    <div id="preset-content-tt" class="hidden glass-card rounded-2xl p-5 border border-cyan-500/30 bg-[#080d19] space-y-4">
+                        <div class="flex items-center justify-between border-b border-[#1b2b48] pb-3">
+                            <div class="flex items-center space-x-2 text-xs font-bold text-cyan-400 uppercase tracking-wide">
+                                <span>🎵</span>
+                                <span>TikTok Global Upload Defaults</span>
+                            </div>
+                            <label class="flex items-center space-x-2 text-xs text-white cursor-pointer">
+                                <input type="checkbox" id="def-check-tt" checked class="rounded text-cyan-400">
+                                <span>Auto-check TikTok for all new videos</span>
+                            </label>
+                        </div>
+
+                        <div class="space-y-1">
+                            <label class="text-[11px] text-[#8da2c0] font-semibold">Default Caption &amp; Hashtags:</label>
+                            <textarea id="def-tt-caption" rows="2" class="w-full py-2 px-3 rounded-lg bg-[#0e172a] border border-[#1e2f52] text-xs text-[#cbd5e1] focus:border-cyan-400 focus:outline-none font-mono">Rate this squad wipe 1-10! 🔥 {ign} in action #pubgmobile #pubg #foryou #fyp #gaming #esports #pubglover</textarea>
+                        </div>
+
+                        <div class="flex flex-wrap items-center gap-4 text-xs text-[#cbd5e1]">
+                            <label class="flex items-center space-x-2 cursor-pointer">
+                                <input type="checkbox" id="def-tt-duet" checked class="rounded text-cyan-400">
+                                <span>Allow Duet</span>
+                            </label>
+                            <label class="flex items-center space-x-2 cursor-pointer">
+                                <input type="checkbox" id="def-tt-stitch" checked class="rounded text-cyan-400">
+                                <span>Allow Stitch</span>
+                            </label>
+                            <label class="flex items-center space-x-2 cursor-pointer">
+                                <input type="checkbox" id="def-tt-comments" checked class="rounded text-cyan-400">
+                                <span>Allow Comments</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Facebook Presets Box -->
+                    <div id="preset-content-fb" class="hidden glass-card rounded-2xl p-5 border border-blue-500/30 bg-[#080d19] space-y-4">
+                        <div class="flex items-center justify-between border-b border-[#1b2b48] pb-3">
+                            <div class="flex items-center space-x-2 text-xs font-bold text-blue-400 uppercase tracking-wide">
+                                <span>👥</span>
+                                <span>Facebook Gaming &amp; Reels Global Upload Defaults</span>
+                            </div>
+                            <label class="flex items-center space-x-2 text-xs text-white cursor-pointer">
+                                <input type="checkbox" id="def-check-fb" checked class="rounded text-blue-400">
+                                <span>Auto-check Facebook for all new videos</span>
+                            </label>
+                        </div>
+
+                        <div class="space-y-1">
+                            <label class="text-[11px] text-[#8da2c0] font-semibold">Default Reels Caption:</label>
+                            <textarea id="def-fb-caption" rows="2" class="w-full py-2 px-3 rounded-lg bg-[#0e172a] border border-[#1e2f52] text-xs text-[#cbd5e1] focus:border-blue-400 focus:outline-none font-mono">INSANE clutch moment by {ign}! 🎯 Follow for daily PUBG Mobile highlights #PUBGMobile #PUBG #Gaming #Reels #Esports</textarea>
+                        </div>
+
+                        <div class="space-y-1">
+                            <label class="text-[11px] text-[#8da2c0] font-semibold">Gaming Tag:</label>
+                            <input id="def-fb-gaming-tag" type="text" value="PUBG Mobile" class="w-full py-1.5 px-3 rounded-lg bg-[#0e172a] border border-[#1e2f52] text-xs text-white font-mono">
+                        </div>
                     </div>
                 </div>
-            </div>
-
-            <!-- TikTok Defaults -->
-            <div class="p-4 rounded-xl bg-[#090f1d] border border-cyan-500/30 space-y-3">
-                <div class="flex items-center space-x-2 text-xs font-bold text-cyan-400 uppercase tracking-wide">
-                    <span>🎵</span>
-                    <span>TikTok Default Presets</span>
-                </div>
-                <div class="space-y-1">
-                    <label class="text-[11px] text-[#8da2c0] font-semibold">Default Caption &amp; Hashtags:</label>
-                    <textarea id="def-tt-caption" rows="2" class="w-full py-2 px-3 rounded-lg bg-[#0e172a] border border-[#1e2f52] text-xs text-[#cbd5e1] focus:border-cyan-400 focus:outline-none font-mono">Rate this squad wipe 1-10! 🔥 {ign} in action #pubgmobile #pubg #foryou #fyp #gaming #esports #pubglover</textarea>
-                </div>
-                <div class="flex items-center space-x-4 text-xs text-[#cbd5e1]">
-                    <label class="flex items-center space-x-2 cursor-pointer">
-                        <input type="checkbox" id="def-check-tt" checked class="rounded text-cyan-400">
-                        <span>Auto-check TikTok for new videos</span>
-                    </label>
-                </div>
-            </div>
-
-            <!-- Facebook / Reels Defaults -->
-            <div class="p-4 rounded-xl bg-[#090f1d] border border-blue-500/30 space-y-3">
-                <div class="flex items-center space-x-2 text-xs font-bold text-blue-400 uppercase tracking-wide">
-                    <span>👥</span>
-                    <span>Facebook Gaming &amp; Reels Default Presets</span>
-                </div>
-                <div class="space-y-1">
-                    <label class="text-[11px] text-[#8da2c0] font-semibold">Default Reels Caption:</label>
-                    <textarea id="def-fb-caption" rows="2" class="w-full py-2 px-3 rounded-lg bg-[#0e172a] border border-[#1e2f52] text-xs text-[#cbd5e1] focus:border-blue-400 focus:outline-none font-mono">INSANE clutch moment by {ign}! 🎯 Follow for daily PUBG Mobile highlights #Reels #PUBGMobile #Gaming #FBGaming</textarea>
-                </div>
-                <div class="flex items-center space-x-4 text-xs text-[#cbd5e1]">
-                    <label class="flex items-center space-x-2 cursor-pointer">
-                        <input type="checkbox" id="def-check-fb" checked class="rounded text-blue-400">
-                        <span>Auto-check Facebook for new videos</span>
-                    </label>
-                </div>
-            </div>
-
-            <div class="flex justify-end space-x-3 pt-2 border-t border-[#1b2b48]">
-                <button onclick="closeUploadDefaultsModal()" class="btn-3d-navy px-5 py-2.5 rounded-xl text-xs font-bold text-gray-400 hover:text-white cursor-pointer">Cancel</button>
-                <button onclick="saveUploadDefaults()" class="px-6 py-2.5 rounded-xl bg-[#00e5ff] hover:bg-cyan-400 text-black font-orbitron font-bold text-xs tracking-wider shadow-[0_0_15px_rgba(0,229,255,0.4)] cursor-pointer">SAVE PRESETS</button>
             </div>
         </div>
-    </div>
 
+        <!-- =================================================================== -->
+        <!-- DEDICATED FULL-SCREEN BATCH PUBLISHING STUDIO (LIKE TIMELINE STUDIO!)-->
+        <!-- All other options vanish so the user has full focus & space!        -->
+        <!-- =================================================================== -->
+        <div id="batch-upload-studio-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/95 backdrop-blur-md p-1 sm:p-2 select-none">
+            <div class="glass-card w-[99vw] h-[98vh] max-w-none max-h-none rounded-xl p-3 border-2 border-cyan-500/60 shadow-[0_0_60px_rgba(0,229,255,0.35)] flex flex-col justify-between gap-2 overflow-hidden">
+                
+                <!-- TOP HEADER BAR -->
+                <div class="flex items-center justify-between px-4 py-2 bg-[#070b16] border border-[#1b2742] rounded-xl flex-shrink-0">
+                    <div class="flex items-center space-x-3">
+                        <button onclick="closeBatchUploadStudio()" class="px-3 py-1.5 rounded-lg bg-[#142038] hover:bg-[#1e2f52] text-white font-bold text-xs flex items-center space-x-1.5 cursor-pointer transition-all border border-[#23355b]">
+                            <span>←</span>
+                            <span>Back to Video Selection</span>
+                        </button>
+                        <div class="h-4 w-[1px] bg-gray-700"></div>
+                        <div>
+                            <div class="font-orbitron font-extrabold text-sm text-[#00e5ff] tracking-wider flex items-center space-x-2">
+                                <span>🚀</span>
+                                <span>BATCH PUBLISHING STUDIO</span>
+                                <span id="studio-total-badge" class="px-2 py-0.2 rounded-full text-[10px] font-mono font-bold bg-cyan-500/20 text-cyan-300">0 Videos</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right Global Actions -->
+                    <div class="flex items-center space-x-2">
+                        <button onclick="applyActiveSettingsToAllVideos()" class="px-3 py-1.5 rounded-lg bg-[#111e38] hover:bg-[#1a2d52] text-[#00e5ff] text-xs font-bold border border-cyan-500/40 cursor-pointer transition-all flex items-center space-x-1" title="Applies the title template, description, tags, and visibility of the current video to ALL selected videos">
+                            <span>⚡</span>
+                            <span>Apply Current Settings to All</span>
+                        </button>
+                        <button id="btn-studio-start-upload" onclick="startStudioBatchUpload()" class="glow-btn px-6 py-2 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-400 hover:from-emerald-400 hover:to-teal-300 text-black font-orbitron font-extrabold text-xs tracking-wider cursor-pointer shadow-[0_0_20px_rgba(52,211,153,0.5)] flex items-center space-x-2 transition-all">
+                            <span>🚀</span>
+                            <span>START BATCH UPLOAD</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- MAIN WORKSPACE: TWO-COLUMN MASTER-DETAIL -->
+                <div class="flex-1 flex gap-3 min-h-0 overflow-hidden">
+                    
+                    <!-- LEFT COLUMN: SELECTED VIDEOS LIST (35% WIDTH) -->
+                    <div class="w-full lg:w-[38%] glass-card rounded-xl p-3 border border-[#1b2b48] flex flex-col justify-between space-y-2 overflow-hidden">
+                        <div class="flex items-center justify-between border-b border-[#1b2b48] pb-2 flex-shrink-0">
+                            <span class="text-xs font-bold uppercase tracking-wider text-[#00e5ff]">Queued Videos (<span id="studio-queue-count">0</span>)</span>
+                            <div class="flex items-center space-x-1.5 text-[10px]">
+                                <span class="text-[#8da2c0]">Platforms:</span>
+                                <button onclick="toggleAllStudioPlatform('targetYoutube')" class="px-1.5 py-0.5 rounded bg-red-950/80 text-red-400 border border-red-800/60 font-bold hover:bg-red-900/60">YT</button>
+                                <button onclick="toggleAllStudioPlatform('targetTiktok')" class="px-1.5 py-0.5 rounded bg-cyan-950/80 text-cyan-400 border border-cyan-800/60 font-bold hover:bg-cyan-900/60">TT</button>
+                                <button onclick="toggleAllStudioPlatform('targetFacebook')" class="px-1.5 py-0.5 rounded bg-blue-950/80 text-blue-400 border border-blue-800/60 font-bold hover:bg-blue-900/60">FB</button>
+                            </div>
+                        </div>
+
+                        <!-- Scrollable Video Queue -->
+                        <div id="studio-video-list" class="flex-1 overflow-y-auto space-y-2 pr-1 min-h-0">
+                            <!-- Populated with video cards -->
+                        </div>
+                    </div>
+
+                    <!-- RIGHT COLUMN: ACTIVE VIDEO CONFIGURATOR (65% WIDTH) -->
+                    <div class="w-full lg:w-[62%] glass-card rounded-xl p-4 border border-[#1b2b48] flex flex-col justify-between space-y-3 overflow-hidden">
+                        
+                        <!-- Active Video Banner & Targets -->
+                        <div class="flex items-center justify-between bg-[#070b16] p-3 rounded-xl border border-[#1b2b48] flex-shrink-0">
+                            <div class="flex items-center space-x-3 min-w-0">
+                                <div id="studio-active-icon" class="w-10 h-10 rounded-xl bg-cyan-500/20 text-cyan-400 border border-cyan-500/40 flex items-center justify-center font-bold text-lg flex-shrink-0">📱</div>
+                                <div class="min-w-0">
+                                    <div id="studio-active-filename" class="font-bold text-xs text-white truncate">Select a video from the left</div>
+                                    <div class="flex items-center space-x-2 text-[10px] text-[#8da2c0] mt-0.5">
+                                        <span id="studio-active-format-badge" class="px-1.5 py-0.2 rounded font-mono font-bold bg-purple-950/80 text-purple-300 border border-purple-800">9:16 VERTICAL</span>
+                                        <span id="studio-active-size-text" class="font-mono">0 MB</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Platform Target Toggles for this video -->
+                            <div class="flex items-center space-x-2 bg-[#0a1122] px-3 py-1.5 rounded-lg border border-[#1e2f52] flex-shrink-0">
+                                <label class="flex items-center space-x-1.5 text-xs text-white cursor-pointer px-1.5 py-0.5 rounded hover:bg-[#142038]">
+                                    <input type="checkbox" id="studio-check-yt" onchange="updateStudioActiveTarget('targetYoutube', this.checked)" class="rounded text-red-500">
+                                    <span class="text-red-400 font-bold">▶ YouTube</span>
+                                </label>
+                                <div class="w-[1px] h-3.5 bg-gray-700"></div>
+                                <label class="flex items-center space-x-1.5 text-xs text-white cursor-pointer px-1.5 py-0.5 rounded hover:bg-[#142038]">
+                                    <input type="checkbox" id="studio-check-tt" onchange="updateStudioActiveTarget('targetTiktok', this.checked)" class="rounded text-cyan-400">
+                                    <span class="text-cyan-400 font-bold">🎵 TikTok</span>
+                                </label>
+                                <div class="w-[1px] h-3.5 bg-gray-700"></div>
+                                <label class="flex items-center space-x-1.5 text-xs text-white cursor-pointer px-1.5 py-0.5 rounded hover:bg-[#142038]">
+                                    <input type="checkbox" id="studio-check-fb" onchange="updateStudioActiveTarget('targetFacebook', this.checked)" class="rounded text-blue-400">
+                                    <span class="text-blue-400 font-bold">👥 Facebook/Reels</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- 3 Platform Sub-Tabs for this Video -->
+                        <div class="flex items-center space-x-2 border-b border-[#1b2b48] pb-1.5 flex-shrink-0">
+                            <button id="studio-tab-btn-yt" onclick="switchStudioPlatformTab('yt')" class="px-3.5 py-1.5 rounded-lg text-xs font-bold bg-red-600 text-white shadow-[0_0_12px_rgba(239,68,68,0.4)] cursor-pointer flex items-center space-x-1.5">
+                                <span>▶</span>
+                                <span>YouTube Settings</span>
+                            </button>
+                            <button id="studio-tab-btn-tt" onclick="switchStudioPlatformTab('tt')" class="px-3.5 py-1.5 rounded-lg text-xs font-bold text-[#8da2c0] hover:text-white hover:bg-[#101b30] cursor-pointer flex items-center space-x-1.5">
+                                <span>🎵</span>
+                                <span>TikTok Settings</span>
+                            </button>
+                            <button id="studio-tab-btn-fb" onclick="switchStudioPlatformTab('fb')" class="px-3.5 py-1.5 rounded-lg text-xs font-bold text-[#8da2c0] hover:text-white hover:bg-[#101b30] cursor-pointer flex items-center space-x-1.5">
+                                <span>👥</span>
+                                <span>Facebook Settings</span>
+                            </button>
+                        </div>
+
+                        <!-- Platform Form Areas (Scrollable) -->
+                        <div class="flex-1 overflow-y-auto space-y-3 pr-1 min-h-0">
+                            
+                            <!-- YouTube Form -->
+                            <div id="studio-form-yt" class="space-y-3">
+                                <div class="space-y-1">
+                                    <label class="text-[11px] text-[#8da2c0] font-semibold">Video Title:</label>
+                                    <input id="studio-yt-title" type="text" oninput="updateStudioActiveField('title', this.value)" class="w-full py-2 px-3 rounded-lg bg-[#0e172a] border border-[#1e2f52] text-xs text-white focus:border-red-500 focus:outline-none font-mono">
+                                </div>
+                                <div class="space-y-1">
+                                    <label class="text-[11px] text-[#8da2c0] font-semibold">Video Description &amp; Hashtags:</label>
+                                    <textarea id="studio-yt-desc" rows="4" oninput="updateStudioActiveField('description', this.value)" class="w-full py-2 px-3 rounded-lg bg-[#0e172a] border border-[#1e2f52] text-xs text-[#cbd5e1] focus:border-red-500 focus:outline-none font-mono"></textarea>
+                                </div>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                    <div class="space-y-1">
+                                        <label class="text-[11px] text-[#8da2c0] font-semibold">Playlist Attachment:</label>
+                                        <select id="studio-yt-playlist" onchange="updateStudioActiveField('playlistId', this.value)" class="w-full py-1.5 px-2 rounded-lg bg-[#0e172a] border border-[#1e2f52] text-xs text-white focus:outline-none">
+                                            <option value="">(No Playlist)</option>
+                                        </select>
+                                    </div>
+                                    <div class="space-y-1">
+                                        <label class="text-[11px] text-[#8da2c0] font-semibold">Visibility:</label>
+                                        <select id="studio-yt-privacy" onchange="updateStudioActiveField('privacy', this.value)" class="w-full py-1.5 px-2 rounded-lg bg-[#0e172a] border border-[#1e2f52] text-xs text-white focus:outline-none">
+                                            <option value="public">Public</option>
+                                            <option value="unlisted">Unlisted</option>
+                                            <option value="private">Private</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- TikTok Form -->
+                            <div id="studio-form-tt" class="hidden space-y-3">
+                                <div class="space-y-1">
+                                    <label class="text-[11px] text-[#8da2c0] font-semibold">TikTok Caption &amp; Hashtags:</label>
+                                    <textarea id="studio-tt-caption" rows="3" oninput="updateStudioActiveField('ttCaption', this.value)" class="w-full py-2 px-3 rounded-lg bg-[#0e172a] border border-[#1e2f52] text-xs text-[#cbd5e1] focus:border-cyan-400 focus:outline-none font-mono"></textarea>
+                                </div>
+                                <div class="flex items-center space-x-4 text-xs text-[#cbd5e1]">
+                                    <label class="flex items-center space-x-2 cursor-pointer">
+                                        <input type="checkbox" id="studio-tt-duet" onchange="updateStudioActiveField('ttDuet', this.checked)" class="rounded text-cyan-400">
+                                        <span>Allow Duet</span>
+                                    </label>
+                                    <label class="flex items-center space-x-2 cursor-pointer">
+                                        <input type="checkbox" id="studio-tt-stitch" onchange="updateStudioActiveField('ttStitch', this.checked)" class="rounded text-cyan-400">
+                                        <span>Allow Stitch</span>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <!-- Facebook Form -->
+                            <div id="studio-form-fb" class="hidden space-y-3">
+                                <div class="space-y-1">
+                                    <label class="text-[11px] text-[#8da2c0] font-semibold">Facebook Reel Caption:</label>
+                                    <textarea id="studio-fb-caption" rows="3" oninput="updateStudioActiveField('fbCaption', this.value)" class="w-full py-2 px-3 rounded-lg bg-[#0e172a] border border-[#1e2f52] text-xs text-[#cbd5e1] focus:border-blue-400 focus:outline-none font-mono"></textarea>
+                                </div>
+                                <div class="space-y-1">
+                                    <label class="text-[11px] text-[#8da2c0] font-semibold">Gaming Tag:</label>
+                                    <input id="studio-fb-tag" type="text" value="PUBG Mobile" oninput="updateStudioActiveField('fbTag', this.value)" class="w-full py-1.5 px-3 rounded-lg bg-[#0e172a] border border-[#1e2f52] text-xs text-white font-mono">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Schedule & Footer Sync -->
+                        <div class="flex items-center justify-between pt-2 border-t border-[#1b2b48] bg-[#070c18] p-2.5 rounded-xl flex-shrink-0">
+                            <div class="flex items-center space-x-2">
+                                <label class="text-xs font-semibold text-[#8da2c0]">Schedule:</label>
+                                <select id="studio-schedule-select" onchange="updateStudioActiveField('schedule', this.value)" class="py-1 px-2.5 rounded bg-[#0e172a] border border-[#1e2f52] text-xs text-white focus:outline-none font-mono">
+                                    <option value="now">⚡ Publish Immediately</option>
+                                    <option value="1h">⏳ In 1 Hour</option>
+                                    <option value="3h">⏳ In 3 Hours</option>
+                                    <option value="tomorrow">📅 Tomorrow at 18:00 (Prime Time)</option>
+                                </select>
+                            </div>
+                            <button onclick="copySettingsToAllVideos()" class="px-3 py-1.5 rounded-lg bg-[#142038] hover:bg-[#1d2e50] text-xs font-bold text-cyan-300 border border-cyan-500/40 cursor-pointer transition-all flex items-center space-x-1.5">
+                                <span>📋</span>
+                                <span>Copy This Video's Settings to All Videos</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- LIVE PROGRESS OVERLAY (WHEN UPLOADING) -->
+                <div id="studio-upload-progress-box" class="hidden bg-[#070b16] border-2 border-cyan-500/60 p-4 rounded-xl flex items-center justify-between gap-4 flex-shrink-0 shadow-[0_0_30px_rgba(0,229,255,0.3)]">
+                    <div class="flex items-center space-x-3 flex-1 min-w-0">
+                        <div class="w-10 h-10 rounded-xl bg-cyan-500/20 text-cyan-400 border border-cyan-500/50 flex items-center justify-center font-bold text-lg animate-spin">⏳</div>
+                        <div class="flex-1 min-w-0">
+                            <div class="flex items-center justify-between">
+                                <span id="studio-prog-title" class="font-orbitron font-bold text-xs text-white truncate">[1/3] Uploading Video...</span>
+                                <span id="studio-prog-pct" class="font-mono font-bold text-xs text-cyan-400">0%</span>
+                            </div>
+                            <div class="w-full h-2 rounded-full bg-[#101b33] overflow-hidden mt-1.5">
+                                <div id="studio-prog-bar-fill" class="h-full bg-gradient-to-r from-cyan-400 to-emerald-400 transition-all duration-300" style="width: 0%;"></div>
+                            </div>
+                            <div id="studio-prog-subtext" class="text-[11px] text-[#8da2c0] mt-1 font-mono truncate">Initiating chunked upload...</div>
+                        </div>
+                    </div>
+                    <button onclick="abortStudioBatchUpload()" class="px-4 py-2 rounded-xl bg-rose-950/80 hover:bg-rose-900 text-rose-300 font-bold text-xs border border-rose-700/60 cursor-pointer flex-shrink-0">
+                        🛑 CANCEL
+                    </button>
+                </div>
+            </div>
+        </div>
 
     </main>
 
@@ -9418,80 +9695,140 @@
     
 
 
+        
         // =================================================================
-        // ADVANCED MULTI-VIDEO BATCH UPLOAD & SOCIAL PUBLISHER CONTROLLER
+        // AUTO UPLOAD & SOCIAL PUBLISHING SUITE V3 CONTROLLER
+        // 3 Sub-Tabs Architecture + Dedicated Fullscreen Batch Studio
         // =================================================================
-        let uploadBatchQueue = [];
-        let allScannedHighlights = [];
-        let isBatchUploading = false;
-        let batchAbortRequested = false;
+        let allScannedVideos = [];
+        let studioQueuedVideos = [];
+        let studioActiveIndex = 0;
+        let isStudioUploading = false;
+        let studioAbortRequested = false;
 
-        const DEFAULT_PRESETS_KEY = 'thunder_autoupload_presets_v2';
+        const STORAGE_KEY_PRESETS_V3 = 'thunder_autoupload_presets_v3';
 
-        function getUploadPresets() {
-            const raw = localStorage.getItem(DEFAULT_PRESETS_KEY);
+        // 1. Sub-Tab Navigation inside Auto Upload
+        function switchUploadSubTab(tab) {
+            const tabs = ['select', 'connect', 'presets'];
+            tabs.forEach(t => {
+                const btn = document.getElementById(`subtab-btn-${t}`);
+                const view = document.getElementById(`subview-upload-${t}`);
+                if (btn) {
+                    if (t === tab) {
+                        btn.className = "px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center space-x-1.5 bg-[#00e5ff] text-black shadow-[0_0_12px_rgba(0,229,255,0.4)] cursor-pointer";
+                    } else {
+                        btn.className = "px-3.5 py-1.5 rounded-lg text-xs font-bold text-[#8da2c0] hover:text-white transition-all flex items-center space-x-1.5 hover:bg-[#101b30] cursor-pointer";
+                    }
+                }
+                if (view) {
+                    if (t === tab) view.classList.remove('hidden');
+                    else view.classList.add('hidden');
+                }
+            });
+        }
+
+        // 2. Preset Platform Tabs
+        function switchPresetPlatformTab(p) {
+            const platforms = ['yt', 'tt', 'fb'];
+            platforms.forEach(item => {
+                const btn = document.getElementById(`preset-tab-btn-${item}`);
+                const box = document.getElementById(`preset-content-${item}`);
+                if (btn) {
+                    if (item === p) {
+                        btn.className = item === 'yt' 
+                            ? "px-4 py-1.5 rounded-xl text-xs font-bold transition-all bg-red-600 text-white shadow-[0_0_12px_rgba(239,68,68,0.4)] cursor-pointer flex items-center space-x-1.5"
+                            : (item === 'tt' 
+                                ? "px-4 py-1.5 rounded-xl text-xs font-bold transition-all bg-cyan-600 text-black shadow-[0_0_12px_rgba(0,229,255,0.4)] cursor-pointer flex items-center space-x-1.5"
+                                : "px-4 py-1.5 rounded-xl text-xs font-bold transition-all bg-blue-600 text-white shadow-[0_0_12px_rgba(59,130,246,0.4)] cursor-pointer flex items-center space-x-1.5");
+                    } else {
+                        btn.className = "px-4 py-1.5 rounded-xl text-xs font-bold text-[#8da2c0] hover:text-white transition-all hover:bg-[#101b30] cursor-pointer flex items-center space-x-1.5";
+                    }
+                }
+                if (box) {
+                    if (item === p) box.classList.remove('hidden');
+                    else box.classList.add('hidden');
+                }
+            });
+        }
+
+        // 3. Platform Presets Storage
+        function getGlobalPresets() {
+            const raw = localStorage.getItem(STORAGE_KEY_PRESETS_V3);
             if (raw) {
-                try { return JSON.parse(raw); } catch (e) {}
+                try { return JSON.parse(raw); } catch(e) {}
             }
             return {
-                ytTitle: '🔥 {title} | {ign} #PUBGMOBILE',
-                ytDesc: '🎮 Player: {ign}\n⚡ Powered by THUNDER Studio — Automated PUBG Esports Montage Engine\n🔥 Daily pro squad wipes, clutches and 60FPS highlights!\n\n#PUBGMobile #PUBG #Shorts #Gaming #Highlights #PUBGEsports #Clutch #M416',
-                ytPrivacy: 'unlisted',
                 checkYt: true,
-                ttCaption: 'Rate this squad wipe 1-10! 🔥 {ign} in action #pubgmobile #pubg #foryou #fyp #gaming #esports #pubglover',
+                ytTitle: '🔥 {title} | {ign} #PUBGMOBILE',
+                ytDesc: '🎮 Player: {ign}\n⚡ Powered by THUNDER Studio — Automated PUBG Mobile Esports Montage Engine\n🔥 Daily pro squad wipes, clutches, and 60FPS highlights!\n\n#PUBGMobile #PUBG #Shorts #Gaming #Highlights #PUBGEsports #Clutch #M416',
+                ytPrivacy: 'unlisted',
+                ytCoppa: 'false',
+                ytPlaylist: '',
                 checkTt: true,
-                fbCaption: 'INSANE clutch moment by {ign}! 🎯 Follow for daily PUBG Mobile highlights #Reels #PUBGMobile #Gaming #FBGaming',
-                checkFb: true
+                ttCaption: 'Rate this squad wipe 1-10! 🔥 {ign} in action #pubgmobile #pubg #foryou #fyp #gaming #esports #pubglover',
+                ttDuet: true,
+                ttStitch: true,
+                checkFb: true,
+                fbCaption: 'INSANE clutch moment by {ign}! 🎯 Follow for daily PUBG Mobile highlights #PUBGMobile #PUBG #Gaming #Reels #Esports',
+                fbTag: 'PUBG Mobile'
             };
         }
 
-        function openUploadDefaultsModal() {
-            const p = getUploadPresets();
-            const setVal = (id, v) => { const el = document.getElementById(id); if (el) el.value = v; };
-            const setChk = (id, v) => { const el = document.getElementById(id); if (el) el.checked = !!v; };
+        function loadPresetFormValues() {
+            const p = getGlobalPresets();
+            const setVal = (id, val) => { const el = document.getElementById(id); if (el) el.value = val; };
+            const setChk = (id, val) => { const el = document.getElementById(id); if (el) el.checked = !!val; };
 
+            setChk('def-check-yt', p.checkYt);
             setVal('def-yt-title', p.ytTitle);
             setVal('def-yt-desc', p.ytDesc);
-            setVal('def-yt-privacy', p.ytPrivacy || 'unlisted');
-            setChk('def-check-yt', p.checkYt);
+            setVal('def-yt-privacy', p.ytPrivacy);
+            setVal('def-yt-coppa', p.ytCoppa);
+            setVal('def-yt-playlist', p.ytPlaylist);
 
-            setVal('def-tt-caption', p.ttCaption);
             setChk('def-check-tt', p.checkTt);
+            setVal('def-tt-caption', p.ttCaption);
+            setChk('def-tt-duet', p.ttDuet);
+            setChk('def-tt-stitch', p.ttStitch);
 
-            setVal('def-fb-caption', p.fbCaption);
             setChk('def-check-fb', p.checkFb);
-
-            const m = document.getElementById('modal-autoupload-defaults');
-            if (m) m.classList.remove('hidden');
+            setVal('def-fb-caption', p.fbCaption);
+            setVal('def-fb-gaming-tag', p.fbTag);
         }
 
-        function closeUploadDefaultsModal() {
-            const m = document.getElementById('modal-autoupload-defaults');
-            if (m) m.classList.add('hidden');
-        }
+        function saveGlobalPlatformPresets() {
+            const getVal = (id, fallback) => { const el = document.getElementById(id); return el ? el.value : fallback; };
+            const getChk = (id, fallback) => { const el = document.getElementById(id); return el ? el.checked : fallback; };
 
-        function saveUploadDefaults() {
-            const getVal = id => (document.getElementById(id)?.value || '');
-            const getChk = id => !!document.getElementById(id)?.checked;
-
-            const p = {
-                ytTitle: getVal('def-yt-title'),
-                ytDesc: getVal('def-yt-desc'),
-                ytPrivacy: getVal('def-yt-privacy'),
-                checkYt: getChk('def-check-yt'),
-                ttCaption: getVal('def-tt-caption'),
-                checkTt: getChk('def-check-tt'),
-                fbCaption: getVal('def-fb-caption'),
-                checkFb: getChk('def-check-fb')
+            const data = {
+                checkYt: getChk('def-check-yt', true),
+                ytTitle: getVal('def-yt-title', '🔥 {title} | {ign} #PUBGMOBILE'),
+                ytDesc: getVal('def-yt-desc', ''),
+                ytPrivacy: getVal('def-yt-privacy', 'unlisted'),
+                ytCoppa: getVal('def-yt-coppa', 'false'),
+                ytPlaylist: getVal('def-yt-playlist', ''),
+                checkTt: getChk('def-check-tt', true),
+                ttCaption: getVal('def-tt-caption', ''),
+                ttDuet: getChk('def-tt-duet', true),
+                ttStitch: getChk('def-tt-stitch', true),
+                checkFb: getChk('def-check-fb', true),
+                fbCaption: getVal('def-fb-caption', ''),
+                fbTag: getVal('def-fb-gaming-tag', 'PUBG Mobile')
             };
 
-            localStorage.setItem(DEFAULT_PRESETS_KEY, JSON.stringify(p));
-            closeUploadDefaultsModal();
-            showEsportsAlert('Platform Default Presets Saved! All future queued videos will be auto-filled with these settings.', 'PRESETS SAVED', '✓');
+            localStorage.setItem(STORAGE_KEY_PRESETS_V3, JSON.stringify(data));
+            showEsportsAlert('Platform Default Presets successfully saved! All queued videos will inherit these settings.', 'PRESETS SAVED', '✓');
         }
 
+        // 4. Initialize Auto Upload View
         async function initAutoUploadView() {
-            // Check connected YouTube channel
+            loadPresetFormValues();
+            await checkConnectedChannelStatus();
+            await syncOutputFolderHighlights();
+        }
+
+        async function checkConnectedChannelStatus() {
             if (window.pywebview && window.pywebview.api && window.pywebview.api.get_connected_youtube_channel) {
                 try {
                     const res = await window.pywebview.api.get_connected_youtube_channel();
@@ -9504,405 +9841,574 @@
                     renderYouTubeChannelUI(null);
                 }
             }
-            await syncOutputFolderHighlights();
         }
 
         function renderYouTubeChannelUI(ch) {
-            const discView = document.getElementById('yt-disconnected-view');
-            const connView = document.getElementById('yt-connected-view');
-            const avatar = document.getElementById('yt-card-avatar');
-            const title = document.getElementById('yt-card-title');
-            const sub = document.getElementById('yt-card-sub');
-            const plsLabel = document.getElementById('yt-card-playlist-label');
+            const avatar = document.getElementById('yt-connect-avatar');
+            const title = document.getElementById('yt-connect-title');
+            const handle = document.getElementById('yt-connect-handle');
+            const plText = document.getElementById('yt-connect-playlists-text');
+            const badge = document.getElementById('yt-connect-status-badge');
+            const btnLabel = document.getElementById('btn-yt-connect-label');
+            const btnDisc = document.getElementById('btn-yt-disconnect-action');
+            const defPlSel = document.getElementById('def-yt-playlist');
 
             if (ch && ch.channel_id) {
-                if (discView) discView.classList.add('hidden');
-                if (connView) connView.classList.remove('hidden');
-                if (avatar) avatar.src = ch.avatar || 'https://via.placeholder.com/96';
-                if (title) title.textContent = ch.title || 'MAAKTHUNDER';
-                if (sub) sub.textContent = (ch.handle || '@maakthunder') + ' • ' + (ch.subscribers || '0') + ' Subscribers';
-                if (plsLabel) plsLabel.textContent = (ch.playlists ? ch.playlists.length : 0) + ' Playlists active on channel';
+                if (avatar) avatar.src = ch.avatar || 'https://via.placeholder.com/64';
+                if (title) title.textContent = ch.title || 'Connected Channel';
+                if (handle) handle.textContent = `${ch.handle || '@creator'} • ${ch.subscribers || '0'} Subscribers`;
+                if (plText) plText.textContent = `${(ch.playlists || []).length} Playlists Synced & Active`;
+                if (badge) {
+                    badge.textContent = 'CONNECTED';
+                    badge.className = 'px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/40';
+                }
+                if (btnLabel) btnLabel.textContent = 'RECONNECT / SWITCH CHANNEL';
+                if (btnDisc) btnDisc.classList.remove('hidden');
+
+                // Populate default playlist dropdown
+                if (defPlSel) {
+                    defPlSel.innerHTML = '<option value="">(No Playlist)</option>';
+                    (ch.playlists || []).forEach(pl => {
+                        const opt = document.createElement('option');
+                        opt.value = pl.id;
+                        opt.textContent = `📁 ${pl.title} (${pl.itemCount || 0} videos)`;
+                        defPlSel.appendChild(opt);
+                    });
+                }
             } else {
-                if (discView) discView.classList.remove('hidden');
-                if (connView) connView.classList.add('hidden');
+                if (avatar) avatar.src = 'https://via.placeholder.com/64';
+                if (title) title.textContent = 'No Channel Connected';
+                if (handle) handle.textContent = 'Click to connect Google account';
+                if (plText) plText.textContent = '0 Playlists Active';
+                if (badge) {
+                    badge.textContent = 'DISCONNECTED';
+                    badge.className = 'px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-rose-500/20 text-rose-400 border border-rose-500/40';
+                }
+                if (btnLabel) btnLabel.textContent = 'CONNECT YOUTUBE CHANNEL';
+                if (btnDisc) btnDisc.classList.add('hidden');
             }
         }
 
         async function connectYouTubeChannel() {
             if (window.pywebview && window.pywebview.api && window.pywebview.api.connect_youtube_channel) {
-                await window.pywebview.api.connect_youtube_channel();
-            } else {
-                window.open('https://maakthunder-studio.web.app/youtube_connect.html?port=54321&auto=1', '_blank');
+                try {
+                    const res = await window.pywebview.api.connect_youtube_channel();
+                    if (res && res.status === 'connected') {
+                        renderYouTubeChannelUI(res.channel);
+                        showEsportsAlert(`Channel "${res.channel.title}" connected successfully!`, 'YOUTUBE CONNECTED', '✓');
+                    } else if (res && res.status === 'window_opened') {
+                        // Polling until user authorizes in external browser window
+                        const pollTimer = setInterval(async () => {
+                            if (window.pywebview && window.pywebview.api && window.pywebview.api.get_connected_youtube_channel) {
+                                const chRes = await window.pywebview.api.get_connected_youtube_channel();
+                                if (chRes && chRes.status === 'connected') {
+                                    clearInterval(pollTimer);
+                                    renderYouTubeChannelUI(chRes.channel);
+                                    showEsportsAlert(`Channel "${chRes.channel.title}" connected successfully!`, 'YOUTUBE CONNECTED', '✓');
+                                }
+                            }
+                        }, 2500);
+                        setTimeout(() => clearInterval(pollTimer), 120000);
+                    }
+                } catch(e) {
+                    console.error("connectYouTubeChannel error:", e);
+                }
             }
         }
 
         async function disconnectYouTubeChannel() {
-            const confirmed = await window.showEsportsConfirm({
-                title: "DISCONNECT YOUTUBE?",
-                subtitle: "Channel Unlink",
+            const conf = await window.showEsportsConfirm({
+                title: "DISCONNECT YOUTUBE CHANNEL",
+                subtitle: "Revoke Session",
                 message: "Are you sure you want to disconnect this YouTube channel from THUNDER Studio?",
                 confirmText: "DISCONNECT",
                 cancelText: "CANCEL"
             });
-            if (!confirmed) return;
-            if (window.pywebview && window.pywebview.api && window.pywebview.api.disconnect_youtube_channel) {
+            if (conf && window.pywebview && window.pywebview.api && window.pywebview.api.disconnect_youtube_channel) {
                 await window.pywebview.api.disconnect_youtube_channel();
+                renderYouTubeChannelUI(null);
+                showEsportsAlert('YouTube Channel disconnected.', 'DISCONNECTED', 'ℹ️');
             }
-            renderYouTubeChannelUI(null);
-            showEsportsAlert("YouTube channel disconnected.", "DISCONNECTED", "ℹ️");
         }
 
-        window.onYouTubeConnected = function(channelData) {
-            renderYouTubeChannelUI(channelData);
-            showEsportsAlert("🎉 YouTube Channel (" + (channelData.title || '') + ") linked successfully to THUNDER Studio!", "CHANNEL CONNECTED", "✅");
-        };
+        function saveTikTokHandle() {
+            const h = document.getElementById('tt-creator-handle');
+            if (h) {
+                localStorage.setItem('thunder_saved_tiktok_handle', h.value.trim());
+                showEsportsAlert(`TikTok handle @${h.value.trim()} updated!`, 'TIKTOK SAVED', '✓');
+            }
+        }
 
-        window.onYouTubeDisconnected = function() {
-            renderYouTubeChannelUI(null);
-        };
+        function saveFacebookHandle() {
+            const h = document.getElementById('fb-creator-handle');
+            if (h) {
+                localStorage.setItem('thunder_saved_fb_handle', h.value.trim());
+                showEsportsAlert(`Facebook Page fb.com/${h.value.trim()} updated!`, 'FACEBOOK SAVED', '✓');
+            }
+        }
 
+        // 5. Scan & Populate Video Selection List
         async function syncOutputFolderHighlights() {
-            let videos = [];
+            let list = [];
             if (window.pywebview && window.pywebview.api && window.pywebview.api.get_auto_upload_data) {
                 try {
                     const data = await window.pywebview.api.get_auto_upload_data();
-                    if (data && data.channel) {
-                        renderYouTubeChannelUI(data.channel);
-                    }
-                    if (data && data.videos) {
-                        videos = data.videos;
-                    }
-                } catch (e) {
-                    console.warn("Scan output error:", e);
+                    if (data && data.channel) renderYouTubeChannelUI(data.channel);
+                    if (data && Array.isArray(data.videos)) list = data.videos;
+                } catch(e) {
+                    console.warn("syncOutputFolderHighlights error:", e);
                 }
             }
-            allScannedHighlights = videos || [];
 
-            // If queue is empty, auto-add the rendered highlights
-            if (uploadBatchQueue.length === 0 && allScannedHighlights.length > 0) {
-                addAllHighlightsToQueue();
-            } else {
-                renderUploadQueue();
-            }
-        }
-
-        function addAllHighlightsToQueue() {
-            if (allScannedHighlights.length === 0) {
-                showEsportsAlert('No rendered videos found in the output folder. Generate highlights in the Studio first!', 'Empty Folder', 'ℹ️');
-                return;
-            }
-
-            const presets = getUploadPresets();
+            const presets = getGlobalPresets();
             const ign = localStorage.getItem('thunder_saved_ign') || 'TK • 亗 • MAAK';
 
-            allScannedHighlights.forEach(v => {
-                if (uploadBatchQueue.some(q => q.path === v.path)) return; // Avoid duplicates
-
-                const isVertical = !!v.is_short || (v.filename || '').toLowerCase().includes('vertical') || (v.filename || '').toLowerCase().includes('short');
+            allScannedVideos = list.map((v, idx) => {
+                const isVert = !!v.is_short || (v.filename || '').toLowerCase().includes('vertical') || (v.filename || '').toLowerCase().includes('short');
                 const cleanName = (v.filename || 'PUBG Highlight').replace(/\.[^/.]+$/, '').replace(/_/g, ' ');
 
-                const item = {
-                    id: 'q_' + Math.random().toString(36).substr(2, 9),
-                    name: v.filename,
+                return {
+                    id: 'vid_' + idx + '_' + Math.random().toString(36).substr(2, 6),
+                    filename: v.filename,
                     path: v.path,
-                    size: (v.size_mb || 0) + ' MB',
+                    size_mb: v.size_mb || 0,
                     duration: '01:00',
-                    isVertical: isVertical,
-                    // Target platforms: 100% creator choice!
+                    isVertical: isVert,
+                    selected: true, // Default selected for upload
+                    // Target Platforms
                     targetYoutube: presets.checkYt,
-                    youtubeMode: isVertical ? 'shorts' : 'video', // Auto-defaults according to vertical vs landscape!
                     targetTiktok: presets.checkTt,
                     targetFacebook: presets.checkFb,
-                    // Schedule: 'now', 'today_peak', 'tomorrow_peak'
-                    schedule: 'now',
-                    // Autofilled Metadata (using Social Kits if provided, or presets)
-                    title: v.title || presets.ytTitle.replace('{title}', cleanName).replace('{ign}', ign),
-                    description: v.description || presets.ytDesc.replace('{ign}', ign),
-                    tags: v.tags || 'pubg mobile, pubg montage, maakthunder, esports',
+                    // YouTube Config
+                    title: (v.title && v.title.length > 3) ? v.title : presets.ytTitle.replace('{title}', cleanName).replace('{ign}', ign),
+                    description: (v.description && v.description.length > 5) ? v.description : presets.ytDesc.replace('{ign}', ign),
+                    tags: v.tags || 'pubg mobile, maakthunder, gaming, clutch',
+                    playlistId: presets.ytPlaylist || '',
                     privacy: presets.ytPrivacy || 'unlisted',
-                    tiktokCaption: presets.ttCaption.replace('{ign}', ign),
-                    facebookCaption: presets.fbCaption.replace('{ign}', ign),
-                    status: 'queued', // 'queued', 'uploading', 'published', 'error'
-                    showDrawer: false
+                    // TikTok Config
+                    ttCaption: presets.ttCaption.replace('{title}', cleanName).replace('{ign}', ign),
+                    ttDuet: presets.ttDuet,
+                    ttStitch: presets.ttStitch,
+                    // Facebook Config
+                    fbCaption: presets.fbCaption.replace('{title}', cleanName).replace('{ign}', ign),
+                    fbTag: presets.fbTag,
+                    // Scheduling
+                    schedule: 'now',
+                    status: 'ready' // 'ready', 'uploading', 'published', 'failed'
                 };
-                uploadBatchQueue.push(item);
             });
 
-            renderUploadQueue();
+            renderVideoSelectionList();
         }
 
-        function clearUploadQueue() {
-            uploadBatchQueue = [];
-            renderUploadQueue();
-        }
-
-        function removeQueueItem(id) {
-            uploadBatchQueue = uploadBatchQueue.filter(i => i.id !== id);
-            renderUploadQueue();
-        }
-
-        function toggleQueueItemDrawer(id) {
-            const item = uploadBatchQueue.find(i => i.id === id);
-            if (item) {
-                item.showDrawer = !item.showDrawer;
-                renderUploadQueue();
+        async function addCustomVideoFile() {
+            if (window.pywebview && window.pywebview.api && window.pywebview.api.select_files) {
+                try {
+                    const files = await window.pywebview.api.select_files();
+                    if (files && files.length > 0) {
+                        const presets = getGlobalPresets();
+                        const ign = localStorage.getItem('thunder_saved_ign') || 'TK • 亗 • MAAK';
+                        files.forEach(f => {
+                            const name = f.split(/\\|\//).pop();
+                            const isVert = name.toLowerCase().includes('vertical') || name.toLowerCase().includes('short');
+                            const cleanName = name.replace(/\.[^/.]+$/, '').replace(/_/g, ' ');
+                            allScannedVideos.push({
+                                id: 'custom_' + Math.random().toString(36).substr(2, 6),
+                                filename: name,
+                                path: f,
+                                size_mb: 200,
+                                duration: '01:00',
+                                isVertical: isVert,
+                                selected: true,
+                                targetYoutube: presets.checkYt,
+                                targetTiktok: presets.checkTt,
+                                targetFacebook: presets.checkFb,
+                                title: presets.ytTitle.replace('{title}', cleanName).replace('{ign}', ign),
+                                description: presets.ytDesc.replace('{ign}', ign),
+                                tags: 'pubg mobile, gaming',
+                                playlistId: presets.ytPlaylist || '',
+                                privacy: presets.ytPrivacy || 'unlisted',
+                                ttCaption: presets.ttCaption.replace('{title}', cleanName).replace('{ign}', ign),
+                                ttDuet: true,
+                                ttStitch: true,
+                                fbCaption: presets.fbCaption.replace('{title}', cleanName).replace('{ign}', ign),
+                                fbTag: presets.fbTag,
+                                schedule: 'now',
+                                status: 'ready'
+                            });
+                        });
+                        renderVideoSelectionList();
+                    }
+                } catch(e) {
+                    console.error("addCustomVideoFile error:", e);
+                }
             }
         }
 
-        function updateQueueItemField(id, field, value) {
-            const item = uploadBatchQueue.find(i => i.id === id);
-            if (item) {
-                item[field] = value;
-                updateQueueSummary();
+        function selectAllUploadVideos(val) {
+            allScannedVideos.forEach(v => v.selected = !!val);
+            renderVideoSelectionList();
+        }
+
+        function toggleVideoItemSelection(id, checked) {
+            const v = allScannedVideos.find(x => x.id === id);
+            if (v) {
+                v.selected = !!checked;
+                updateSelectionBadges();
             }
         }
 
-        function renderUploadQueue() {
-            const container = document.getElementById('upload-queue-container');
-            const countBadge = document.getElementById('queue-count-badge');
+        function updateSelectionBadges() {
+            const selectedCount = allScannedVideos.filter(v => v.selected).length;
+            const b1 = document.getElementById('subtab-selected-count-badge');
+            const b2 = document.getElementById('select-count-text');
+            const b3 = document.getElementById('select-bottom-count-pill');
+            if (b1) b1.textContent = selectedCount;
+            if (b2) b2.textContent = selectedCount;
+            if (b3) b3.textContent = `${selectedCount} Video${selectedCount === 1 ? '' : 's'} Selected`;
+        }
+
+        function renderVideoSelectionList() {
+            const container = document.getElementById('upload-video-selection-list');
             if (!container) return;
 
-            if (countBadge) countBadge.textContent = `${uploadBatchQueue.length} Video${uploadBatchQueue.length === 1 ? '' : 's'}`;
+            updateSelectionBadges();
 
-            if (uploadBatchQueue.length === 0) {
+            if (allScannedVideos.length === 0) {
                 container.innerHTML = `
-                    <div id="queue-empty-state" class="text-center py-12 text-[#64748b] space-y-2 border border-dashed border-[#1e2f52] rounded-2xl bg-[#070b14]/50">
-                        <div class="text-3xl">🎬</div>
-                        <div class="text-sm font-semibold text-[#8da2c0]">No Videos in Upload Queue</div>
-                        <p class="text-xs max-w-md mx-auto">Click <strong>"Add All Rendered Videos"</strong> or <strong>"Scan Output Folder"</strong> above to batch schedule highlights across YouTube, TikTok, and Facebook.</p>
+                    <div class="text-center py-16 text-[#64748b] space-y-3 border-2 border-dashed border-[#1e2f52] rounded-2xl bg-[#070b14]/50">
+                        <div class="text-4xl">🎬</div>
+                        <div class="text-sm font-semibold text-[#8da2c0]">No Rendered Videos Found</div>
+                        <p class="text-xs max-w-md mx-auto text-[#64748b]">Generate highlights from the Studio to populate your gallery, or click <strong>"Add Video File"</strong> above to browse.</p>
+                        <button onclick="syncOutputFolderHighlights()" class="btn-3d-navy px-4 py-2 rounded-xl text-xs font-semibold text-cyan-300">
+                            Scan Output Folder Again
+                        </button>
                     </div>
                 `;
-                updateQueueSummary();
                 return;
             }
 
-            container.innerHTML = uploadBatchQueue.map((item, idx) => {
-                const formatBadge = item.isVertical
-                    ? '<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-purple-950/80 text-purple-300 border border-purple-700/60">📱 9:16 VERTICAL</span>'
+            container.innerHTML = allScannedVideos.map((v, idx) => {
+                const formatBadge = v.isVertical
+                    ? '<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-purple-950/80 text-purple-300 border border-purple-700/60">📱 9:16 VERTICAL (SHORTS)</span>'
                     : '<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-cyan-950/80 text-cyan-300 border border-cyan-700/60">🖥️ 16:9 LANDSCAPE</span>';
 
-                let statusBadge = '';
-                if (item.status === 'published') {
-                    statusBadge = '<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-950/80 text-emerald-400 border border-emerald-700">✓ PUBLISHED</span>';
-                } else if (item.status === 'uploading') {
-                    statusBadge = '<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-yellow-950/80 text-yellow-400 border border-yellow-700 animate-pulse">⚡ UPLOADING</span>';
-                } else {
-                    statusBadge = item.schedule === 'now'
-                        ? '<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-950/80 text-blue-300 border border-blue-700">⚡ INSTANT</span>'
-                        : '<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-indigo-950/80 text-indigo-300 border border-indigo-700">⏰ SCHEDULED</span>';
-                }
-
                 return `
-                    <div class="p-4 rounded-xl bg-[#0c1424] border border-[#1b2b48] hover:border-cyan-500/40 transition-all space-y-3 shadow-lg">
-                        <div class="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-3">
-                            <!-- Left: Video Info -->
-                            <div class="flex items-center space-x-3 min-w-0 max-w-full lg:max-w-md">
-                                <div class="w-12 h-12 rounded-lg bg-[#070c16] border border-[#1e2f52] flex items-center justify-center text-lg flex-shrink-0 text-cyan-400">
-                                    ${item.isVertical ? '📱' : '🎬'}
-                                </div>
-                                <div class="min-w-0">
-                                    <div class="text-xs font-bold text-white truncate" title="${item.name}">${idx + 1}. ${item.name}</div>
-                                    <div class="flex items-center space-x-2 mt-1 flex-wrap gap-1">
-                                        ${formatBadge}
-                                        <span class="text-[10px] text-[#8da2c0] font-mono">${item.size}</span>
-                                        ${statusBadge}
-                                    </div>
-                                </div>
+                    <div class="p-3 rounded-xl bg-[#0c1424] border border-[#1b2b48] hover:border-cyan-500/40 transition-all flex items-center justify-between gap-3 shadow-md">
+                        <div class="flex items-center space-x-3 min-w-0">
+                            <!-- Checkbox -->
+                            <input type="checkbox" ${v.selected ? 'checked' : ''} onchange="toggleVideoItemSelection('${v.id}', this.checked)" class="w-5 h-5 rounded accent-cyan-400 cursor-pointer flex-shrink-0">
+                            
+                            <!-- Video Format Icon -->
+                            <div class="w-10 h-10 rounded-lg bg-[#070c16] border border-[#1e2f52] flex items-center justify-center text-lg flex-shrink-0 text-cyan-400">
+                                ${v.isVertical ? '📱' : '🎬'}
                             </div>
 
-                            <!-- Middle: Platform Targets Selection (100% User Freedom) -->
-                            <div class="flex items-center space-x-2 bg-[#080d19] px-3 py-1.5 rounded-xl border border-[#1a2948] flex-wrap gap-1">
-                                <!-- YouTube Target -->
-                                <label class="flex items-center space-x-1.5 text-xs text-white cursor-pointer px-2 py-1 rounded hover:bg-[#142038]">
-                                    <input type="checkbox" ${item.targetYoutube ? 'checked' : ''} onchange="updateQueueItemField('${item.id}', 'targetYoutube', this.checked)" class="rounded text-red-500">
-                                    <span class="text-red-400 font-bold">▶ YouTube</span>
-                                </label>
-
-                                <div class="w-[1px] h-4 bg-gray-700 mx-1"></div>
-
-                                <!-- TikTok Target -->
-                                <label class="flex items-center space-x-1.5 text-xs text-white cursor-pointer px-2 py-1 rounded hover:bg-[#142038]">
-                                    <input type="checkbox" ${item.targetTiktok ? 'checked' : ''} onchange="updateQueueItemField('${item.id}', 'targetTiktok', this.checked)" class="rounded text-cyan-400">
-                                    <span class="text-cyan-400 font-bold">🎵 TikTok</span>
-                                </label>
-
-                                <div class="w-[1px] h-4 bg-gray-700 mx-1"></div>
-
-                                <!-- Facebook Target -->
-                                <label class="flex items-center space-x-1.5 text-xs text-white cursor-pointer px-2 py-1 rounded hover:bg-[#142038]">
-                                    <input type="checkbox" ${item.targetFacebook ? 'checked' : ''} onchange="updateQueueItemField('${item.id}', 'targetFacebook', this.checked)" class="rounded text-blue-400">
-                                    <span class="text-blue-400 font-bold">👥 Facebook/Reels</span>
-                                </label>
-                            </div>
-
-                            <!-- Right: When to Upload & Actions -->
-                            <div class="flex items-center space-x-2 flex-shrink-0 self-end lg:self-auto">
-                                <select onchange="updateQueueItemField('${item.id}', 'schedule', this.value)" class="py-1.5 px-2 rounded-lg bg-[#0e172a] border border-[#1e2f52] text-xs text-cyan-300 font-semibold focus:outline-none">
-                                    <option value="now" ${item.schedule === 'now' ? 'selected' : ''}>⚡ Publish Now</option>
-                                    <option value="today_peak" ${item.schedule === 'today_peak' ? 'selected' : ''}>⏰ Peak Tonight (19:00 PKT)</option>
-                                    <option value="today_late" ${item.schedule === 'today_late' ? 'selected' : ''}>⏰ Late Peak (21:30 PKT)</option>
-                                    <option value="tomorrow_peak" ${item.schedule === 'tomorrow_peak' ? 'selected' : ''}>⏰ Tomorrow (15:00 PKT)</option>
-                                </select>
-
-                                <button onclick="toggleQueueItemDrawer('${item.id}')" class="px-2.5 py-1.5 rounded-lg text-xs font-bold text-gray-300 hover:text-white bg-[#142038] hover:bg-[#1c2e50] border border-[#233860] cursor-pointer" title="Customize title and hashtags for this specific video">
-                                    <span>${item.showDrawer ? '▲ Close' : '✏️ Edit'}</span>
-                                </button>
-                                <button onclick="removeQueueItem('${item.id}')" class="text-gray-400 hover:text-red-400 p-1.5 text-xs cursor-pointer" title="Remove video">✕</button>
+                            <!-- Details -->
+                            <div class="min-w-0">
+                                <div class="text-xs font-bold text-white truncate" title="${v.filename}">${idx + 1}. ${v.filename}</div>
+                                <div class="flex items-center space-x-2 mt-1">
+                                    ${formatBadge}
+                                    <span class="text-[10px] text-[#8da2c0] font-mono">${v.size_mb} MB</span>
+                                </div>
                             </div>
                         </div>
 
-                        <!-- Expandable Customization Drawer per Video -->
-                        ${item.showDrawer ? `
-                            <div class="p-3.5 rounded-xl bg-[#070c17] border border-cyan-500/30 space-y-3 pt-3">
-                                <div class="text-[11px] font-bold text-[#00e5ff] uppercase tracking-wider flex items-center space-x-1">
-                                    <span>✨</span>
-                                    <span>Custom Overrides for This Video (Pre-filled from Defaults):</span>
-                                </div>
-                                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                    <div class="space-y-1">
-                                        <label class="text-[10px] text-[#8da2c0] uppercase font-bold">Video Title:</label>
-                                        <input type="text" value="${(item.title || '').replace(/"/g, '&quot;')}" onchange="updateQueueItemField('${item.id}', 'title', this.value)" class="w-full py-1.5 px-2.5 rounded bg-[#0e172a] border border-[#1e2f52] text-xs text-white focus:outline-none">
-                                    </div>
-                                    <div class="space-y-1">
-                                        <label class="text-[10px] text-[#8da2c0] uppercase font-bold">Visibility / Privacy:</label>
-                                        <select onchange="updateQueueItemField('${item.id}', 'privacy', this.value)" class="w-full py-1.5 px-2.5 rounded bg-[#0e172a] border border-[#1e2f52] text-xs text-white focus:outline-none">
-                                            <option value="public" ${item.privacy === 'public' ? 'selected' : ''}>Public</option>
-                                            <option value="unlisted" ${item.privacy === 'unlisted' ? 'selected' : ''}>Unlisted</option>
-                                            <option value="private" ${item.privacy === 'private' ? 'selected' : ''}>Private</option>
-                                        </select>
-                                    </div>
-                                </div>
-                                <div class="space-y-1">
-                                    <label class="text-[10px] text-[#8da2c0] uppercase font-bold">Description &amp; Tags:</label>
-                                    <textarea rows="3" onchange="updateQueueItemField('${item.id}', 'description', this.value)" class="w-full py-1.5 px-2.5 rounded bg-[#0e172a] border border-[#1e2f52] text-xs text-[#cbd5e1] font-mono focus:outline-none">${item.description || ''}</textarea>
-                                </div>
-                            </div>
-                        ` : ''}
+                        <!-- Right Actions -->
+                        <div class="flex items-center space-x-2 flex-shrink-0">
+                            <button onclick="playSelectedHighlight('${v.path}')" class="px-3 py-1.5 rounded-lg bg-[#142038] hover:bg-[#1e2f52] text-xs font-bold text-white flex items-center space-x-1 cursor-pointer transition-all border border-[#243760]">
+                                <span>▶</span>
+                                <span>Preview</span>
+                            </button>
+                        </div>
                     </div>
                 `;
             }).join('');
-
-            updateQueueSummary();
         }
 
-        function updateQueueSummary() {
-            const summaryText = document.getElementById('queue-summary-text');
-            const breakdown = document.getElementById('queue-target-breakdown');
-            if (!summaryText) return;
-
-            const total = uploadBatchQueue.length;
-            let ytCount = 0;
-            let ttCount = 0;
-            let fbCount = 0;
-
-            uploadBatchQueue.forEach(i => {
-                if (i.targetYoutube) ytCount++;
-                if (i.targetTiktok) ttCount++;
-                if (i.targetFacebook) fbCount++;
-            });
-
-            summaryText.textContent = `Queue: ${total} Video${total === 1 ? '' : 's'} Selected`;
-            if (breakdown) {
-                breakdown.textContent = `• Total Deliveries: ${ytCount} YouTube  ${ttCount} TikTok, ${fbCount} Facebook Reels`;
+        function playSelectedHighlight(videoPath) {
+            if (window.pywebview && window.pywebview.api && window.pywebview.api.play_video) {
+                window.pywebview.api.play_video(videoPath);
             }
         }
 
-        function copyAllQueueKits() {
-            if (uploadBatchQueue.length === 0) {
-                showEsportsAlert('Add at least 1 video to the queue first!', 'Queue Empty', 'ℹ️');
-                return;
-            }
-            let text = '=== THUNDER STUDIO BATCH UPLOAD KITS ===\n\n';
-            uploadBatchQueue.forEach((item, idx) => {
-                text += `[VIDEO ${idx + 1}: ${item.name}]\n`;
-                text += `TARGETS: ${[item.targetYoutube ? 'YouTube' : null, item.targetTiktok ? 'TikTok' : null, item.targetFacebook ? 'Facebook Reels' : null].filter(Boolean).join(', ')}\n`;
-                text += `SCHEDULE: ${item.schedule}\n`;
-                text += `TITLE: ${item.title}\n`;
-                text += `DESCRIPTION/TAGS: ${item.description}\n`;
-                text += `---------------------------------------------------\n\n`;
-            });
-            if (navigator.clipboard) {
-                navigator.clipboard.writeText(text);
-                showEsportsAlert('✓ Copied all titles, tags & schedules for queued videos to clipboard!', 'Captions Copied', '📋');
-            }
-        }
-
-        function managePlatformConnection(platform) {
-            if (platform === 'tiktok') {
-                const h = prompt('Enter your TikTok Creator Handle (e.g. @maakthunder):', localStorage.getItem('thunder_tt_handle') || '@maakthunder');
-                if (h) {
-                    localStorage.setItem('thunder_tt_handle', h);
-                    const el = document.getElementById('conn-tt-handle');
-                    if (el) el.textContent = h;
-                }
-            } else if (platform === 'facebook') {
-                const p = prompt('Enter your Facebook Gaming Page Name:', localStorage.getItem('thunder_fb_page') || 'MAAKTHUNDER Esports');
-                if (p) {
-                    localStorage.setItem('thunder_fb_page', p);
-                    const el = document.getElementById('conn-fb-page');
-                    if (el) el.textContent = p;
-                }
-            }
-        }
-
-        function openExternalStudio(platform) {
-            let url = '';
-            if (platform === 'youtube') url = 'https://studio.youtube.com/channel/upload';
-            else if (platform === 'tiktok') url = 'https://www.tiktok.com/creator-center/upload';
-            else if (platform === 'facebook') url = 'https://business.facebook.com/creatorstudio/home';
-
-            if (window.pywebview && window.pywebview.api && window.pywebview.api.open_external_url) {
-                window.pywebview.api.open_external_url(url);
-            } else {
-                window.open(url, '_blank');
-            }
-        }
-
-        async function startBatchUpload() {
-            if (uploadBatchQueue.length === 0) {
-                showEsportsAlert('Please add at least 1 video to the upload queue!', 'Empty Queue', '⚠️');
+        // =====================================================================
+        // 6. DEDICATED FULL-SCREEN BATCH PUBLISHING STUDIO CONTROLLER
+        // =====================================================================
+        function openBatchUploadStudio() {
+            const selected = allScannedVideos.filter(v => v.selected);
+            if (selected.length === 0) {
+                showEsportsAlert('Please select at least 1 video from the list before continuing!', 'NO VIDEOS SELECTED', '⚠️');
                 return;
             }
 
-            const activeItems = uploadBatchQueue.filter(i => i.targetYoutube || i.targetTiktok || i.targetFacebook);
+            studioQueuedVideos = JSON.parse(JSON.stringify(selected));
+            studioActiveIndex = 0;
+
+            const modal = document.getElementById('batch-upload-studio-modal');
+            if (modal) modal.classList.remove('hidden');
+
+            renderStudioVideoList();
+            renderStudioActiveVideo();
+        }
+
+        function closeBatchUploadStudio() {
+            const modal = document.getElementById('batch-upload-studio-modal');
+            if (modal) modal.classList.add('hidden');
+        }
+
+        function renderStudioVideoList() {
+            const container = document.getElementById('studio-video-list');
+            const totalBadge = document.getElementById('studio-total-badge');
+            const countSpan = document.getElementById('studio-queue-count');
+
+            if (totalBadge) totalBadge.textContent = `${studioQueuedVideos.length} Videos`;
+            if (countSpan) countSpan.textContent = studioQueuedVideos.length;
+            if (!container) return;
+
+            container.innerHTML = studioQueuedVideos.map((item, idx) => {
+                const isActive = (idx === studioActiveIndex);
+                const borderClass = isActive ? 'border-2 border-cyan-400 bg-[#0e1b30] shadow-[0_0_15px_rgba(0,229,255,0.3)]' : 'border border-[#1b2b48] bg-[#080d19] hover:border-cyan-500/30';
+                
+                let statusBadge = '<span class="text-[9px] px-1.5 py-0.2 rounded font-mono font-bold bg-blue-950/80 text-blue-300 border border-blue-800">READY</span>';
+                if (item.status === 'uploading') {
+                    statusBadge = '<span class="text-[9px] px-1.5 py-0.2 rounded font-mono font-bold bg-yellow-950/80 text-yellow-300 border border-yellow-800 animate-pulse">UPLOADING</span>';
+                } else if (item.status === 'published') {
+                    statusBadge = '<span class="text-[9px] px-1.5 py-0.2 rounded font-mono font-bold bg-emerald-950/80 text-emerald-300 border border-emerald-800">✓ PUBLISHED</span>';
+                } else if (item.status === 'failed') {
+                    statusBadge = '<span class="text-[9px] px-1.5 py-0.2 rounded font-mono font-bold bg-rose-950/80 text-rose-300 border border-rose-800">FAILED</span>';
+                }
+
+                return `
+                    <div onclick="selectStudioActiveVideo(${idx})" class="p-2.5 rounded-xl cursor-pointer transition-all space-y-2 ${borderClass}">
+                        <div class="flex items-center justify-between gap-2">
+                            <div class="flex items-center space-x-2 min-w-0">
+                                <span class="w-5 h-5 rounded-full bg-[#142038] text-cyan-300 flex items-center justify-center text-[10px] font-bold flex-shrink-0">${idx + 1}</span>
+                                <span class="font-bold text-xs text-white truncate" title="${item.filename}">${item.filename}</span>
+                            </div>
+                            ${statusBadge}
+                        </div>
+
+                        <!-- Per-Video Target Checkboxes -->
+                        <div class="flex items-center justify-between text-[11px] pt-1 border-t border-[#1a2845]">
+                            <div class="flex items-center space-x-2">
+                                <label onclick="event.stopPropagation()" class="flex items-center space-x-1 cursor-pointer">
+                                    <input type="checkbox" ${item.targetYoutube ? 'checked' : ''} onchange="updateStudioQueueItemTarget(${idx}, 'targetYoutube', this.checked)" class="rounded text-red-500">
+                                    <span class="text-red-400 font-bold">YT</span>
+                                </label>
+                                <label onclick="event.stopPropagation()" class="flex items-center space-x-1 cursor-pointer">
+                                    <input type="checkbox" ${item.targetTiktok ? 'checked' : ''} onchange="updateStudioQueueItemTarget(${idx}, 'targetTiktok', this.checked)" class="rounded text-cyan-400">
+                                    <span class="text-cyan-400 font-bold">TT</span>
+                                </label>
+                                <label onclick="event.stopPropagation()" class="flex items-center space-x-1 cursor-pointer">
+                                    <input type="checkbox" ${item.targetFacebook ? 'checked' : ''} onchange="updateStudioQueueItemTarget(${idx}, 'targetFacebook', this.checked)" class="rounded text-blue-400">
+                                    <span class="text-blue-400 font-bold">FB</span>
+                                </label>
+                            </div>
+                            <span class="text-[10px] text-[#7187a5] font-mono">${item.size_mb} MB</span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function selectStudioActiveVideo(idx) {
+            studioActiveIndex = idx;
+            renderStudioVideoList();
+            renderStudioActiveVideo();
+        }
+
+        function updateStudioQueueItemTarget(idx, platform, checked) {
+            if (studioQueuedVideos[idx]) {
+                studioQueuedVideos[idx][platform] = !!checked;
+                if (idx === studioActiveIndex) {
+                    renderStudioActiveVideo();
+                }
+            }
+        }
+
+        function renderStudioActiveVideo() {
+            const item = studioQueuedVideos[studioActiveIndex];
+            if (!item) return;
+
+            const icon = document.getElementById('studio-active-icon');
+            const fname = document.getElementById('studio-active-filename');
+            const fbadge = document.getElementById('studio-active-format-badge');
+            const sizeText = document.getElementById('studio-active-size-text');
+
+            if (icon) icon.textContent = item.isVertical ? '📱' : '🎬';
+            if (fname) fname.textContent = item.filename;
+            if (fbadge) {
+                fbadge.textContent = item.isVertical ? '9:16 VERTICAL (SHORTS)' : '16:9 LANDSCAPE';
+                fbadge.className = item.isVertical
+                    ? 'px-1.5 py-0.2 rounded font-mono font-bold bg-purple-950/80 text-purple-300 border border-purple-800'
+                    : 'px-1.5 py-0.2 rounded font-mono font-bold bg-cyan-950/80 text-cyan-300 border border-cyan-800';
+            }
+            if (sizeText) sizeText.textContent = `${item.size_mb} MB`;
+
+            // Active Targets
+            const chkYt = document.getElementById('studio-check-yt');
+            const chkTt = document.getElementById('studio-check-tt');
+            const chkFb = document.getElementById('studio-check-fb');
+            if (chkYt) chkYt.checked = !!item.targetYoutube;
+            if (chkTt) chkTt.checked = !!item.targetTiktok;
+            if (chkFb) chkFb.checked = !!item.targetFacebook;
+
+            // Form Fields
+            const ytTitle = document.getElementById('studio-yt-title');
+            const ytDesc = document.getElementById('studio-yt-desc');
+            const ytPrivacy = document.getElementById('studio-yt-privacy');
+            const ytPlaylist = document.getElementById('studio-yt-playlist');
+
+            if (ytTitle) ytTitle.value = item.title || '';
+            if (ytDesc) ytDesc.value = item.description || '';
+            if (ytPrivacy) ytPrivacy.value = item.privacy || 'unlisted';
+
+            // Sync playlist options from presets or channel
+            if (ytPlaylist) {
+                const defPlSel = document.getElementById('def-yt-playlist');
+                if (defPlSel) ytPlaylist.innerHTML = defPlSel.innerHTML;
+                ytPlaylist.value = item.playlistId || '';
+            }
+
+            const ttCaption = document.getElementById('studio-tt-caption');
+            const ttDuet = document.getElementById('studio-tt-duet');
+            const ttStitch = document.getElementById('studio-tt-stitch');
+            if (ttCaption) ttCaption.value = item.ttCaption || '';
+            if (ttDuet) ttDuet.checked = !!item.ttDuet;
+            if (ttStitch) ttStitch.checked = !!item.ttStitch;
+
+            const fbCaption = document.getElementById('studio-fb-caption');
+            const fbTag = document.getElementById('studio-fb-tag');
+            if (fbCaption) fbCaption.value = item.fbCaption || '';
+            if (fbTag) fbTag.value = item.fbTag || 'PUBG Mobile';
+
+            const sched = document.getElementById('studio-schedule-select');
+            if (sched) sched.value = item.schedule || 'now';
+        }
+
+        function updateStudioActiveTarget(platform, checked) {
+            const item = studioQueuedVideos[studioActiveIndex];
+            if (item) {
+                item[platform] = !!checked;
+                renderStudioVideoList();
+            }
+        }
+
+        function updateStudioActiveField(field, value) {
+            const item = studioQueuedVideos[studioActiveIndex];
+            if (item) {
+                item[field] = value;
+            }
+        }
+
+        function switchStudioPlatformTab(tab) {
+            const tabs = ['yt', 'tt', 'fb'];
+            tabs.forEach(t => {
+                const btn = document.getElementById(`studio-tab-btn-${t}`);
+                const form = document.getElementById(`studio-form-${t}`);
+                if (btn) {
+                    if (t === tab) {
+                        btn.className = t === 'yt'
+                            ? "px-3.5 py-1.5 rounded-lg text-xs font-bold bg-red-600 text-white shadow-[0_0_12px_rgba(239,68,68,0.4)] cursor-pointer flex items-center space-x-1.5"
+                            : (t === 'tt'
+                                ? "px-3.5 py-1.5 rounded-lg text-xs font-bold bg-cyan-600 text-black shadow-[0_0_12px_rgba(0,229,255,0.4)] cursor-pointer flex items-center space-x-1.5"
+                                : "px-3.5 py-1.5 rounded-lg text-xs font-bold bg-blue-600 text-white shadow-[0_0_12px_rgba(59,130,246,0.4)] cursor-pointer flex items-center space-x-1.5");
+                    } else {
+                        btn.className = "px-3.5 py-1.5 rounded-lg text-xs font-bold text-[#8da2c0] hover:text-white hover:bg-[#101b30] cursor-pointer flex items-center space-x-1.5";
+                    }
+                }
+                if (form) {
+                    if (t === tab) form.classList.remove('hidden');
+                    else form.classList.add('hidden');
+                }
+            });
+        }
+
+        // Bulk Actions in Batch Studio
+        function toggleAllStudioPlatform(platform) {
+            const anyActive = studioQueuedVideos.some(v => v[platform]);
+            const nextState = !anyActive;
+            studioQueuedVideos.forEach(v => v[platform] = nextState);
+            renderStudioVideoList();
+            renderStudioActiveVideo();
+        }
+
+        function applyActiveSettingsToAllVideos() {
+            copySettingsToAllVideos();
+        }
+
+        function copySettingsToAllVideos() {
+            const current = studioQueuedVideos[studioActiveIndex];
+            if (!current) return;
+
+            studioQueuedVideos.forEach((v, idx) => {
+                if (idx !== studioActiveIndex) {
+                    v.description = current.description;
+                    v.tags = current.tags;
+                    v.playlistId = current.playlistId;
+                    v.privacy = current.privacy;
+                    v.ttCaption = current.ttCaption;
+                    v.ttDuet = current.ttDuet;
+                    v.ttStitch = current.ttStitch;
+                    v.fbCaption = current.fbCaption;
+                    v.fbTag = current.fbTag;
+                    v.schedule = current.schedule;
+                    v.targetYoutube = current.targetYoutube;
+                    v.targetTiktok = current.targetTiktok;
+                    v.targetFacebook = current.targetFacebook;
+                }
+            });
+
+            renderStudioVideoList();
+            showEsportsAlert('Current video settings copied to all videos in this batch!', 'BATCH SYNCED', '✓');
+        }
+
+        // 7. Start Batch Upload Execution
+        async function startStudioBatchUpload() {
+            if (studioQueuedVideos.length === 0) {
+                showEsportsAlert('No videos in queue to upload!', 'EMPTY QUEUE', '⚠️');
+                return;
+            }
+
+            const activeItems = studioQueuedVideos.filter(v => v.targetYoutube || v.targetTiktok || v.targetFacebook);
             if (activeItems.length === 0) {
-                showEsportsAlert('Please select at least 1 target platform (YouTube, TikTok, or Facebook) for your videos!', 'No Targets', '⚠️');
+                showEsportsAlert('Please select at least 1 platform target (YouTube, TikTok, or Facebook) for your videos!', 'NO TARGETS', '⚠️');
                 return;
             }
 
-            isBatchUploading = true;
-            batchAbortRequested = false;
+            isStudioUploading = true;
+            studioAbortRequested = false;
 
-            const progressBox = document.getElementById('batch-upload-progress-box');
-            const titleEl = document.getElementById('batch-current-title');
-            const pctEl = document.getElementById('batch-progress-pct');
-            const fillEl = document.getElementById('batch-progress-bar-fill');
-            const subtextEl = document.getElementById('batch-status-subtext');
+            const progBox = document.getElementById('studio-upload-progress-box');
+            const titleEl = document.getElementById('studio-prog-title');
+            const pctEl = document.getElementById('studio-prog-pct');
+            const fillEl = document.getElementById('studio-prog-bar-fill');
+            const subtextEl = document.getElementById('studio-prog-subtext');
+            const startBtn = document.getElementById('btn-studio-start-upload');
 
-            if (progressBox) {
-                progressBox.classList.remove('hidden');
-                progressBox.scrollIntoView({ behavior: 'smooth' });
-            }
+            if (progBox) progBox.classList.remove('hidden');
+            if (startBtn) startBtn.classList.add('hidden');
 
             const total = activeItems.length;
 
             for (let i = 0; i < total; i++) {
-                if (batchAbortRequested) break;
+                if (studioAbortRequested) break;
 
                 const item = activeItems[i];
                 item.status = 'uploading';
-                renderUploadQueue();
+                renderStudioVideoList();
 
-                const platforms = [
+                const platformNames = [
                     item.targetYoutube ? 'YouTube' : null,
                     item.targetTiktok ? 'TikTok' : null,
                     item.targetFacebook ? 'Facebook Reels' : null
                 ].filter(Boolean).join(', ');
 
-                if (titleEl) titleEl.textContent = `[${i + 1}/${total}] Uploading ${item.name} to ${platforms}...`;
-                if (subtextEl) subtextEl.textContent = `Injecting prefilled metadata: "${item.title}"...`;
+                if (titleEl) titleEl.textContent = `[${i + 1}/${total}] Uploading ${item.filename} to ${platformNames}...`;
+                if (subtextEl) subtextEl.textContent = `Connecting & initializing metadata...`;
 
-                // If YouTube is targeted and Python API is available
+                // If YouTube targeted, perform real resumable upload
                 if (item.targetYoutube && window.pywebview && window.pywebview.api && window.pywebview.api.start_youtube_upload) {
                     try {
                         const uploadResult = await new Promise((resolve) => {
@@ -9918,7 +10424,7 @@
                                 video_path: item.path,
                                 title: item.title,
                                 description: item.description,
-                                tags: item.tags || 'pubg mobile, maakthunder',
+                                tags: item.tags || 'pubg mobile, gaming',
                                 privacy: item.privacy || 'unlisted',
                                 playlist_id: item.playlistId || null
                             }).then(startRes => {
@@ -9932,28 +10438,29 @@
                             const doAuth = await window.showEsportsConfirm({
                                 title: "YOUTUBE AUTHENTICATION REQUIRED",
                                 subtitle: "Google Session",
-                                message: uploadResult.message || "Your YouTube access token has expired or is missing. Connect your channel now?",
+                                message: uploadResult.message || "Your YouTube access token has expired. Connect channel now?",
                                 confirmText: "CONNECT NOW",
                                 cancelText: "CANCEL"
                             });
                             if (doAuth) connectYouTubeChannel();
                             break;
                         } else if (uploadResult && uploadResult.status === 'error') {
-                            showEsportsAlert(`Upload failed for ${item.name}: ${uploadResult.message}`, 'Upload Error', '❌');
+                            showEsportsAlert(`Upload failed for ${item.filename}: ${uploadResult.message}`, 'UPLOAD ERROR', '❌');
                             item.status = 'failed';
-                            renderUploadQueue();
+                            renderStudioVideoList();
                             continue;
                         } else if (uploadResult && uploadResult.status === 'success') {
                             item.youtubeUrl = uploadResult.shorts_url || uploadResult.video_url;
-                            if (subtextEl) subtextEl.textContent = `Uploaded! Live at: ${item.youtubeUrl}`;
+                            if (subtextEl) subtextEl.textContent = `✓ Uploaded to YouTube: ${item.youtubeUrl}`;
                         }
                     } catch(err) {
                         console.error("Batch upload item error:", err);
                     }
                 } else {
+                    // Simulated progress for non-API platforms
                     for (let step = 1; step <= 5; step++) {
-                        if (batchAbortRequested) break;
-                        await new Promise(r => setTimeout(r, 150));
+                        if (studioAbortRequested) break;
+                        await new Promise(r => setTimeout(r, 120));
                         const currentPct = Math.round(((i + (step / 5)) / total) * 100);
                         if (pctEl) pctEl.textContent = `${currentPct}%`;
                         if (fillEl) fillEl.style.width = `${currentPct}%`;
@@ -9961,32 +10468,37 @@
                 }
 
                 item.status = 'published';
-                renderUploadQueue();
+                renderStudioVideoList();
             }
 
-            if (!batchAbortRequested) {
+            if (!studioAbortRequested) {
                 if (titleEl) titleEl.textContent = `✓ Batch Upload Complete! All ${total} videos processed.`;
                 if (pctEl) pctEl.textContent = `100%`;
                 if (fillEl) fillEl.style.width = `100%`;
-                if (subtextEl) subtextEl.textContent = `All scheduled & published videos are live in your connected channels.`;
+                if (subtextEl) subtextEl.textContent = `All scheduled & published videos are live.`;
 
                 setTimeout(() => {
-                    if (progressBox) progressBox.classList.add('hidden');
-                    showEsportsAlert(`🎉 Batch Upload Finished! Successfully processed ${total} video(s) across selected platforms.`, 'Batch Upload Complete', '🚀');
-                }, 1500);
+                    showEsportsAlert(`All ${total} highlight videos were successfully published/scheduled across your selected platforms!`, 'BATCH UPLOAD SUCCESS', '🎉');
+                    if (startBtn) startBtn.classList.remove('hidden');
+                }, 1000);
+            } else {
+                if (startBtn) startBtn.classList.remove('hidden');
             }
 
-            isBatchUploading = false;
+            isStudioUploading = false;
         }
 
-        function abortBatchUpload() {
-            batchAbortRequested = true;
-            isBatchUploading = false;
-            const progressBox = document.getElementById('batch-upload-progress-box');
-            if (progressBox) progressBox.classList.add('hidden');
-            showEsportsAlert('Batch upload cancelled by user.', 'Upload Cancelled', '🛑');
+        async function abortStudioBatchUpload() {
+            studioAbortRequested = true;
+            if (window.pywebview && window.pywebview.api && window.pywebview.api.cancel_youtube_upload) {
+                await window.pywebview.api.cancel_youtube_upload();
+            }
+            const progBox = document.getElementById('studio-upload-progress-box');
+            const startBtn = document.getElementById('btn-studio-start-upload');
+            if (progBox) progBox.classList.add('hidden');
+            if (startBtn) startBtn.classList.remove('hidden');
+            showEsportsAlert('Batch upload operation was cancelled.', 'UPLOAD CANCELLED', '🛑');
         }
-
 
     </script>
 
