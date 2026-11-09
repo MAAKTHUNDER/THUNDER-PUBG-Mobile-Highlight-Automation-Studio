@@ -3783,11 +3783,11 @@
                 <!-- Presets Containers -->
                 <div class="flex-1 overflow-y-auto space-y-4 pr-1 min-h-0">
                     <!-- YouTube Presets Box -->
-                    <div id="preset-content-yt" class="glass-card rounded-2xl p-5 border border-red-500/30 bg-[#080d19] space-y-4">
+                    <div id="preset-content-yt" class="glass-card rounded-2xl p-5 border border-red-500/30 bg-[#080d19] space-y-5">
                         <div class="flex items-center justify-between border-b border-[#1b2b48] pb-3">
                             <div class="flex items-center space-x-2 text-xs font-bold text-red-400 uppercase tracking-wide">
                                 <span>▶</span>
-                                <span>YouTube Global Upload Defaults</span>
+                                <span>YouTube Full Studio Defaults &amp; Advanced Options</span>
                             </div>
                             <label class="flex items-center space-x-2 text-xs text-white cursor-pointer">
                                 <input type="checkbox" id="def-check-yt" checked class="rounded text-red-500">
@@ -3795,47 +3795,158 @@
                             </label>
                         </div>
 
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div class="space-y-1">
-                                <label class="text-[11px] text-[#8da2c0] font-semibold">Title Template (Supports {title} and {ign}):</label>
-                                <input id="def-yt-title" type="text" value="🔥 {title} | {ign} #PUBGMOBILE" class="w-full py-2 px-3 rounded-lg bg-[#0e172a] border border-[#1e2f52] text-xs text-white focus:border-red-500 focus:outline-none font-mono">
+                        <!-- Section A: Title, Tags & Playlist -->
+                        <div class="space-y-3">
+                            <span class="text-[11px] font-bold text-cyan-400 uppercase tracking-wider flex items-center space-x-1.5">
+                                <span>📝</span>
+                                <span>1. Basic Info &amp; Taxonomy</span>
+                            </span>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div class="space-y-1">
+                                    <label class="text-[11px] text-[#8da2c0] font-semibold">Title Template (Supports {title} and {ign}):</label>
+                                    <input id="def-yt-title" type="text" value="🔥 {title} | {ign} #PUBGMOBILE" class="w-full py-2 px-3 rounded-lg bg-[#0e172a] border border-[#1e2f52] text-xs text-white focus:border-red-500 focus:outline-none font-mono">
+                                </div>
+                                <div class="space-y-1">
+                                    <label class="text-[11px] text-[#8da2c0] font-semibold">Default Playlist:</label>
+                                    <select id="def-yt-playlist" class="w-full py-2 px-3 rounded-lg bg-[#0e172a] border border-[#1e2f52] text-xs text-white focus:border-red-500 focus:outline-none">
+                                        <option value="">(No Playlist)</option>
+                                    </select>
+                                </div>
                             </div>
-                            <div class="space-y-1">
-                                <label class="text-[11px] text-[#8da2c0] font-semibold">Default Playlist:</label>
-                                <select id="def-yt-playlist" class="w-full py-2 px-3 rounded-lg bg-[#0e172a] border border-[#1e2f52] text-xs text-white focus:border-red-500 focus:outline-none">
-                                    <option value="">(No Playlist)</option>
-                                </select>
-                            </div>
-                        </div>
 
-                        <div class="space-y-1">
-                            <label class="text-[11px] text-[#8da2c0] font-semibold">Default Description Template:</label>
-                            <textarea id="def-yt-desc" rows="3" class="w-full py-2 px-3 rounded-lg bg-[#0e172a] border border-[#1e2f52] text-xs text-[#cbd5e1] focus:border-red-500 focus:outline-none font-mono">🎮 Player: {ign}
+                            <div class="space-y-1">
+                                <label class="text-[11px] text-[#8da2c0] font-semibold">Default Description Template:</label>
+                                <textarea id="def-yt-desc" rows="3" class="w-full py-2 px-3 rounded-lg bg-[#0e172a] border border-[#1e2f52] text-xs text-[#cbd5e1] focus:border-red-500 focus:outline-none font-mono">🎮 Player: {ign}
 ⚡ Powered by THUNDER Studio — Automated PUBG Mobile Esports Montage Engine
 🔥 Daily pro squad wipes, clutches, and 60FPS highlights!
 
 #PUBGMobile #PUBG #Shorts #Gaming #Highlights #PUBGEsports #Clutch #M416</textarea>
+                            </div>
+
+                            <div class="space-y-1">
+                                <label class="text-[11px] text-[#8da2c0] font-semibold">Default Tags / Keywords (Comma-separated):</label>
+                                <input id="def-yt-tags" type="text" value="pubg mobile, montage, clutches, squad wipe, pubg esports, maakthunder, 60fps, pubg highlights" class="w-full py-2 px-3 rounded-lg bg-[#0e172a] border border-[#1e2f52] text-xs text-[#cbd5e1] focus:border-red-500 focus:outline-none font-mono">
+                            </div>
                         </div>
 
-                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                            <div class="space-y-1">
-                                <label class="text-[11px] text-[#8da2c0] font-semibold">Default Visibility:</label>
-                                <select id="def-yt-privacy" class="w-full py-1.5 px-2 rounded-lg bg-[#0e172a] border border-[#1e2f52] text-xs text-white focus:outline-none">
-                                    <option value="public">Public</option>
-                                    <option value="unlisted" selected>Unlisted (Safe Preview)</option>
-                                    <option value="private">Private</option>
-                                </select>
+                        <!-- Section B: Category, Gaming Title & Audience -->
+                        <div class="p-3.5 rounded-xl bg-[#060a14] border border-[#1b2b48] space-y-3">
+                            <span class="text-[11px] font-bold text-cyan-400 uppercase tracking-wider flex items-center space-x-1.5">
+                                <span>🎯</span>
+                                <span>2. Category, Gaming Title &amp; Audience</span>
+                            </span>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                                <div class="space-y-1">
+                                    <label class="text-[11px] text-[#8da2c0] font-semibold">Category:</label>
+                                    <select id="def-yt-category" class="w-full py-1.5 px-2 rounded-lg bg-[#0e172a] border border-[#1e2f52] text-xs text-white focus:outline-none">
+                                        <option value="20" selected>Gaming (ID 20)</option>
+                                        <option value="24">Entertainment</option>
+                                        <option value="22">People &amp; Blogs</option>
+                                    </select>
+                                </div>
+                                <div class="space-y-1">
+                                    <label class="text-[11px] text-[#8da2c0] font-semibold">Game Title:</label>
+                                    <input id="def-yt-gametitle" type="text" value="PUBG MOBILE" class="w-full py-1.5 px-2.5 rounded-lg bg-[#0e172a] border border-[#1e2f52] text-xs text-white focus:outline-none font-mono">
+                                </div>
+                                <div class="space-y-1">
+                                    <label class="text-[11px] text-[#8da2c0] font-semibold">Made for Kids (COPPA):</label>
+                                    <select id="def-yt-coppa" class="w-full py-1.5 px-2 rounded-lg bg-[#0e172a] border border-[#1e2f52] text-xs text-white focus:outline-none">
+                                        <option value="false" selected>No (Not made for kids)</option>
+                                        <option value="true">Yes (Made for kids)</option>
+                                    </select>
+                                </div>
+                                <div class="space-y-1">
+                                    <label class="text-[11px] text-[#8da2c0] font-semibold">Age Restriction (18+):</label>
+                                    <select id="def-yt-age" class="w-full py-1.5 px-2 rounded-lg bg-[#0e172a] border border-[#1e2f52] text-xs text-white focus:outline-none">
+                                        <option value="false" selected>No (Open to all ages)</option>
+                                        <option value="true">Yes (18+ only)</option>
+                                    </select>
+                                </div>
                             </div>
-                            <div class="space-y-1">
-                                <label class="text-[11px] text-[#8da2c0] font-semibold">COPPA (Made for Kids):</label>
-                                <select id="def-yt-coppa" class="w-full py-1.5 px-2 rounded-lg bg-[#0e172a] border border-[#1e2f52] text-xs text-white focus:outline-none">
-                                    <option value="false" selected>No (Not for kids)</option>
-                                    <option value="true">Yes (Made for kids)</option>
-                                </select>
+                        </div>
+
+                        <!-- Section C: Language, Licensing & Shorts Remixing -->
+                        <div class="p-3.5 rounded-xl bg-[#060a14] border border-[#1b2b48] space-y-3">
+                            <span class="text-[11px] font-bold text-cyan-400 uppercase tracking-wider flex items-center space-x-1.5">
+                                <span>🌐</span>
+                                <span>3. Language, Licensing &amp; Shorts Remixing</span>
+                            </span>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                                <div class="space-y-1">
+                                    <label class="text-[11px] text-[#8da2c0] font-semibold">Video Language:</label>
+                                    <select id="def-yt-lang" class="w-full py-1.5 px-2 rounded-lg bg-[#0e172a] border border-[#1e2f52] text-xs text-white focus:outline-none">
+                                        <option value="ur" selected>Urdu (اردو)</option>
+                                        <option value="en">English (US)</option>
+                                        <option value="hi">Hindi (हिन्दी)</option>
+                                        <option value="pa">Punjabi (پنجابی)</option>
+                                        <option value="ar">Arabic (العربية)</option>
+                                        <option value="zxx">None (Music / No spoken audio)</option>
+                                    </select>
+                                </div>
+                                <div class="space-y-1">
+                                    <label class="text-[11px] text-[#8da2c0] font-semibold">Title &amp; Desc Language:</label>
+                                    <select id="def-yt-metalang" class="w-full py-1.5 px-2 rounded-lg bg-[#0e172a] border border-[#1e2f52] text-xs text-white focus:outline-none">
+                                        <option value="en" selected>English</option>
+                                        <option value="ur">Urdu (اردو)</option>
+                                        <option value="hi">Hindi (हिन्दी)</option>
+                                    </select>
+                                </div>
+                                <div class="space-y-1">
+                                    <label class="text-[11px] text-[#8da2c0] font-semibold">License:</label>
+                                    <select id="def-yt-license" class="w-full py-1.5 px-2 rounded-lg bg-[#0e172a] border border-[#1e2f52] text-xs text-white focus:outline-none">
+                                        <option value="youtube" selected>Standard YouTube License</option>
+                                        <option value="creativeCommon">Creative Commons - Attribution</option>
+                                    </select>
+                                </div>
+                                <div class="space-y-1">
+                                    <label class="text-[11px] text-[#8da2c0] font-semibold">Shorts Remixing:</label>
+                                    <select id="def-yt-remix" class="w-full py-1.5 px-2 rounded-lg bg-[#0e172a] border border-[#1e2f52] text-xs text-white focus:outline-none">
+                                        <option value="all" selected>Allow Video &amp; Audio</option>
+                                        <option value="audio_only">Allow Audio Only</option>
+                                        <option value="none">Don't Allow Remixing</option>
+                                    </select>
+                                </div>
                             </div>
-                            <div class="space-y-1">
-                                <label class="text-[11px] text-[#8da2c0] font-semibold">Video Category:</label>
-                                <input id="def-yt-category" type="text" value="20 (Gaming)" disabled class="w-full py-1.5 px-2 rounded-lg bg-[#0a101f] border border-[#1e2f52] text-xs text-gray-400 font-mono">
+                        </div>
+
+                        <!-- Section D: Visibility, Comments & Distribution -->
+                        <div class="p-3.5 rounded-xl bg-[#060a14] border border-[#1b2b48] space-y-3">
+                            <span class="text-[11px] font-bold text-cyan-400 uppercase tracking-wider flex items-center space-x-1.5">
+                                <span>🔔</span>
+                                <span>4. Visibility, Comments &amp; Distribution</span>
+                            </span>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                <div class="space-y-1">
+                                    <label class="text-[11px] text-[#8da2c0] font-semibold">Default Visibility:</label>
+                                    <select id="def-yt-privacy" class="w-full py-1.5 px-2 rounded-lg bg-[#0e172a] border border-[#1e2f52] text-xs text-white focus:outline-none">
+                                        <option value="public">Public</option>
+                                        <option value="unlisted" selected>Unlisted (Safe Preview)</option>
+                                        <option value="private">Private</option>
+                                    </select>
+                                </div>
+                                <div class="space-y-1">
+                                    <label class="text-[11px] text-[#8da2c0] font-semibold">Comments Moderation:</label>
+                                    <select id="def-yt-comments" class="w-full py-1.5 px-2 rounded-lg bg-[#0e172a] border border-[#1e2f52] text-xs text-white focus:outline-none">
+                                        <option value="hold_review" selected>Hold inappropriate comments for review</option>
+                                        <option value="allow_all">Allow all comments</option>
+                                        <option value="disable">Disable comments</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2 border-t border-[#1a2948] text-xs text-[#cbd5e1]">
+                                <label class="flex items-center space-x-2 cursor-pointer">
+                                    <input type="checkbox" id="def-yt-notify" checked class="rounded text-red-500">
+                                    <span>Notify Subscribers Feed</span>
+                                </label>
+                                <label class="flex items-center space-x-2 cursor-pointer">
+                                    <input type="checkbox" id="def-yt-embed" checked class="rounded text-red-500">
+                                    <span>Allow Embedding</span>
+                                </label>
+                                <label class="flex items-center space-x-2 cursor-pointer">
+                                    <input type="checkbox" id="def-yt-likes" checked class="rounded text-red-500">
+                                    <span>Show Like Counts</span>
+                                </label>
                             </div>
                         </div>
                     </div>
@@ -4013,16 +4124,23 @@
                         <!-- Platform Form Areas (Scrollable) -->
                         <div class="flex-1 overflow-y-auto space-y-3 pr-1 min-h-0">
                             
-                            <!-- YouTube Form -->
-                            <div id="studio-form-yt" class="space-y-3">
+                            <!-- YouTube Form with All Studio Options -->
+                            <div id="studio-form-yt" class="space-y-4">
                                 <div class="space-y-1">
                                     <label class="text-[11px] text-[#8da2c0] font-semibold">Video Title:</label>
                                     <input id="studio-yt-title" type="text" oninput="updateStudioActiveField('title', this.value)" class="w-full py-2 px-3 rounded-lg bg-[#0e172a] border border-[#1e2f52] text-xs text-white focus:border-red-500 focus:outline-none font-mono">
                                 </div>
+
                                 <div class="space-y-1">
                                     <label class="text-[11px] text-[#8da2c0] font-semibold">Video Description &amp; Hashtags:</label>
-                                    <textarea id="studio-yt-desc" rows="4" oninput="updateStudioActiveField('description', this.value)" class="w-full py-2 px-3 rounded-lg bg-[#0e172a] border border-[#1e2f52] text-xs text-[#cbd5e1] focus:border-red-500 focus:outline-none font-mono"></textarea>
+                                    <textarea id="studio-yt-desc" rows="3" oninput="updateStudioActiveField('description', this.value)" class="w-full py-2 px-3 rounded-lg bg-[#0e172a] border border-[#1e2f52] text-xs text-[#cbd5e1] focus:border-red-500 focus:outline-none font-mono"></textarea>
                                 </div>
+
+                                <div class="space-y-1">
+                                    <label class="text-[11px] text-[#8da2c0] font-semibold">Tags / Keywords (Comma-separated):</label>
+                                    <input id="studio-yt-tags" type="text" oninput="updateStudioActiveField('tags', this.value)" class="w-full py-1.5 px-3 rounded-lg bg-[#0e172a] border border-[#1e2f52] text-xs text-[#cbd5e1] focus:border-red-500 focus:outline-none font-mono">
+                                </div>
+
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                                     <div class="space-y-1">
                                         <label class="text-[11px] text-[#8da2c0] font-semibold">Playlist Attachment:</label>
@@ -4034,11 +4152,78 @@
                                         <label class="text-[11px] text-[#8da2c0] font-semibold">Visibility:</label>
                                         <select id="studio-yt-privacy" onchange="updateStudioActiveField('privacy', this.value)" class="w-full py-1.5 px-2 rounded-lg bg-[#0e172a] border border-[#1e2f52] text-xs text-white focus:outline-none">
                                             <option value="public">Public</option>
-                                            <option value="unlisted">Unlisted</option>
+                                            <option value="unlisted">Unlisted (Safe Preview)</option>
                                             <option value="private">Private</option>
                                         </select>
                                     </div>
                                 </div>
+
+                                <!-- Advanced YouTube Studio Options Dropdown/Accordion -->
+                                <details class="p-3 rounded-xl bg-[#060a14] border border-[#1b2b48] space-y-3 cursor-pointer">
+                                    <summary class="text-xs font-bold text-cyan-400 select-none flex items-center justify-between">
+                                        <span>⚙️ Advanced YouTube Studio Options (Language, COPPA, Licensing, Comments)</span>
+                                        <span class="text-[10px] text-[#8da2c0] font-normal">Click to expand</span>
+                                    </summary>
+
+                                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 pt-3 border-t border-[#1b2b48]">
+                                        <div class="space-y-1">
+                                            <label class="text-[10px] text-[#8da2c0] font-semibold">Video Language:</label>
+                                            <select id="studio-yt-lang" onchange="updateStudioActiveField('lang', this.value)" class="w-full py-1.5 px-2 rounded bg-[#0e172a] border border-[#1e2f52] text-xs text-white focus:outline-none">
+                                                <option value="ur">Urdu (اردو)</option>
+                                                <option value="en">English (US)</option>
+                                                <option value="hi">Hindi (हिन्दी)</option>
+                                                <option value="pa">Punjabi (پنجابی)</option>
+                                                <option value="ar">Arabic (العربية)</option>
+                                                <option value="zxx">None (Music / No spoken audio)</option>
+                                            </select>
+                                        </div>
+                                        <div class="space-y-1">
+                                            <label class="text-[10px] text-[#8da2c0] font-semibold">Made for Kids (COPPA):</label>
+                                            <select id="studio-yt-coppa" onchange="updateStudioActiveField('coppa', this.value)" class="w-full py-1.5 px-2 rounded bg-[#0e172a] border border-[#1e2f52] text-xs text-white focus:outline-none">
+                                                <option value="false">No (Not for kids)</option>
+                                                <option value="true">Yes (Made for kids)</option>
+                                            </select>
+                                        </div>
+                                        <div class="space-y-1">
+                                            <label class="text-[10px] text-[#8da2c0] font-semibold">License:</label>
+                                            <select id="studio-yt-license" onchange="updateStudioActiveField('license', this.value)" class="w-full py-1.5 px-2 rounded bg-[#0e172a] border border-[#1e2f52] text-xs text-white focus:outline-none">
+                                                <option value="youtube">Standard YouTube License</option>
+                                                <option value="creativeCommon">Creative Commons - Attribution</option>
+                                            </select>
+                                        </div>
+                                        <div class="space-y-1">
+                                            <label class="text-[10px] text-[#8da2c0] font-semibold">Shorts Remixing:</label>
+                                            <select id="studio-yt-remix" onchange="updateStudioActiveField('remix', this.value)" class="w-full py-1.5 px-2 rounded bg-[#0e172a] border border-[#1e2f52] text-xs text-white focus:outline-none">
+                                                <option value="all">Allow Video &amp; Audio</option>
+                                                <option value="audio_only">Allow Audio Only</option>
+                                                <option value="none">Don't Allow</option>
+                                            </select>
+                                        </div>
+                                        <div class="space-y-1">
+                                            <label class="text-[10px] text-[#8da2c0] font-semibold">Comments:</label>
+                                            <select id="studio-yt-comments" onchange="updateStudioActiveField('comments', this.value)" class="w-full py-1.5 px-2 rounded bg-[#0e172a] border border-[#1e2f52] text-xs text-white focus:outline-none">
+                                                <option value="hold_review">Hold for review</option>
+                                                <option value="allow_all">Allow all</option>
+                                                <option value="disable">Disable</option>
+                                            </select>
+                                        </div>
+                                        <div class="space-y-1">
+                                            <label class="text-[10px] text-[#8da2c0] font-semibold">Game Title:</label>
+                                            <input id="studio-yt-gametitle" type="text" value="PUBG MOBILE" oninput="updateStudioActiveField('gameTitle', this.value)" class="w-full py-1.5 px-2 rounded bg-[#0e172a] border border-[#1e2f52] text-xs text-white font-mono">
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="flex items-center space-x-4 pt-2 border-t border-[#1b2b48] text-xs text-[#cbd5e1]">
+                                        <label class="flex items-center space-x-1.5 cursor-pointer">
+                                            <input type="checkbox" id="studio-yt-notify" onchange="updateStudioActiveField('notifySubs', this.checked)" checked class="rounded text-red-500">
+                                            <span>Notify Subscribers</span>
+                                        </label>
+                                        <label class="flex items-center space-x-1.5 cursor-pointer">
+                                            <input type="checkbox" id="studio-yt-embed" onchange="updateStudioActiveField('embeddable', this.checked)" checked class="rounded text-red-500">
+                                            <span>Allow Embedding</span>
+                                        </label>
+                                    </div>
+                                </details>
                             </div>
 
                             <!-- TikTok Form -->
@@ -9762,8 +9947,20 @@
                 checkYt: true,
                 ytTitle: '🔥 {title} | {ign} #PUBGMOBILE',
                 ytDesc: '🎮 Player: {ign}\n⚡ Powered by THUNDER Studio — Automated PUBG Mobile Esports Montage Engine\n🔥 Daily pro squad wipes, clutches, and 60FPS highlights!\n\n#PUBGMobile #PUBG #Shorts #Gaming #Highlights #PUBGEsports #Clutch #M416',
+                ytTags: 'pubg mobile, montage, clutches, squad wipe, pubg esports, maakthunder, 60fps, pubg highlights',
+                ytCategory: '20',
+                ytGameTitle: 'PUBG MOBILE',
                 ytPrivacy: 'unlisted',
                 ytCoppa: 'false',
+                ytAge: 'false',
+                ytLang: 'ur',
+                ytMetaLang: 'en',
+                ytLicense: 'youtube',
+                ytRemix: 'all',
+                ytComments: 'hold_review',
+                ytNotify: true,
+                ytEmbed: true,
+                ytLikes: true,
                 ytPlaylist: '',
                 checkTt: true,
                 ttCaption: 'Rate this squad wipe 1-10! 🔥 {ign} in action #pubgmobile #pubg #foryou #fyp #gaming #esports #pubglover',
@@ -9777,14 +9974,26 @@
 
         function loadPresetFormValues() {
             const p = getGlobalPresets();
-            const setVal = (id, val) => { const el = document.getElementById(id); if (el) el.value = val; };
-            const setChk = (id, val) => { const el = document.getElementById(id); if (el) el.checked = !!val; };
+            const setVal = (id, val) => { const el = document.getElementById(id); if (el && val !== undefined) el.value = val; };
+            const setChk = (id, val) => { const el = document.getElementById(id); if (el && val !== undefined) el.checked = !!val; };
 
             setChk('def-check-yt', p.checkYt);
             setVal('def-yt-title', p.ytTitle);
             setVal('def-yt-desc', p.ytDesc);
-            setVal('def-yt-privacy', p.ytPrivacy);
+            setVal('def-yt-tags', p.ytTags);
+            setVal('def-yt-category', p.ytCategory);
+            setVal('def-yt-gametitle', p.ytGameTitle);
             setVal('def-yt-coppa', p.ytCoppa);
+            setVal('def-yt-age', p.ytAge);
+            setVal('def-yt-lang', p.ytLang);
+            setVal('def-yt-metalang', p.ytMetaLang);
+            setVal('def-yt-license', p.ytLicense);
+            setVal('def-yt-remix', p.ytRemix);
+            setVal('def-yt-comments', p.ytComments);
+            setChk('def-yt-notify', p.ytNotify);
+            setChk('def-yt-embed', p.ytEmbed);
+            setChk('def-yt-likes', p.ytLikes);
+            setVal('def-yt-privacy', p.ytPrivacy);
             setVal('def-yt-playlist', p.ytPlaylist);
 
             setChk('def-check-tt', p.checkTt);
@@ -9805,8 +10014,20 @@
                 checkYt: getChk('def-check-yt', true),
                 ytTitle: getVal('def-yt-title', '🔥 {title} | {ign} #PUBGMOBILE'),
                 ytDesc: getVal('def-yt-desc', ''),
-                ytPrivacy: getVal('def-yt-privacy', 'unlisted'),
+                ytTags: getVal('def-yt-tags', 'pubg mobile, gaming'),
+                ytCategory: getVal('def-yt-category', '20'),
+                ytGameTitle: getVal('def-yt-gametitle', 'PUBG MOBILE'),
                 ytCoppa: getVal('def-yt-coppa', 'false'),
+                ytAge: getVal('def-yt-age', 'false'),
+                ytLang: getVal('def-yt-lang', 'ur'),
+                ytMetaLang: getVal('def-yt-metalang', 'en'),
+                ytLicense: getVal('def-yt-license', 'youtube'),
+                ytRemix: getVal('def-yt-remix', 'all'),
+                ytComments: getVal('def-yt-comments', 'hold_review'),
+                ytNotify: getChk('def-yt-notify', true),
+                ytEmbed: getChk('def-yt-embed', true),
+                ytLikes: getChk('def-yt-likes', true),
+                ytPrivacy: getVal('def-yt-privacy', 'unlisted'),
                 ytPlaylist: getVal('def-yt-playlist', ''),
                 checkTt: getChk('def-check-tt', true),
                 ttCaption: getVal('def-tt-caption', ''),
@@ -9818,7 +10039,7 @@
             };
 
             localStorage.setItem(STORAGE_KEY_PRESETS_V3, JSON.stringify(data));
-            showEsportsAlert('Platform Default Presets successfully saved! All queued videos will inherit these settings.', 'PRESETS SAVED', '✓');
+            showEsportsAlert('All YouTube Studio, TikTok & Facebook presets successfully saved!', 'PRESETS SAVED', '✓');
         }
 
         // 4. Initialize Auto Upload View
@@ -9982,9 +10203,20 @@
                     // YouTube Config
                     title: (v.title && v.title.length > 3) ? v.title : presets.ytTitle.replace('{title}', cleanName).replace('{ign}', ign),
                     description: (v.description && v.description.length > 5) ? v.description : presets.ytDesc.replace('{ign}', ign),
-                    tags: v.tags || 'pubg mobile, maakthunder, gaming, clutch',
+                    tags: v.tags || presets.ytTags || 'pubg mobile, montage, clutches, 60fps, esports',
                     playlistId: presets.ytPlaylist || '',
                     privacy: presets.ytPrivacy || 'unlisted',
+                    category: presets.ytCategory || '20',
+                    gameTitle: presets.ytGameTitle || 'PUBG MOBILE',
+                    coppa: presets.ytCoppa || 'false',
+                    age: presets.ytAge || 'false',
+                    lang: presets.ytLang || 'ur',
+                    metaLang: presets.ytMetaLang || 'en',
+                    license: presets.ytLicense || 'youtube',
+                    remix: presets.ytRemix || 'all',
+                    comments: presets.ytComments || 'hold_review',
+                    notifySubs: (presets.ytNotify !== undefined) ? presets.ytNotify : true,
+                    embeddable: (presets.ytEmbed !== undefined) ? presets.ytEmbed : true,
                     // TikTok Config
                     ttCaption: presets.ttCaption.replace('{title}', cleanName).replace('{ign}', ign),
                     ttDuet: presets.ttDuet,
@@ -10255,16 +10487,23 @@
             if (chkFb) chkFb.checked = !!item.targetFacebook;
 
             // Form Fields
-            const ytTitle = document.getElementById('studio-yt-title');
-            const ytDesc = document.getElementById('studio-yt-desc');
-            const ytPrivacy = document.getElementById('studio-yt-privacy');
+            const setVal = (id, val) => { const el = document.getElementById(id); if (el && val !== undefined) el.value = val; };
+            const setChk = (id, val) => { const el = document.getElementById(id); if (el && val !== undefined) el.checked = !!val; };
+
+            setVal('studio-yt-title', item.title || '');
+            setVal('studio-yt-desc', item.description || '');
+            setVal('studio-yt-tags', item.tags || '');
+            setVal('studio-yt-privacy', item.privacy || 'unlisted');
+            setVal('studio-yt-lang', item.lang || 'ur');
+            setVal('studio-yt-coppa', item.coppa || 'false');
+            setVal('studio-yt-license', item.license || 'youtube');
+            setVal('studio-yt-remix', item.remix || 'all');
+            setVal('studio-yt-comments', item.comments || 'hold_review');
+            setVal('studio-yt-gametitle', item.gameTitle || 'PUBG MOBILE');
+            setChk('studio-yt-notify', item.notifySubs !== false);
+            setChk('studio-yt-embed', item.embeddable !== false);
+
             const ytPlaylist = document.getElementById('studio-yt-playlist');
-
-            if (ytTitle) ytTitle.value = item.title || '';
-            if (ytDesc) ytDesc.value = item.description || '';
-            if (ytPrivacy) ytPrivacy.value = item.privacy || 'unlisted';
-
-            // Sync playlist options from presets or channel
             if (ytPlaylist) {
                 const defPlSel = document.getElementById('def-yt-playlist');
                 if (defPlSel) ytPlaylist.innerHTML = defPlSel.innerHTML;
@@ -10348,6 +10587,17 @@
                     v.tags = current.tags;
                     v.playlistId = current.playlistId;
                     v.privacy = current.privacy;
+                    v.category = current.category;
+                    v.gameTitle = current.gameTitle;
+                    v.coppa = current.coppa;
+                    v.age = current.age;
+                    v.lang = current.lang;
+                    v.metaLang = current.metaLang;
+                    v.license = current.license;
+                    v.remix = current.remix;
+                    v.comments = current.comments;
+                    v.notifySubs = current.notifySubs;
+                    v.embeddable = current.embeddable;
                     v.ttCaption = current.ttCaption;
                     v.ttDuet = current.ttDuet;
                     v.ttStitch = current.ttStitch;
@@ -10426,7 +10676,14 @@
                                 description: item.description,
                                 tags: item.tags || 'pubg mobile, gaming',
                                 privacy: item.privacy || 'unlisted',
-                                playlist_id: item.playlistId || null
+                                playlist_id: item.playlistId || null,
+                                category: item.category || '20',
+                                game_title: item.gameTitle || 'PUBG MOBILE',
+                                coppa: item.coppa || 'false',
+                                lang: item.lang || 'ur',
+                                license: item.license || 'youtube',
+                                embeddable: (item.embeddable !== false),
+                                notify_subscribers: (item.notifySubs !== false)
                             }).then(startRes => {
                                 if (startRes && (startRes.status === 'auth_required' || startRes.status === 'error')) {
                                     resolve(startRes);

@@ -1404,7 +1404,7 @@ class ThunderStudioAPI:
                         safe_msg = json.dumps(msg)
                         self._window.evaluate_js(f"if (window.onUploadProgress) window.onUploadProgress({int(pct)}, {safe_msg});")
                 
-                res = self._execute_resumable_upload(token, video_path, title, description, tags, privacy, playlist_id, _prog)
+                res = self._execute_resumable_upload(token, video_path, title, description, tags, privacy, playlist_id, _prog, payload)
                 if self._window:
                     safe_res = json.dumps(res)
                     self._window.evaluate_js(f"if (window.onUploadComplete) window.onUploadComplete({safe_res});")
@@ -1423,7 +1423,7 @@ class ThunderStudioAPI:
         self._upload_cancelled = True
         return {"status": "ok"}
 
-    def _execute_resumable_upload(self, token, video_path, title, description, tags, privacy="unlisted", playlist_id=None, progress_cb=None):
+    def _execute_resumable_upload(self, token, video_path, title, description, tags, privacy="unlisted", playlist_id=None, progress_cb=None, extra_payload=None):
         """Performs resumable chunked upload to YouTube Data API v3."""
         import requests
         if getattr(self, "_upload_cancelled", False):
@@ -1446,16 +1446,28 @@ class ThunderStudioAPI:
             "X-Upload-Content-Type": "video/mp4",
             "X-Upload-Content-Length": str(file_size)
         }
+        extra = extra_payload or {}
+        coppa_val = str(extra.get("coppa", "false")).lower() in ["true", "yes"]
+        license_val = "creativeCommon" if extra.get("license") == "creativeCommon" else "youtube"
+        embeddable_val = bool(extra.get("embeddable", True))
+        lang_val = extra.get("lang") or "ur"
+        category_val = str(extra.get("category") or "20")
+
         body = {
             "snippet": {
                 "title": title[:100],
                 "description": description[:5000],
                 "tags": tag_list[:500],
-                "categoryId": "20"
+                "categoryId": category_val,
+                "defaultLanguage": "en",
+                "defaultAudioLanguage": lang_val
             },
             "status": {
                 "privacyStatus": privacy.lower() if privacy in ["unlisted", "public", "private"] else "unlisted",
-                "selfDeclaredMadeForKids": False
+                "selfDeclaredMadeForKids": coppa_val,
+                "embeddable": embeddable_val,
+                "license": license_val,
+                "publicStatsViewable": True
             }
         }
         
